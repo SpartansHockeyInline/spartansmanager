@@ -282,7 +282,7 @@ tbody td{padding:11px 14px;vertical-align:middle;}
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay">
   <div class="lbox">
-    <div class="llogo">⚔️</div>
+    <div class="llogo" style="font-size:14px;font-family:'Syne',sans-serif;font-weight:800;letter-spacing:1px;">SM</div>
     <div class="ltitle">Spartans Manager</div>
     <div class="lsub">Accedi con Google per sincronizzare automaticamente i dati su Drive.</div>
     <button class="lgbtn" onclick="driveSignIn()">
@@ -309,7 +309,7 @@ tbody td{padding:11px 14px;vertical-align:middle;}
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div id="sidebar-logo">
-    <div class="logo-icon">⚔️</div>
+    <div class="logo-icon" style="font-size:12px;font-family:'Syne',sans-serif;font-weight:800;letter-spacing:1px;">SM</div>
     <div class="logo-text">Spartans<div class="logo-sub">Hockey In-Line</div></div>
   </div>
   <div id="sidebar-toggle" onclick="toggleSidebar()">◀</div>
@@ -318,6 +318,7 @@ tbody td{padding:11px 14px;vertical-align:middle;}
       <div class="nav-section-label">Generale</div>
       <div class="nav-item active" onclick="showPage('dashboard')"><span class="ni">📊</span><span class="nl">Dashboard</span></div>
       <div class="nav-item" onclick="showPage('calendario')"><span class="ni">📅</span><span class="nl">Calendario</span></div>
+      <div class="nav-item" onclick="showPage('stagioni')"><span class="ni">🏆</span><span class="nl">Stagioni</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Struttura</div>
@@ -355,12 +356,15 @@ tbody td{padding:11px 14px;vertical-align:middle;}
 
     <!-- ═══ DASHBOARD ═══ -->
     <div class="page active" id="page-dashboard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:12px;color:var(--text2);">🏆 Stagione corrente: <strong id="ds-stagione-label" style="color:var(--gold);">—</strong></div>
+        <button class="btn btn-s btn-sm" onclick="showPage('stagioni')">Gestisci stagioni →</button>
+      </div>
       <div class="stats-grid">
         <div class="stat-card sc-red"><div class="sl">Soci totali</div><div class="sv" id="ds-soci">0</div><div class="ss">Anagrafiche</div></div>
         <div class="stat-card sc-green"><div class="sl">Abbonamenti attivi</div><div class="sv" id="ds-abb">0</div><div class="ss">In corso</div></div>
         <div class="stat-card sc-blue"><div class="sl">Squadre/Corsi</div><div class="sv" id="ds-corsi">0</div><div class="ss">Attivi</div></div>
         <div class="stat-card sc-yellow"><div class="sl">Prossima gara</div><div class="sv" id="ds-gara" style="font-size:14px">—</div><div class="ss" id="ds-gara-sub"></div></div>
-        <div class="stat-card sc-purple"><div class="sl">Tecnici</div><div class="sv" id="ds-maestri">0</div><div class="ss">Registrati</div></div>
       </div>
       <!-- SCADENZE -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
@@ -404,7 +408,38 @@ tbody td{padding:11px 14px;vertical-align:middle;}
       <div class="cal-grid" id="cal-body" style="margin-top:4px;"></div>
     </div>
 
-    <!-- ═══ STRUTTURA ═══ -->
+    <!-- ═══ STAGIONI ═══ -->
+    <div class="page" id="page-stagioni">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
+        <!-- Stagione corrente -->
+        <div class="card">
+          <div class="card-title">🏆 Stagione corrente</div>
+          <div id="stagione-corrente-card"></div>
+        </div>
+        <!-- Nuova stagione / modifica -->
+        <div class="card" id="card-nuova-stagione">
+          <div class="card-title">➕ Nuova stagione</div>
+          <div class="fg c1">
+            <div class="fgroup"><label>Etichetta stagione</label><input class="fi" id="st-label" placeholder="es. Stagione 2026/2027"></div>
+            <div class="fgroup"><label>Data inizio</label><input class="fi" id="st-inizio" type="date"></div>
+            <div class="fgroup"><label>Data fine</label><input class="fi" id="st-fine" type="date"></div>
+            <div class="fgroup"><label>Note</label><textarea class="fta" id="st-note" placeholder="Obiettivi, note..."></textarea></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:14px;gap:8px;">
+            <button class="btn btn-s" onclick="resetStagioneForm()">Annulla</button>
+            <button class="btn btn-p" onclick="saveStagione()">💾 Salva stagione</button>
+          </div>
+        </div>
+      </div>
+      <!-- Storico stagioni chiuse -->
+      <div class="card" style="margin-top:0;">
+        <div class="card-title">📚 Storico stagioni</div>
+        <div id="storico-stagioni"></div>
+      </div>
+    </div>
+
+    <!-- ═══ DETTAGLIO STAGIONE CHIUSA ═══ -->
+    <div class="page" id="page-stagione-detail"></div>
     <div class="page" id="page-struttura">
       <div class="tabs">
         <div class="tab active" onclick="showTab('struttura','ids')">🪪 IDS</div>
@@ -862,6 +897,34 @@ tbody td{padding:11px 14px;vertical-align:middle;}
   </div>
 </div>
 
+<!-- MODAL CHIUSURA STAGIONE -->
+<div class="mo" id="modal-chiudi-stagione">
+  <div class="modal">
+    <div class="mh"><div class="mt">🔒 Chiudi stagione corrente</div><button class="mc" onclick="closeModal('modal-chiudi-stagione')">✕</button></div>
+    <div class="mb">
+      <div style="background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.3);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--gold);">
+        ⚠️ La stagione verrà archiviata con il riepilogo dei risultati. Dovrai poi attivare una nuova stagione.
+      </div>
+      <div class="fg c1">
+        <div class="fgroup"><label>Risultato sportivo</label><input class="fi" id="cs-risultato" placeholder="es. 3° posto campionato regionale"></div>
+        <div class="fgroup"><label>Gare disputate</label><input class="fi" id="cs-gare" type="number" placeholder="0"></div>
+        <div class="fgroup"><label>Vittorie / Pareggi / Sconfitte</label>
+          <div style="display:flex;gap:8px;">
+            <input class="fi" id="cs-vittorie" type="number" placeholder="V" style="flex:1;">
+            <input class="fi" id="cs-pareggi" type="number" placeholder="P" style="flex:1;">
+            <input class="fi" id="cs-sconfitte" type="number" placeholder="S" style="flex:1;">
+          </div>
+        </div>
+        <div class="fgroup"><label>Note di chiusura</label><textarea class="fta" id="cs-note" placeholder="Commento finale sulla stagione..."></textarea></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-s" onclick="closeModal('modal-chiudi-stagione')">Annulla</button>
+      <button class="btn btn-d" onclick="chiudiStagione()">🔒 Chiudi e archivia</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL RIPRISTINO BACKUP -->
 <div class="mo" id="modal-backup">
   <div class="modal">
@@ -916,8 +979,8 @@ function handleImport(e){
 }
 
 // ═══ NAV ══════════════════════════════════════════════════
-const pageTitles={dashboard:'Dashboard',calendario:'Calendario',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',impostazioni:'Impostazioni'};
-const pagesAdd=['anagrafiche','abbonamenti','corsi','impianti','maestri','amministrazione','calendario'];
+const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',impostazioni:'Impostazioni'};
+const pagesAdd=['anagrafiche','abbonamenti','corsi','impianti','maestri','amministrazione','calendario','stagioni'];
 
 function showPage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -929,6 +992,7 @@ function showPage(page){
   document.getElementById('topbar-add-btn').style.display=pagesAdd.includes(page)?'':'none';
   currentPage=page;
   if(page==='dashboard')renderDashboard();
+  if(page==='stagioni'){initStagioneDefault();renderStagioni();}
   if(page==='struttura')loadStrutturaForm();
   if(page==='anagrafiche')renderSoci();
   if(page==='abbonamenti'){renderPiani();renderAbbAttivi();}
@@ -1175,6 +1239,7 @@ function saveCorso(){
   const imp=iId?DB.impianti.find(x=>x.id===iId):null;
   const obj={id:editingId||uid(),nome,tipo:document.getElementById('m-c-tipo').value,sport:document.getElementById('m-c-sport').value,maestroId:mId,maestroNome:m?`${m.cognome} ${m.nome}`:'',impiantoId:iId,impiantoNome:imp?.nome||'',max:parseInt(document.getElementById('m-c-max').value)||0,giorni:selectedGiorni,orariStr:getOrariString(),stato:document.getElementById('m-c-stato').value,note:document.getElementById('m-c-note').value,iscritti:editingId?(DB.corsi.find(x=>x.id===editingId)?.iscritti||0):0};
   if(editingId){const i=DB.corsi.findIndex(x=>x.id===editingId);if(i>-1)DB.corsi[i]=obj;}else DB.corsi.push(obj);
+  generateAllenamentiCorso(obj);
   saveDB();closeModal('modal-corso');renderCorsi();renderDashboard();initPresenze();toast('Salvato','success');
 }
 function renderCorsi(){
@@ -1391,11 +1456,14 @@ function salvaConvocazioni(){saveDB();closeModal('modal-convocazioni');toast('Co
 
 // ═══ DASHBOARD ════════════════════════════════════════════
 function renderDashboard(){
+  initStagioneDefault();
+  const curr=getStagioneCorrente();
+  const slEl=document.getElementById('ds-stagione-label');
+  if(slEl)slEl.textContent=curr?curr.label:'Nessuna stagione attiva';
   document.getElementById('ds-soci').textContent=DB.soci.length;
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('ds-abb').textContent=DB.abbonamenti.filter(a=>!a.scadenza||a.scadenza>=today).length;
   document.getElementById('ds-corsi').textContent=DB.corsi.filter(c=>c.stato==='attivo').length;
-  document.getElementById('ds-maestri').textContent=DB.maestri.length;
 
   // prossima gara
   const gare=DB.eventi.filter(e=>e.tipo==='gara'&&e.data>=today).sort((a,b)=>a.data.localeCompare(b.data));
@@ -1542,6 +1610,236 @@ function saveSocio() {
   toast(editingId ? 'Socio aggiornato' : 'Socio aggiunto', 'success');
 }
 
+// ═══ STAGIONI ═════════════════════════════════════════════
+function getStagioneCorrente() {
+  return DB.stagioni?.find(s => s.attiva) || null;
+}
+
+function initStagioneDefault() {
+  if (!DB.stagioni) DB.stagioni = [];
+  if (!DB.stagioniArchivio) DB.stagioniArchivio = [];
+  if (!DB.stagioni.find(s => s.attiva)) {
+    // Calcola stagione corrente automaticamente
+    const now = new Date();
+    const anno = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+    DB.stagioni.push({
+      id: uid(),
+      label: `Stagione ${anno}/${anno+1}`,
+      inizio: `${anno}-09-01`,
+      fine: `${anno+1}-06-30`,
+      note: '',
+      attiva: true,
+      creata: new Date().toISOString()
+    });
+  }
+}
+
+function saveStagione() {
+  const label = document.getElementById('st-label').value.trim();
+  const inizio = document.getElementById('st-inizio').value;
+  const fine = document.getElementById('st-fine').value;
+  if (!label || !inizio || !fine) { toast('Etichetta, inizio e fine obbligatori', 'error'); return; }
+  if (!DB.stagioni) DB.stagioni = [];
+  const obj = {
+    id: uid(), label, inizio, fine,
+    note: document.getElementById('st-note').value,
+    attiva: true, creata: new Date().toISOString()
+  };
+  // Disattiva le altre
+  DB.stagioni.forEach(s => s.attiva = false);
+  DB.stagioni.push(obj);
+  saveDB(); renderStagioni(); renderDashboard(); renderCalendar();
+  toast(`Stagione "${label}" attivata`, 'success');
+  resetStagioneForm();
+}
+
+function resetStagioneForm() {
+  ['st-label','st-inizio','st-fine','st-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  // Proponi default prossima stagione
+  const now = new Date();
+  const anno = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+  const next = anno + 1;
+  const el = document.getElementById('st-label');
+  if (el && !el.value) el.value = `Stagione ${next}/${next+1}`;
+  const si = document.getElementById('st-inizio');
+  if (si && !si.value) si.value = `${next}-09-01`;
+  const sf = document.getElementById('st-fine');
+  if (sf && !sf.value) sf.value = `${next+1}-06-30`;
+}
+
+function renderStagioni() {
+  initStagioneDefault();
+  const curr = getStagioneCorrente();
+  const card = document.getElementById('stagione-corrente-card');
+  if (card) {
+    if (curr) {
+      card.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--gold);">${curr.label}</div>
+          <div style="display:flex;gap:16px;font-size:13px;color:var(--text2);">
+            <span>📅 Inizio: <strong>${formatDate(curr.inizio)}</strong></span>
+            <span>🏁 Fine: <strong>${formatDate(curr.fine)}</strong></span>
+          </div>
+          ${curr.note ? `<div style="font-size:12px;color:var(--text2);font-style:italic;">${curr.note}</div>` : ''}
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+            <button class="btn btn-s btn-sm" onclick="editStagioneCorrente()">✏️ Modifica date</button>
+            <button class="btn btn-d btn-sm" onclick="document.getElementById('modal-chiudi-stagione').classList.add('open')">🔒 Chiudi stagione</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">
+            Gli allenamenti dei corsi attivi vengono generati automaticamente nel calendario per l'intera durata della stagione.
+          </div>
+        </div>`;
+    } else {
+      card.innerHTML = '<div class="empty"><div class="ei">🏆</div><p>Nessuna stagione attiva. Creane una.</p></div>';
+    }
+  }
+  // Storico
+  const storico = document.getElementById('storico-stagioni');
+  if (storico) {
+    const arch = DB.stagioniArchivio || [];
+    if (!arch.length) { storico.innerHTML = '<div class="empty"><div class="ei">📚</div><p>Nessuna stagione archiviata</p></div>'; return; }
+    storico.innerHTML = arch.slice().reverse().map(s => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;">
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:14px;">${s.label}</div>
+          <div style="font-size:11px;color:var(--text2);">${formatDate(s.inizio)} → ${formatDate(s.fine)}</div>
+          ${s.risultato ? `<div style="font-size:12px;color:var(--gold);margin-top:3px;">🏆 ${s.risultato}</div>` : ''}
+          ${s.gare ? `<div style="font-size:11px;color:var(--text2);">Gare: ${s.gare} · V:${s.vittorie||0} P:${s.pareggi||0} S:${s.sconfitte||0}</div>` : ''}
+        </div>
+        <button class="btn btn-s btn-sm" onclick="showStagioneDetail('${s.id}')">📋 Dettaglio</button>
+        <button class="btn btn-d btn-sm" onclick="deleteStagioneArchivio('${s.id}')">🗑️</button>
+      </div>`).join('');
+  }
+}
+
+function editStagioneCorrente() {
+  const curr = getStagioneCorrente(); if (!curr) return;
+  document.getElementById('st-label').value = curr.label;
+  document.getElementById('st-inizio').value = curr.inizio;
+  document.getElementById('st-fine').value = curr.fine;
+  document.getElementById('st-note').value = curr.note || '';
+  document.getElementById('card-nuova-stagione').querySelector('.card-title').textContent = '✏️ Modifica stagione corrente';
+}
+
+function chiudiStagione() {
+  const curr = getStagioneCorrente(); if (!curr) return;
+  if (!DB.stagioniArchivio) DB.stagioniArchivio = [];
+  const archivio = {
+    ...curr,
+    attiva: false,
+    chiusa: new Date().toISOString(),
+    risultato: document.getElementById('cs-risultato').value,
+    gare: parseInt(document.getElementById('cs-gare').value) || 0,
+    vittorie: parseInt(document.getElementById('cs-vittorie').value) || 0,
+    pareggi: parseInt(document.getElementById('cs-pareggi').value) || 0,
+    sconfitte: parseInt(document.getElementById('cs-sconfitte').value) || 0,
+    noteChiusura: document.getElementById('cs-note').value,
+    // Snapshot riepilogo
+    snapshot: {
+      soci: DB.soci.length,
+      eventi: DB.eventi.length,
+      entrate: DB.entrate.reduce((s,e) => s+e.importo, 0),
+      uscite: DB.uscite.reduce((s,u) => s+u.importo, 0),
+    }
+  };
+  DB.stagioniArchivio.push(archivio);
+  DB.stagioni = DB.stagioni.filter(s => !s.attiva);
+  // Reset dati operativi (mantieni soci e struttura)
+  DB.eventi = []; DB.abbonamenti = []; DB.presenze = {};
+  DB.entrate = []; DB.uscite = [];
+  closeModal('modal-chiudi-stagione');
+  saveDB(); renderStagioni(); renderDashboard(); renderCalendar();
+  toast(`Stagione "${archivio.label}" archiviata`, 'success');
+}
+
+function showStagioneDetail(id) {
+  const s = (DB.stagioniArchivio||[]).find(x => x.id === id); if (!s) return;
+  const page = document.getElementById('page-stagione-detail');
+  page.innerHTML = `
+    <button class="btn btn-s btn-sm" onclick="showPage('stagioni')" style="margin-bottom:16px;">← Torna alle stagioni</button>
+    <div class="card">
+      <div class="card-title">📋 ${s.label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="background:var(--surface2);border-radius:8px;padding:14px;">
+          <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📅 Periodo</div>
+          <div>${formatDate(s.inizio)} → ${formatDate(s.fine)}</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:14px;">
+          <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">👥 Soci</div>
+          <div style="font-size:22px;font-weight:700;">${s.snapshot?.soci||0}</div>
+        </div>
+        ${s.risultato ? `<div style="background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.3);border-radius:8px;padding:14px;grid-column:span 2;">
+          <div style="font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">🏆 Risultato sportivo</div>
+          <div style="font-weight:600;">${s.risultato}</div>
+          ${s.gare ? `<div style="margin-top:6px;font-size:13px;color:var(--text2);">Gare: ${s.gare} · <span style="color:var(--green);">V:${s.vittorie}</span> · P:${s.pareggi} · <span style="color:var(--red);">S:${s.sconfitte}</span></div>` : ''}
+        </div>` : ''}
+        <div style="background:var(--surface2);border-radius:8px;padding:14px;">
+          <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">💰 Finanziario</div>
+          <div style="font-size:13px;">Entrate: <strong style="color:var(--green);">€${(s.snapshot?.entrate||0).toFixed(2)}</strong></div>
+          <div style="font-size:13px;">Uscite: <strong style="color:var(--red);">€${(s.snapshot?.uscite||0).toFixed(2)}</strong></div>
+          <div style="font-size:13px;margin-top:4px;">Saldo: <strong style="color:${(s.snapshot?.entrate||0)-(s.snapshot?.uscite||0)>=0?'var(--green)':'var(--red)'};">€${((s.snapshot?.entrate||0)-(s.snapshot?.uscite||0)).toFixed(2)}</strong></div>
+        </div>
+        ${s.noteChiusura ? `<div style="background:var(--surface2);border-radius:8px;padding:14px;">
+          <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">📝 Note</div>
+          <div style="font-size:13px;">${s.noteChiusura}</div>
+        </div>` : ''}
+      </div>
+    </div>`;
+  showPage('stagione-detail');
+}
+
+function deleteStagioneArchivio(id) {
+  if (!confirm('Eliminare questa stagione archiviata?')) return;
+  DB.stagioniArchivio = (DB.stagioniArchivio||[]).filter(x => x.id !== id);
+  saveDB(); renderStagioni(); toast('Eliminata', 'warning');
+}
+
+// ═══ ALLENAMENTI AUTOMATICI DAL CALENDARIO ════════════════
+// Genera eventi di allenamento per un corso nella stagione attiva
+function generateAllenamentiCorso(corso) {
+  const stagione = getStagioneCorrente();
+  if (!stagione || !corso.giorni || !Object.keys(corso.giorni).length) return;
+
+  const GIORNI_MAP = { 'Domenica':0,'Lunedì':1,'Martedì':2,'Mercoledì':3,'Giovedì':4,'Venerdì':5,'Sabato':6 };
+  const start = new Date(stagione.inizio);
+  const end = new Date(stagione.fine);
+
+  // Rimuovi eventi automatici precedenti per questo corso
+  DB.eventi = DB.eventi.filter(e => !(e.autoCorsoId === corso.id));
+
+  Object.entries(corso.giorni).forEach(([giorno, orario]) => {
+    const dayNum = GIORNI_MAP[giorno];
+    if (dayNum === undefined) return;
+    const cur = new Date(start);
+    // Avanza fino al primo giorno giusto
+    while (cur.getDay() !== dayNum) cur.setDate(cur.getDate() + 1);
+    while (cur <= end) {
+      const dateStr = cur.toISOString().slice(0, 10);
+      const oraStr = orario?.ora || '';
+      DB.eventi.push({
+        id: uid(),
+        titolo: corso.nome,
+        tipo: 'allenamento',
+        data: dateStr,
+        ora: oraStr,
+        luogo: corso.impiantoNome || '',
+        squadraId: corso.id,
+        squadraNome: corso.nome,
+        note: '',
+        convocati: [],
+        autoCorsoId: corso.id // marker per identificare eventi automatici
+      });
+      cur.setDate(cur.getDate() + 7);
+    }
+  });
+}
+
+function regenerateAllAllenamenti() {
+  // Rigenera tutti gli allenamenti automatici per tutti i corsi attivi
+  DB.corsi.filter(c => c.stato === 'attivo').forEach(c => generateAllenamentiCorso(c));
+  saveDB();
+}
+
 // ═══ BACKUP AUTOMATICO ════════════════════════════════════
 const BACKUP_KEY = 'spartans_backups';
 const MAX_BACKUPS = 3;
@@ -1683,7 +1981,9 @@ function toast(msg,type='success'){
   setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(40px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3200);
 }
 function renderAll(){
+  initStagioneDefault();
   updateBadges();renderDashboard();
+  if(currentPage==='stagioni')renderStagioni();
   if(currentPage==='struttura')loadStrutturaForm();
   if(currentPage==='anagrafiche')renderSoci();
   if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}
