@@ -275,6 +275,22 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 
 @media(max-width:900px){:root{--sidebar:190px;}.fg{grid-template-columns:1fr;}.fgroup.s2,.fgroup.s3,.fgroup.s4{grid-column:span 1;}.cal-grid{grid-template-columns:repeat(7,1fr);}.conv-grid{grid-template-columns:1fr;}}
 @media(max-width:640px){#content{padding:14px;}}
+/* SORT HEADERS */
+.sortable{cursor:pointer;user-select:none;}
+.sortable:hover{color:var(--gold);}
+.sort-asc::after{content:' ▲';font-size:9px;color:var(--gold);}
+.sort-desc::after{content:' ▼';font-size:9px;color:var(--gold);}
+/* ROW NUMBER */
+.row-num{font-size:11px;color:var(--text3);font-weight:600;text-align:center;min-width:28px;}
+/* CHANGELOG */
+.cl-entry{border-left:3px solid var(--gold);padding:10px 14px;margin-bottom:14px;background:var(--surface2);border-radius:0 8px 8px 0;}
+.cl-ver{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--gold);margin-bottom:6px;}
+.cl-section{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin:8px 0 4px;}
+.cl-item{font-size:12px;color:var(--text);padding:2px 0 2px 12px;position:relative;line-height:1.5;}
+.cl-item::before{content:'·';position:absolute;left:3px;color:var(--gold);}
+/* FOOTER CLICKABLE */
+#app-footer{cursor:pointer!important;pointer-events:all!important;transition:color var(--tr);}
+#app-footer:hover{color:var(--gold)!important;}
 </style>
 </head>
 <body>
@@ -478,13 +494,40 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <!-- ═══ ANAGRAFICHE ═══ -->
     <div class="page" id="page-anagrafiche">
       <div class="sbar">
-        <div class="sinp"><span class="sico">🔍</span><input type="text" placeholder="Cerca nome, email, tessera..." oninput="filterSoci(this.value)"></div>
-        <select class="fsel" id="filter-tipologia" onchange="filterSoci()" style="max-width:170px;"><option value="">Tutte le tipologie</option></select>
+        <div class="sinp"><span class="sico">🔍</span><input type="text" id="filter-search" placeholder="Cerca nome, email, tessera..." oninput="applyFilters()"></div>
+        <select class="fsel" id="filter-tipologia" onchange="applyFilters()" style="max-width:155px;"><option value="">Tutte le tipologie</option></select>
+        <select class="fsel" id="filter-corso" onchange="applyFilters()" style="max-width:150px;"><option value="">Tutti i corsi</option></select>
+        <select class="fsel" id="filter-stato" onchange="applyFilters()" style="max-width:130px;">
+          <option value="">Tutti gli stati</option>
+          <option value="attivo">Attivo</option>
+          <option value="sospeso">Sospeso</option>
+          <option value="inattivo">Inattivo</option>
+        </select>
+        <select class="fsel" id="filter-eta" onchange="applyFilters()" style="max-width:120px;">
+          <option value="">Tutte le età</option>
+          <option value="under12">Under 12</option>
+          <option value="under18">Under 18</option>
+          <option value="over18">Over 18</option>
+        </select>
+        <button class="btn btn-s btn-sm" onclick="resetFilters()">✕ Reset</button>
         <button class="btn btn-p btn-sm" onclick="openModalSocio()">+ Nuovo socio</button>
-        <button class="btn btn-s btn-sm" onclick="openModal('modal-import-sheets','')">📊 Importa da Sheets</button>
+        <button class="btn btn-s btn-sm" onclick="openModal('modal-import-sheets','')">📊 Sheets</button>
       </div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">Totale visualizzati: <strong id="soci-count">0</strong></div>
       <div class="tw"><table>
-        <thead><tr><th>Socio</th><th>Tipologia</th><th>Corso/Squadra</th><th>Email</th><th>Tessera ASD</th><th>Tessera FISR</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <thead><tr>
+          <th class="row-num">#</th>
+          <th class="sortable" onclick="sortSoci('cognome')" id="th-cognome">Socio <span></span></th>
+          <th class="sortable" onclick="sortSoci('tipologia')" id="th-tipologia">Tipologia <span></span></th>
+          <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso/Squadra <span></span></th>
+          <th class="sortable" onclick="sortSoci('email')" id="th-email">Email <span></span></th>
+          <th class="sortable" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd">Tessera ASD <span></span></th>
+          <th class="sortable" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
+          <th>Assicurazione</th>
+          <th>Abbonamento</th>
+          <th class="sortable" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
+          <th>Azioni</th>
+        </tr></thead>
         <tbody id="soci-tbody"></tbody>
       </table></div>
     </div>
@@ -600,7 +643,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer">Spartans Manager · v2.1 · Maggio 2026</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v2.2 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -673,6 +716,21 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="fgroup"><label>Scad. Tessera ASD</label><input class="fi" id="m-s-tessera-asd-scad" type="date"></div>
         <div class="fgroup"><label>N° Tessera FISR</label><input class="fi" id="m-s-tessera-fisr" placeholder="FISR-12345"></div>
         <div class="fgroup"><label>Scad. Tessera FISR</label><input class="fi" id="m-s-tessera-fisr-scad" type="date"></div>
+      </div>
+      <!-- Assicurazione -->
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 10px;">🛡️ Assicurazione</div>
+      <div class="fg">
+        <div class="fgroup"><label>Stato assicurazione</label>
+          <select class="fsel" id="m-s-assicurazione">
+            <option value="">Non specificato</option>
+            <option value="pagata">✅ Pagata</option>
+            <option value="non-pagata">❌ Non pagata</option>
+            <option value="in-attesa">⏳ In attesa</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Scadenza assicurazione</label><input class="fi" id="m-s-assicurazione-scad" type="date"></div>
+        <div class="fgroup"><label>Compagnia / Ente</label><input class="fi" id="m-s-assicurazione-ente" placeholder="es. FISR, AXA..."></div>
+        <div class="fgroup"><label>N° Polizza</label><input class="fi" id="m-s-assicurazione-polizza" placeholder="es. POL-2025-001"></div>
       </div>
       <!-- Note -->
       <div style="margin-top:12px;"><div class="fgroup"><label>Note</label><textarea class="fta" id="m-s-note"></textarea></div></div>
@@ -938,6 +996,99 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   </div>
 </div>
 
+<!-- MODAL CHANGELOG -->
+<div class="mo" id="modal-changelog">
+  <div class="modal wide">
+    <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
+    <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v2.2 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Filtri avanzati anagrafiche</strong> — filtra per tipologia, corso/squadra, stato e fascia d'età (under 12, under 18, over 18)</div>
+        <div class="cl-item"><strong>Ordinamento colonne</strong> — click sull'intestazione ordina alfabeticamente o per data, crescente/decrescente, su tutte le colonne</div>
+        <div class="cl-item"><strong>Numerazione righe fissa</strong> — contatore progressivo indipendente da filtri e ordinamento; contatore totale visualizzati</div>
+        <div class="cl-item"><strong>Assicurazione socio</strong> — campo dedicato con stato (pagata/non pagata/in attesa), scadenza, compagnia e numero polizza</div>
+        <div class="cl-item"><strong>Badge abbonamento automatico</strong> — in tabella anagrafiche mostra se il socio ha un abbonamento attivo nel mese corrente</div>
+        <div class="cl-item"><strong>Changelog in-app</strong> — cliccando sulla versione nel footer si apre questo modal</div>
+        <div class="cl-section">Modifiche</div>
+        <div class="cl-item">Tabella anagrafiche: aggiunta colonna Assicurazione e colonna Abbonamento corrente</div>
+        <div class="cl-item">Reset filtri con pulsante dedicato</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v2.1 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Sincronizzazione live</strong> — polling ogni 30s su Drive; aggiornamento automatico da altri dispositivi con notifica</div>
+        <div class="cl-item"><strong>Foto profilo</strong> — caricabile in anagrafica, sostituisce le iniziali ovunque (max 2MB)</div>
+        <div class="cl-item"><strong>Dati biometrici e taglie</strong> — altezza, peso, taglia guanti/ginocchiere/gomitiere/abbigliamento, numero maglia</div>
+        <div class="cl-item"><strong>Corso nell'anagrafica</strong> — associazione diretta socio↔corso al momento dell'inserimento</div>
+        <div class="cl-item"><strong>Icona impianti</strong> — selettore visivo con 12 icone</div>
+        <div class="cl-item"><strong>Modifica movimenti</strong> — pulsante ✏️ su ogni entrata/uscita</div>
+        <div class="cl-item"><strong>Importazione da Google Sheets</strong> — via URL CSV pubblico o incolla diretta</div>
+        <div class="cl-item"><strong>Versioning nel footer</strong> — numero versione e data sempre visibili</div>
+        <div class="cl-section">Modifiche</div>
+        <div class="cl-item">Dashboard: sostituiti "ultimi soci" con "prossimi eventi"</div>
+        <div class="cl-item">Palette colori sociali Spartans (nero, rosso, oro)</div>
+        <div class="cl-section">Fix</div>
+        <div class="cl-item">Corretti errori JS per variabili duplicate (convEventoId, restoreTargetIdx)</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v2.0</div>
+        <div class="cl-section">Riscrittura completa</div>
+        <div class="cl-item">Titolo "Spartans Manager" e favicon</div>
+        <div class="cl-item">11 tipologie socio + 2 tessere con scadenze (ASD e FISR)</div>
+        <div class="cl-item">Allegati multipli per ogni anagrafica (doc. identità, visite mediche ecc.)</div>
+        <div class="cl-item">Corsi con selezione multipla giorni e orari inizio/fine</div>
+        <div class="cl-item">Registro presenze con toggle e storico sessioni</div>
+        <div class="cl-item">Calendario mensile con gare e allenamenti automatici</div>
+        <div class="cl-item">Convocazioni per gare</div>
+        <div class="cl-item">Stagioni sportive con archiviazione e snapshot</div>
+        <div class="cl-item">Backup automatico con 3 snapshot (localStorage + Drive)</div>
+        <div class="cl-item">Scadenze in dashboard con alert colorati</div>
+        <div class="cl-item">Fix scroll su tutti i dispositivi</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v1.4</div>
+        <div class="cl-section">Fix</div>
+        <div class="cl-item">Rimosso monkey-patch di showPage che bloccava l'app al caricamento</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v1.3</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item">Tema chiaro/scuro con preferenza salvata per dispositivo</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v1.2</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item">Deploy su GitHub Pages — accesso da qualsiasi dispositivo</div>
+        <div class="cl-item">Configurazione OAuth per mascio79.github.io</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v1.1</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item">Integrazione Google Drive — sincronizzazione automatica su appDataFolder</div>
+        <div class="cl-item">Export/Import JSON come backup di emergenza</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v1.0 — Versione iniziale</div>
+        <div class="cl-section">Funzionalità base</div>
+        <div class="cl-item">La mia struttura, Anagrafiche, Abbonamenti, Corsi, Impianti, Maestri, Amministrazione</div>
+        <div class="cl-item">Persistenza localStorage + export/import JSON</div>
+        <div class="cl-item">UI con sidebar collassabile, tema scuro, modali, toast</div>
+      </div>
+
+    </div>
+    <div class="mf"><button class="btn btn-p" onclick="closeModal('modal-changelog')">Chiudi</button></div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
@@ -1078,6 +1229,10 @@ function saveSocio(){
     tGomitiere:document.getElementById('m-s-t-gomitiere').value,tAbbigliamento:document.getElementById('m-s-t-abbigliamento').value,
     tesseraAsd:document.getElementById('m-s-tessera-asd').value,tesseraAsdScad:document.getElementById('m-s-tessera-asd-scad').value,
     tesseraFisr:document.getElementById('m-s-tessera-fisr').value,tesseraFisrScad:document.getElementById('m-s-tessera-fisr-scad').value,
+    assicurazione:document.getElementById('m-s-assicurazione').value,
+    assicurazioneScad:document.getElementById('m-s-assicurazione-scad').value,
+    assicurazioneEnte:document.getElementById('m-s-assicurazione-ente').value,
+    assicurazionePolizza:document.getElementById('m-s-assicurazione-polizza').value,
     note:document.getElementById('m-s-note').value,
     foto:tempFoto||(editingId?DB.soci.find(x=>x.id===editingId)?.foto:''),
     documenti:tempDocs,
@@ -1093,7 +1248,7 @@ function editSocio(id){
   document.getElementById('modal-socio-title').textContent='Modifica socio';
   const fw=document.getElementById('m-s-foto-wrap');
   fw.innerHTML=s.foto?`<img src="${s.foto}">`:`<span id="m-s-foto-initials">${(s.nome?s.nome[0]:'')+(s.cognome?s.cognome[0]:'')}</span>`;
-  const map={nome:'m-s-nome',cognome:'m-s-cognome',email:'m-s-email',tel:'m-s-tel',nascita:'m-s-nascita',cf:'m-s-cf',luogo:'m-s-luogo',sesso:'m-s-sesso',indirizzo:'m-s-indirizzo',tipologia:'m-s-tipologia',stato:'m-s-stato',maglia:'m-s-maglia',altezza:'m-s-altezza',peso:'m-s-peso',tGuanti:'m-s-t-guanti',tGinocchiere:'m-s-t-ginocchiere',tGomitiere:'m-s-t-gomitiere',tAbbigliamento:'m-s-t-abbigliamento',tesseraAsd:'m-s-tessera-asd',tesseraAsdScad:'m-s-tessera-asd-scad',tesseraFisr:'m-s-tessera-fisr',tesseraFisrScad:'m-s-tessera-fisr-scad',note:'m-s-note'};
+  const map={nome:'m-s-nome',cognome:'m-s-cognome',email:'m-s-email',tel:'m-s-tel',nascita:'m-s-nascita',cf:'m-s-cf',luogo:'m-s-luogo',sesso:'m-s-sesso',indirizzo:'m-s-indirizzo',tipologia:'m-s-tipologia',stato:'m-s-stato',maglia:'m-s-maglia',altezza:'m-s-altezza',peso:'m-s-peso',tGuanti:'m-s-t-guanti',tGinocchiere:'m-s-t-ginocchiere',tGomitiere:'m-s-t-gomitiere',tAbbigliamento:'m-s-t-abbigliamento',tesseraAsd:'m-s-tessera-asd',tesseraAsdScad:'m-s-tessera-asd-scad',tesseraFisr:'m-s-tessera-fisr',tesseraFisrScad:'m-s-tessera-fisr-scad',assicurazione:'m-s-assicurazione',assicurazioneScad:'m-s-assicurazione-scad',assicurazioneEnte:'m-s-assicurazione-ente',assicurazionePolizza:'m-s-assicurazione-polizza',note:'m-s-note'};
   populateCorseSel();
   Object.entries(map).forEach(([k,id2])=>{const el=document.getElementById(id2);if(el)el.value=s[k]||'';});
   document.getElementById('m-s-corso').value=s.corsoId||'';
@@ -1103,25 +1258,110 @@ function editSocio(id){
 
 function deleteSocio(id){if(!confirm('Eliminare questo socio?'))return;DB.soci=DB.soci.filter(x=>x.id!==id);saveDB();renderSoci();updateBadges();renderDashboard();toast('Eliminato','warning');}
 
-function renderSoci(filter=''){
+// ═══ SOCI — SORT & FILTER ═════════════════════════════════
+let sociSortKey='cognome', sociSortDir='asc';
+
+function applyFilters(){
+  const search=document.getElementById('filter-search')?.value||'';
+  const tip=document.getElementById('filter-tipologia')?.value||'';
+  const corso=document.getElementById('filter-corso')?.value||'';
+  const stato=document.getElementById('filter-stato')?.value||'';
+  const eta=document.getElementById('filter-eta')?.value||'';
+  renderSoci(search,tip,corso,stato,eta);
+}
+
+function resetFilters(){
+  ['filter-search','filter-tipologia','filter-corso','filter-stato','filter-eta'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderSoci();
+}
+
+function sortSoci(key){
+  if(sociSortKey===key)sociSortDir=sociSortDir==='asc'?'desc':'asc';
+  else{sociSortKey=key;sociSortDir='asc';}
+  // Aggiorna header visivo
+  document.querySelectorAll('.sortable').forEach(th=>{th.classList.remove('sort-asc','sort-desc');});
+  const th=document.getElementById('th-'+key);
+  if(th)th.classList.add(sociSortDir==='asc'?'sort-asc':'sort-desc');
+  applyFilters();
+}
+
+function getAbbStatoSocio(socioId){
+  const today=new Date().toISOString().slice(0,10);
+  const abbAttivo=DB.abbonamenti.find(a=>a.socioId===socioId&&(!a.scadenza||a.scadenza>=today));
+  if(abbAttivo)return{stato:'attivo',nome:abbAttivo.pianoNome,scad:abbAttivo.scadenza};
+  const abbScaduto=DB.abbonamenti.filter(a=>a.socioId===socioId).sort((a,b)=>b.scadenza?.localeCompare(a.scadenza||'')||0)[0];
+  if(abbScaduto)return{stato:'scaduto',nome:abbScaduto.pianoNome,scad:abbScaduto.scadenza};
+  return null;
+}
+
+function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilter=''){
   const tb=document.getElementById('soci-tbody');
+
+  // Popola select tipologia
   const tf=document.getElementById('filter-tipologia');
-  if(tf&&!tf.querySelector('option[value="atleta"]'))tf.innerHTML='<option value="">Tutte le tipologie</option>'+Object.entries(TIPOLOGIE).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
-  const tip=tf?tf.value:'';
-  let list=DB.soci;
-  if(filter)list=list.filter(s=>`${s.nome} ${s.cognome} ${s.email||''} ${s.tesseraAsd||''} ${s.tesseraFisr||''}`.toLowerCase().includes(filter.toLowerCase()));
-  if(tip)list=list.filter(s=>s.tipologia===tip);
-  if(!list.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">👥</div><h3>Nessun socio</h3></div></td></tr>`;return;}
-  tb.innerHTML=list.map(s=>`<tr>
-    <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
-    <td><span class="badge ${TIP_COL[s.tipologia]||'bgy'}">${TIPOLOGIE[s.tipologia]||s.tipologia||'—'}</span></td>
-    <td>${s.corsoNome||'—'}</td>
-    <td>${s.email||'—'}</td>
-    <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
-    <td>${s.tesseraFisr||'—'}${s.tesseraFisrScad?`<div style="font-size:10px;color:${scadColor(s.tesseraFisrScad)};">scad.${formatDate(s.tesseraFisrScad)}</div>`:''}</td>
-    <td><span class="badge ${s.stato==='attivo'?'bg':s.stato==='sospeso'?'bo':'bgy'}">${s.stato||'attivo'}</span></td>
-    <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button><button class="bico" onclick="deleteSocio('${s.id}')">🗑️</button></div></td>
-  </tr>`).join('');
+  if(tf&&!tf.querySelector('option[value="atleta"]'))
+    tf.innerHTML='<option value="">Tutte le tipologie</option>'+Object.entries(TIPOLOGIE).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+
+  // Popola select corso
+  const cf=document.getElementById('filter-corso');
+  if(cf&&!cf.querySelector('option[value]')||DB.corsi.length!==cf?.querySelectorAll('option[value]').length)
+    if(cf)cf.innerHTML='<option value="">Tutti i corsi</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+
+  const now=new Date();
+  let list=DB.soci.filter(s=>{
+    if(filter&&!`${s.nome} ${s.cognome} ${s.email||''} ${s.tesseraAsd||''} ${s.tesseraFisr||''}`.toLowerCase().includes(filter.toLowerCase()))return false;
+    if(tipFilter&&s.tipologia!==tipFilter)return false;
+    if(corsoFilter&&s.corsoId!==corsoFilter)return false;
+    if(statoFilter&&(s.stato||'attivo')!==statoFilter)return false;
+    if(etaFilter&&s.nascita){
+      const eta=Math.floor((now-new Date(s.nascita))/31557600000);
+      if(etaFilter==='under12'&&eta>=12)return false;
+      if(etaFilter==='under18'&&(eta<12||eta>=18))return false;
+      if(etaFilter==='over18'&&eta<18)return false;
+    }
+    return true;
+  });
+
+  // Ordinamento
+  list.sort((a,b)=>{
+    let va=a[sociSortKey]||'',vb=b[sociSortKey]||'';
+    if(sociSortKey==='cognome'){va=`${a.cognome||''} ${a.nome||''}`.toLowerCase();vb=`${b.cognome||''} ${b.nome||''}`.toLowerCase();}
+    const cmp=va.toString().localeCompare(vb.toString(),'it');
+    return sociSortDir==='asc'?cmp:-cmp;
+  });
+
+  // Contatore
+  const cnt=document.getElementById('soci-count');
+  if(cnt)cnt.textContent=list.length;
+
+  if(!list.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty"><div class="ei">👥</div><h3>Nessun socio trovato</h3></div></td></tr>`;return;}
+
+  tb.innerHTML=list.map((s,idx)=>{
+    const abb=getAbbStatoSocio(s.id);
+    const abbBadge=abb
+      ?`<span class="badge ${abb.stato==='attivo'?'bg':'br'}">${abb.stato==='attivo'?'✓ '+abb.pianoNome:'✗ Scaduto'}</span>`
+      :`<span class="badge bgy">Nessuno</span>`;
+    const assicBadge=s.assicurazione==='pagata'
+      ?`<span class="badge bg">✓ Pagata${s.assicurazioneScad?`<br><span style="font-size:9px;">scad.${formatDate(s.assicurazioneScad)}</span>`:''}</span>`
+      :s.assicurazione==='non-pagata'
+      ?`<span class="badge br">✗ Non pagata</span>`
+      :s.assicurazione==='in-attesa'
+      ?`<span class="badge by">⏳ In attesa</span>`
+      :`<span class="badge bgy">—</span>`;
+    return`<tr>
+      <td class="row-num">${idx+1}</td>
+      <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
+      <td><span class="badge ${TIP_COL[s.tipologia]||'bgy'}">${TIPOLOGIE[s.tipologia]||s.tipologia||'—'}</span></td>
+      <td>${s.corsoNome||'—'}</td>
+      <td>${s.email||'—'}</td>
+      <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
+      <td>${s.tesseraFisr||'—'}${s.tesseraFisrScad?`<div style="font-size:10px;color:${scadColor(s.tesseraFisrScad)};">scad.${formatDate(s.tesseraFisrScad)}</div>`:''}</td>
+      <td>${assicBadge}</td>
+      <td>${abbBadge}</td>
+      <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}">${s.stato||'attivo'}</span></td>
+      <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button><button class="bico" onclick="deleteSocio('${s.id}')">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
 }
 function filterSoci(v=''){renderSoci(v);}
 

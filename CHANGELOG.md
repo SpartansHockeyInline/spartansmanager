@@ -2,6 +2,118 @@
 
 ---
 
+## v2.2 · Maggio 2026
+
+### Nuove funzionalità
+- **Filtri avanzati anagrafiche** — filtra per tipologia, corso/squadra, stato (attivo/sospeso/inattivo) e fascia d'età (under 12, under 18, over 18); pulsante reset filtri
+- **Ordinamento colonne** — click sull'intestazione ordina alfabeticamente o per data, crescente/decrescente, su tutte le colonne della tabella anagrafiche
+- **Numerazione righe fissa** — contatore progressivo (#) indipendente da filtri e ordinamento; contatore "Totale visualizzati" sopra la tabella
+- **Assicurazione socio** — campo dedicato nella scheda anagrafica con stato (pagata/non pagata/in attesa), data scadenza, compagnia/ente e numero polizza
+- **Badge abbonamento automatico** — la tabella anagrafiche mostra se il socio ha un abbonamento attivo nel mese corrente, calcolato automaticamente dalla sezione Abbonamenti
+- **Changelog in-app** — cliccando sulla versione nel footer si apre il modal con lo storico completo delle versioni
+
+### Modifiche
+- Tabella anagrafiche: aggiunte colonne Assicurazione e Abbonamento corrente
+- Footer versione reso cliccabile con indicatore ℹ️
+
+---
+
+## v2.1 · Maggio 2026
+
+### Nuove funzionalità
+- **Sincronizzazione live tra dispositivi** — polling automatico ogni 30 secondi su Google Drive; aggiornamento automatico con notifica visiva
+- **Foto profilo** — caricabile in anagrafica (max 2MB); sostituisce le iniziali ovunque
+- **Dati biometrici e taglie** — altezza, peso, taglia guanti/ginocchiere/gomitiere/abbigliamento, numero maglia gara
+- **Corso/squadra nell'anagrafica** — associazione diretta socio↔corso al momento dell'inserimento
+- **Icona impianti** — selettore visivo con 12 icone
+- **Modifica movimenti** — pulsante ✏️ su ogni entrata/uscita in amministrazione
+- **Importazione massiva da Google Sheets** — via URL CSV pubblico o incolla diretta
+- **Versioning nel footer** — numero versione e data di rilascio sempre visibili
+
+### Modifiche
+- Dashboard: sostituiti "ultimi soci aggiunti" con "prossimi eventi"
+- Palette colori sociali Spartans (nero, rosso, bianco, oro)
+- Linea decorativa rosso→oro→rosso sotto il topbar
+
+### Fix
+- Corretti errori JavaScript per dichiarazioni duplicate di `convEventoId` e `restoreTargetIdx`
+- Gestione versioni standardizzata
+
+---
+
+## v2.0
+
+### Riscrittura completa
+- Titolo "Spartans Manager" e favicon
+- 11 tipologie socio + 2 tessere con scadenze (ASD e FISR)
+- Allegati multipli per ogni anagrafica (doc. identità, visite mediche ecc.)
+- Corsi con selezione multipla giorni e orari inizio/fine per ciascuno
+- Registro presenze con toggle e storico sessioni
+- Calendario mensile con gare (rosso) e allenamenti (blu)
+- Convocazioni per gare con gestione rosa
+- Stagioni sportive con archiviazione, snapshot e storico
+- Allenamenti automatici nel calendario dai corsi attivi
+- Backup automatico con 3 snapshot (localStorage + Drive)
+- Scadenze in dashboard con alert colorati a 30 giorni
+- Fix scroll su tutti i dispositivi (mobile, tablet, desktop)
+
+---
+
+## v1.4
+
+### Fix
+- Rimosso monkey-patch di `showPage` che bloccava l'intera applicazione al caricamento
+- Logica pagina Impostazioni integrata direttamente nella funzione `showPage` originale
+
+---
+
+## v1.3
+
+### Nuove funzionalità
+- Tema chiaro/scuro con selettore visivo nella sezione Impostazioni
+- Preferenza tema salvata in localStorage per dispositivo
+
+---
+
+## v1.2
+
+### Nuove funzionalità
+- Deploy su GitHub Pages — accesso da qualsiasi dispositivo su `https://mascio79.github.io/sportmanager`
+- Configurazione OAuth per origine `https://mascio79.github.io`
+- Account `spartanshockeyinline@gmail.com` aggiunto come utente di test OAuth
+
+---
+
+## v1.1
+
+### Nuove funzionalità
+- Integrazione Google Drive — login OAuth, sincronizzazione automatica su `appDataFolder`
+- Barra di stato con indicatore connessione (verde/giallo/rosso)
+- Token salvato in localStorage per sessioni successive
+- Export/Import JSON come backup di emergenza sempre disponibile
+
+---
+
+## v1.0 — Versione iniziale
+
+### Funzionalità base
+- La mia struttura (IDS, sport praticati, documenti, logo)
+- Anagrafiche soci con ricerca, stato, numero tessera
+- Abbonamenti con piani personalizzabili e assegnazione soci
+- Corsi e squadre con tecnico, impianto, giorno e orario
+- Impianti sportivi con tipo e capienza
+- Maestri/Tecnici con qualifica e disciplina
+- Amministrazione: entrate, uscite, saldo
+- Persistenza localStorage + export/import JSON
+- UI: sidebar collassabile, tema scuro, modali, toast, badge contatori
+
+---
+
+*Spartans Hockey In-Line — ASD Spartans Bari*
+
+
+---
+
 ## v2.1 · Maggio 2026
 
 ### Nuove funzionalità
