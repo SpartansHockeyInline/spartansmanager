@@ -2,6 +2,22 @@
 
 ---
 
+## v2.3 · Maggio 2026
+
+### Nuove funzionalità
+- **Storico presenze filtrato per mese e anno** — selettori mese e anno nello storico presenze per visualizzare singoli periodi di allenamento
+- **Ordinamento crescente date presenze** — lo storico è ordinato dal più vecchio al più recente (ordine cronologico)
+- **Riepilogo statistico storico presenze** — per ogni sessione: numero presenti, assenti, percentuale; riepilogo con totale sessioni e media presenti nel periodo filtrato
+- **Età anagrafica automatica** — campo calcolato automaticamente dalla data di nascita, non modificabile, visibile e ordinabile nella tabella anagrafiche
+- **Categoria FISR automatica** — calcolata dinamicamente in base all'anno di nascita e alla stagione sportiva attiva, secondo le norme ufficiali FISR Hockey Inline (CU n.044/2022): Primi Passi (2017+), Minihockey (2015-2016), Under 10 (2013-2014), Under 12 (2011-2012), Under 14 (2009-2010), Under 16 (2007-2008), Elite (2005-2006), Under 20 (2002-2004), Seniores (2001 e precedenti), Amatori
+- **Filtro per categoria FISR** — il selettore categorie usa le classificazioni ufficiali FISR; il calcolo si aggiorna automaticamente ad ogni cambio di stagione
+
+### Modifiche
+- Tabella anagrafiche: aggiunte colonne Età e Categoria FISR (ordinabili)
+- Storico presenze: aggiunto riepilogo con media e percentuale presenze per sessione
+
+---
+
 ## v2.2 · Maggio 2026
 
 ### Nuove funzionalità

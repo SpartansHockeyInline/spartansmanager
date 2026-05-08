@@ -503,11 +503,18 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <option value="sospeso">Sospeso</option>
           <option value="inattivo">Inattivo</option>
         </select>
-        <select class="fsel" id="filter-eta" onchange="applyFilters()" style="max-width:120px;">
-          <option value="">Tutte le età</option>
+        <select class="fsel" id="filter-eta" onchange="applyFilters()" style="max-width:150px;">
+          <option value="">Tutte le categorie</option>
+          <option value="primi-passi">Primi Passi</option>
+          <option value="minihockey">Minihockey</option>
+          <option value="under10">Under 10</option>
           <option value="under12">Under 12</option>
-          <option value="under18">Under 18</option>
-          <option value="over18">Over 18</option>
+          <option value="under14">Under 14</option>
+          <option value="under16">Under 16</option>
+          <option value="elite">Elite (U18)</option>
+          <option value="under20">Under 20</option>
+          <option value="seniores">Seniores</option>
+          <option value="amatori">Amatori</option>
         </select>
         <button class="btn btn-s btn-sm" onclick="resetFilters()">✕ Reset</button>
         <button class="btn btn-p btn-sm" onclick="openModalSocio()">+ Nuovo socio</button>
@@ -518,6 +525,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <thead><tr>
           <th class="row-num">#</th>
           <th class="sortable" onclick="sortSoci('cognome')" id="th-cognome">Socio <span></span></th>
+          <th class="sortable" onclick="sortSoci('eta')" id="th-eta">Età <span></span></th>
+          <th class="sortable" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
           <th class="sortable" onclick="sortSoci('tipologia')" id="th-tipologia">Tipologia <span></span></th>
           <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso/Squadra <span></span></th>
           <th class="sortable" onclick="sortSoci('email')" id="th-email">Email <span></span></th>
@@ -566,8 +575,28 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div id="presenze-list"><div class="empty"><div class="ei">✅</div><h3>Seleziona corso e data</h3></div></div>
       </div>
       <div class="card">
-        <div class="card-title">📊 Storico</div>
-        <select class="fsel" id="storico-corso" onchange="renderStoricoPresenze()" style="max-width:210px;margin-bottom:12px;"><option value="">Seleziona corso...</option></select>
+        <div class="card-title">📊 Storico presenze</div>
+        <div style="display:flex;gap:9px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+          <select class="fsel" id="storico-corso" onchange="renderStoricoPresenze()" style="max-width:210px;"><option value="">Seleziona corso...</option></select>
+          <select class="fsel" id="storico-mese" onchange="renderStoricoPresenze()" style="max-width:160px;">
+            <option value="">Tutti i mesi</option>
+            <option value="01">Gennaio</option>
+            <option value="02">Febbraio</option>
+            <option value="03">Marzo</option>
+            <option value="04">Aprile</option>
+            <option value="05">Maggio</option>
+            <option value="06">Giugno</option>
+            <option value="07">Luglio</option>
+            <option value="08">Agosto</option>
+            <option value="09">Settembre</option>
+            <option value="10">Ottobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Dicembre</option>
+          </select>
+          <select class="fsel" id="storico-anno" onchange="renderStoricoPresenze()" style="max-width:120px;">
+            <option value="">Tutti gli anni</option>
+          </select>
+        </div>
         <div id="storico-presenze-list"></div>
       </div>
     </div>
@@ -643,7 +672,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v2.2 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v2.3 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1003,6 +1032,20 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v2.3 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Storico presenze filtrato per mese e anno</strong> — selettori mese e anno nello storico presenze per visualizzare singoli periodi</div>
+        <div class="cl-item"><strong>Ordinamento crescente date presenze</strong> — lo storico è ora ordinato dal più vecchio al più recente</div>
+        <div class="cl-item"><strong>Riepilogo statistico storico</strong> — numero sessioni, media presenti e percentuale per ogni data</div>
+        <div class="cl-item"><strong>Età anagrafica automatica</strong> — campo calcolato dalla data di nascita, non modificabile, visibile e ordinabile in tabella anagrafiche</div>
+        <div class="cl-item"><strong>Categoria FISR automatica</strong> — calcolata dinamicamente in base all'anno di nascita e alla stagione sportiva attiva, secondo le norme FISR Hockey Inline (CU n.044/2022): Primi Passi, Minihockey, Under 10, Under 12, Under 14, Under 16, Elite, Under 20, Seniores, Amatori</div>
+        <div class="cl-item"><strong>Filtro per categoria FISR</strong> — il selettore "Tutte le categorie" usa le categorie ufficiali FISR, con calcolo automatico che si aggiorna ad ogni nuova stagione</div>
+        <div class="cl-section">Modifiche</div>
+        <div class="cl-item">Tabella anagrafiche: aggiunte colonne Età e Categoria FISR</div>
+        <div class="cl-item">Storico presenze: aggiunto riepilogo con media e percentuale presenze</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v2.2 · Maggio 2026</div>
         <div class="cl-section">Nuove funzionalità</div>
         <div class="cl-item"><strong>Filtri avanzati anagrafiche</strong> — filtra per tipologia, corso/squadra, stato e fascia d'età (under 12, under 18, over 18)</div>
@@ -1258,6 +1301,52 @@ function editSocio(id){
 
 function deleteSocio(id){if(!confirm('Eliminare questo socio?'))return;DB.soci=DB.soci.filter(x=>x.id!==id);saveDB();renderSoci();updateBadges();renderDashboard();toast('Eliminato','warning');}
 
+// ═══ CATEGORIE FISR ═══════════════════════════════════════
+// Calcola la categoria FISR di un atleta in base all'anno di nascita
+// e alla stagione sportiva attiva (es. "2025/2026" → anno_ref = 2025)
+function getAnnoRefStagione(){
+  const curr=getStagioneCorrente();
+  if(curr?.label){
+    const m=curr.label.match(/(\d{4})/);
+    if(m)return parseInt(m[1]);
+  }
+  // Fallback: anno corrente (da settembre) o precedente
+  const now=new Date();
+  return now.getMonth()>=8?now.getFullYear():now.getFullYear()-1;
+}
+
+function getCategoriaFisr(annoNascita){
+  if(!annoNascita)return'—';
+  const anno=parseInt(annoNascita);
+  const ref=getAnnoRefStagione();
+  // Tabella FISR: offset rispetto all'anno di inizio stagione
+  if(anno<=ref-24)return'Seniores';
+  if(anno>=ref-23&&anno<=ref-21)return'Under 20';
+  if(anno>=ref-20&&anno<=ref-19)return'Elite';   // ELITE = U18 nel gergo comune
+  if(anno>=ref-18&&anno<=ref-17)return'Under 16';
+  if(anno>=ref-16&&anno<=ref-15)return'Under 14';
+  if(anno>=ref-14&&anno<=ref-13)return'Under 12';
+  if(anno>=ref-12&&anno<=ref-11)return'Under 10';
+  if(anno>=ref-10&&anno<=ref-9)return'Minihockey';
+  if(anno>=ref-8)return'Primi Passi';
+  return'—';
+}
+
+// Mappa categoria FISR → filtro HTML
+const FISR_FILTER_MAP={
+  'seniores':'Seniores','under20':'Under 20','elite':'Elite',
+  'under16':'Under 16','under14':'Under 14','under12':'Under 12',
+  'under10':'Under 10','minihockey':'Minihockey','primi-passi':'Primi Passi','amatori':'Amatori'
+};
+
+function getEtaAnagrafica(nascita){
+  if(!nascita)return null;
+  const oggi=new Date(),n=new Date(nascita);
+  let eta=oggi.getFullYear()-n.getFullYear();
+  if(oggi.getMonth()<n.getMonth()||(oggi.getMonth()===n.getMonth()&&oggi.getDate()<n.getDate()))eta--;
+  return eta;
+}
+
 // ═══ SOCI — SORT & FILTER ═════════════════════════════════
 let sociSortKey='cognome', sociSortDir='asc';
 
@@ -1314,43 +1403,55 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     if(corsoFilter&&s.corsoId!==corsoFilter)return false;
     if(statoFilter&&(s.stato||'attivo')!==statoFilter)return false;
     if(etaFilter&&s.nascita){
-      const eta=Math.floor((now-new Date(s.nascita))/31557600000);
-      if(etaFilter==='under12'&&eta>=12)return false;
-      if(etaFilter==='under18'&&(eta<12||eta>=18))return false;
-      if(etaFilter==='over18'&&eta<18)return false;
+      const annoNascita=parseInt(s.nascita.slice(0,4));
+      const catFisr=getCategoriaFisr(annoNascita);
+      const catTarget=FISR_FILTER_MAP[etaFilter];
+      if(catFisr!==catTarget)return false;
     }
     return true;
   });
 
+  // Calcola eta e categoria per ogni socio (per ordinamento e display)
+  const listaArricchita=list.map(s=>{
+    const eta=getEtaAnagrafica(s.nascita);
+    const annoNascita=s.nascita?parseInt(s.nascita.slice(0,4)):null;
+    const categoriaFisr=annoNascita?getCategoriaFisr(annoNascita):'—';
+    return{...s,eta,categoriaFisr};
+  });
+
   // Ordinamento
-  list.sort((a,b)=>{
-    let va=a[sociSortKey]||'',vb=b[sociSortKey]||'';
+  listaArricchita.sort((a,b)=>{
+    let va,vb;
     if(sociSortKey==='cognome'){va=`${a.cognome||''} ${a.nome||''}`.toLowerCase();vb=`${b.cognome||''} ${b.nome||''}`.toLowerCase();}
-    const cmp=va.toString().localeCompare(vb.toString(),'it');
+    else if(sociSortKey==='eta'){va=a.eta??999;vb=b.eta??999;}
+    else if(sociSortKey==='categoriaFisr'){va=a.categoriaFisr||'';vb=b.categoriaFisr||'';}
+    else{va=(a[sociSortKey]||'').toString().toLowerCase();vb=(b[sociSortKey]||'').toString().toLowerCase();}
+    const cmp=typeof va==='number'?va-vb:va.localeCompare(vb,'it');
     return sociSortDir==='asc'?cmp:-cmp;
   });
 
   // Contatore
   const cnt=document.getElementById('soci-count');
-  if(cnt)cnt.textContent=list.length;
+  if(cnt)cnt.textContent=listaArricchita.length;
 
-  if(!list.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty"><div class="ei">👥</div><h3>Nessun socio trovato</h3></div></td></tr>`;return;}
+  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="13"><div class="empty"><div class="ei">👥</div><h3>Nessun socio trovato</h3></div></td></tr>`;return;}
 
-  tb.innerHTML=list.map((s,idx)=>{
+  tb.innerHTML=listaArricchita.map((s,idx)=>{
     const abb=getAbbStatoSocio(s.id);
     const abbBadge=abb
       ?`<span class="badge ${abb.stato==='attivo'?'bg':'br'}">${abb.stato==='attivo'?'✓ '+abb.pianoNome:'✗ Scaduto'}</span>`
       :`<span class="badge bgy">Nessuno</span>`;
     const assicBadge=s.assicurazione==='pagata'
       ?`<span class="badge bg">✓ Pagata${s.assicurazioneScad?`<br><span style="font-size:9px;">scad.${formatDate(s.assicurazioneScad)}</span>`:''}</span>`
-      :s.assicurazione==='non-pagata'
-      ?`<span class="badge br">✗ Non pagata</span>`
-      :s.assicurazione==='in-attesa'
-      ?`<span class="badge by">⏳ In attesa</span>`
+      :s.assicurazione==='non-pagata'?`<span class="badge br">✗ Non pagata</span>`
+      :s.assicurazione==='in-attesa'?`<span class="badge by">⏳ In attesa</span>`
       :`<span class="badge bgy">—</span>`;
+    const etaDisplay=s.eta!==null&&s.eta!==undefined?`${s.eta} anni`:'—';
     return`<tr>
       <td class="row-num">${idx+1}</td>
       <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
+      <td style="font-weight:600;">${etaDisplay}</td>
+      <td><span class="badge bgold">${s.categoriaFisr}</span></td>
       <td><span class="badge ${TIP_COL[s.tipologia]||'bgy'}">${TIPOLOGIE[s.tipologia]||s.tipologia||'—'}</span></td>
       <td>${s.corsoNome||'—'}</td>
       <td>${s.email||'—'}</td>
@@ -1424,11 +1525,71 @@ function editCorso(id){editingId=id;const c=DB.corsi.find(x=>x.id===id);if(!c)re
 function deleteCorso(id){if(!confirm('Eliminare?'))return;DB.corsi=DB.corsi.filter(x=>x.id!==id);DB.eventi=DB.eventi.filter(e=>e.autoCorsoId!==id);saveDB();renderCorsi();renderDashboard();}
 
 // ═══ PRESENZE ═════════════════════════════════════════════
-function initPresenze(){const s=document.getElementById('pres-corso'),ss=document.getElementById('storico-corso');const opts='<option value="">Seleziona corso...</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');s.innerHTML=opts;ss.innerHTML=opts;if(!document.getElementById('pres-data').value)document.getElementById('pres-data').value=new Date().toISOString().slice(0,10);}
-function loadPresenze(){const corsoId=document.getElementById('pres-corso').value,data=document.getElementById('pres-data').value;const cont=document.getElementById('presenze-list');if(!corsoId||!data){cont.innerHTML='<div class="empty"><div class="ei">✅</div><h3>Seleziona corso e data</h3></div>';return;}const corso=DB.corsi.find(x=>x.id===corsoId),key=`${corsoId}_${data}`;const saved=DB.presenze[key]||{};const atleti=DB.soci.filter(s=>s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId));if(!atleti.length){cont.innerHTML='<div class="empty"><div class="ei">👥</div><h3>Nessun atleta in questo corso</h3></div>';return;}cont.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">${corso?.nome||''} · ${formatDate(data)}</div>`+atleti.map(a=>{const present=saved[a.id]===true;return`<div class="presenza-row"><div class="ptoggle${present?' present':''}" onclick="togglePresenza('${a.id}',this,'${key}')"></div>${renderAvatar(a,28)}<span style="font-size:13px;">${a.nome} ${a.cognome}</span><span style="margin-left:auto;font-size:12px;color:${present?'var(--green)':'var(--text3)'};">${present?'Presente':'Assente'}</span></div>`;}).join('');}
+function initPresenze(){
+  const s=document.getElementById('pres-corso'),ss=document.getElementById('storico-corso');
+  const opts='<option value="">Seleziona corso...</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  s.innerHTML=opts;ss.innerHTML=opts;
+  if(!document.getElementById('pres-data').value)document.getElementById('pres-data').value=new Date().toISOString().slice(0,10);
+  // Popola select anni dal DB presenze
+  const anni=[...new Set(Object.keys(DB.presenze).map(k=>k.split('_')[1]?.slice(0,4)).filter(Boolean))].sort();
+  const selAnno=document.getElementById('storico-anno');
+  if(selAnno){selAnno.innerHTML='<option value="">Tutti gli anni</option>'+anni.map(a=>`<option value="${a}">${a}</option>`).join('');}
+}
+
+function loadPresenze(){
+  const corsoId=document.getElementById('pres-corso').value,data=document.getElementById('pres-data').value;
+  const cont=document.getElementById('presenze-list');
+  if(!corsoId||!data){cont.innerHTML='<div class="empty"><div class="ei">✅</div><h3>Seleziona corso e data</h3></div>';return;}
+  const corso=DB.corsi.find(x=>x.id===corsoId),key=`${corsoId}_${data}`;
+  const saved=DB.presenze[key]||{};
+  const atleti=DB.soci.filter(s=>s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId));
+  if(!atleti.length){cont.innerHTML='<div class="empty"><div class="ei">👥</div><h3>Nessun atleta in questo corso</h3></div>';return;}
+  cont.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">${corso?.nome||''} · ${formatDate(data)}</div>`+atleti.map(a=>{
+    const present=saved[a.id]===true;
+    return`<div class="presenza-row"><div class="ptoggle${present?' present':''}" onclick="togglePresenza('${a.id}',this,'${key}')"></div>${renderAvatar(a,28)}<span style="font-size:13px;">${a.nome} ${a.cognome}</span><span style="margin-left:auto;font-size:12px;color:${present?'var(--green)':'var(--text3)'};">${present?'Presente':'Assente'}</span></div>`;
+  }).join('');
+}
 function togglePresenza(socioId,el,key){el.classList.toggle('present');const present=el.classList.contains('present');if(!DB.presenze[key])DB.presenze[key]={};DB.presenze[key][socioId]=present;const lbl=el.nextElementSibling?.nextElementSibling?.nextElementSibling;if(lbl){lbl.textContent=present?'Presente':'Assente';lbl.style.color=present?'var(--green)':'var(--text3)';}}
-function salvaPresenze(){saveDB();toast('Presenze salvate','success');renderStoricoPresenze();}
-function renderStoricoPresenze(){const corsoId=document.getElementById('storico-corso').value;const cont=document.getElementById('storico-presenze-list');if(!corsoId){cont.innerHTML='';return;}const entries=Object.entries(DB.presenze).filter(([k])=>k.startsWith(corsoId+'_')).sort((a,b)=>b[0].localeCompare(a[0]));if(!entries.length){cont.innerHTML='<div class="empty"><div class="ei">📋</div><h3>Nessuna sessione</h3></div>';return;}const atleti=DB.soci.filter(s=>s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId));cont.innerHTML='<div class="tw"><table><thead><tr><th>Data</th><th>Presenti</th><th>Assenti</th><th>Tot.</th></tr></thead><tbody>'+entries.map(([k,v])=>{const data=k.split('_')[1];const pres=Object.values(v).filter(x=>x===true).length;return`<tr><td>${formatDate(data)}</td><td style="color:var(--green);">${pres}</td><td style="color:var(--red);">${atleti.length-pres}</td><td>${atleti.length}</td></tr>`;}).join('')+'</tbody></table></div>';}
+function salvaPresenze(){saveDB();toast('Presenze salvate','success');initPresenze();renderStoricoPresenze();}
+function renderStoricoPresenze(){
+  const corsoId=document.getElementById('storico-corso').value;
+  const meseFilter=document.getElementById('storico-mese')?.value||'';
+  const annoFilter=document.getElementById('storico-anno')?.value||'';
+  const cont=document.getElementById('storico-presenze-list');
+  if(!corsoId){cont.innerHTML='';return;}
+
+  let entries=Object.entries(DB.presenze).filter(([k])=>k.startsWith(corsoId+'_'));
+
+  // Filtro mese
+  if(meseFilter)entries=entries.filter(([k])=>{const data=k.split('_')[1]||'';return data.slice(5,7)===meseFilter;});
+  // Filtro anno
+  if(annoFilter)entries=entries.filter(([k])=>{const data=k.split('_')[1]||'';return data.slice(0,4)===annoFilter;});
+
+  // Ordinamento CRESCENTE per data
+  entries.sort((a,b)=>a[0].localeCompare(b[0]));
+
+  if(!entries.length){cont.innerHTML='<div class="empty"><div class="ei">📋</div><h3>Nessuna sessione trovata</h3><p>Prova a cambiare i filtri</p></div>';return;}
+
+  const atleti=DB.soci.filter(s=>s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId));
+  const totPresenze=entries.reduce((sum,[,v])=>sum+Object.values(v).filter(x=>x===true).length,0);
+  const mediaPresenze=entries.length?Math.round(totPresenze/entries.length):0;
+
+  cont.innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <div style="background:var(--surface2);border-radius:8px;padding:9px 14px;font-size:12px;"><span style="color:var(--text2);">Sessioni</span> <strong>${entries.length}</strong></div>
+      <div style="background:var(--surface2);border-radius:8px;padding:9px 14px;font-size:12px;"><span style="color:var(--text2);">Media presenti</span> <strong style="color:var(--green);">${mediaPresenze}</strong></div>
+      <div style="background:var(--surface2);border-radius:8px;padding:9px 14px;font-size:12px;"><span style="color:var(--text2);">Atleti nel corso</span> <strong>${atleti.length}</strong></div>
+    </div>
+    <div class="tw"><table><thead><tr><th>Data</th><th>Presenti</th><th>Assenti</th><th>Totale</th><th>%</th></tr></thead><tbody>`
+    + entries.map(([k,v])=>{
+      const data=k.split('_')[1];
+      const pres=Object.values(v).filter(x=>x===true).length;
+      const perc=atleti.length?Math.round(pres/atleti.length*100):0;
+      const color=perc>=80?'var(--green)':perc>=50?'var(--yellow)':'var(--red)';
+      return`<tr><td>${formatDate(data)}</td><td style="color:var(--green);">${pres}</td><td style="color:var(--red);">${atleti.length-pres}</td><td>${atleti.length}</td><td style="color:${color};font-weight:600;">${perc}%</td></tr>`;
+    }).join('')
+    + `</tbody></table></div>`;
+}
 
 // ═══ IMPIANTI ═════════════════════════════════════════════
 function selectIcon(el){document.querySelectorAll('.icon-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');selectedImpiantoIcon=el.dataset.icon;}
