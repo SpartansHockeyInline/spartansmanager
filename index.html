@@ -273,7 +273,32 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 .foto-wrap{width:90px;height:90px;border-radius:50%;border:2px solid var(--border);overflow:hidden;background:linear-gradient(135deg,var(--accent),var(--gold));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;flex-shrink:0;cursor:pointer;}
 .foto-wrap img{width:100%;height:100%;object-fit:cover;}
 
-@media(max-width:900px){:root{--sidebar:190px;}.fg{grid-template-columns:1fr;}.fgroup.s2,.fgroup.s3,.fgroup.s4{grid-column:span 1;}.cal-grid{grid-template-columns:repeat(7,1fr);}.conv-grid{grid-template-columns:1fr;}}
+/* COMUNICAZIONI */
+.dest-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all var(--tr);}
+.dest-item.sel{border-color:var(--gold);background:rgba(212,160,23,.1);}
+.dest-item .chk{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all var(--tr);}
+.dest-item.sel .chk{background:var(--gold);border-color:var(--gold);color:#000;}
+/* VALUTAZIONE */
+.val-stars{display:flex;gap:3px;}
+.val-star{width:24px;height:24px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all var(--tr);}
+.val-star.active{background:var(--gold);border-color:var(--gold);color:#000;font-weight:700;}
+.val-star:hover{border-color:var(--gold);}
+.fase-sensibile{display:inline-block;width:20px;height:14px;border-radius:3px;margin:1px;}
+.fase-attiva{background:var(--accent);}
+.fase-inattiva{background:var(--surface2);border:1px solid var(--border);}
+.val-section{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:12px;}
+.val-section-title{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.val-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);}
+.val-row:last-child{border-bottom:none;}
+.val-label{font-size:12.5px;flex:1;}
+.val-note{font-size:10px;color:var(--text3);margin-top:1px;}
+/* PRINT */
+@media print{
+  #sidebar,#drive-bar,#topbar,#app-footer,.mo{display:none!important;}
+  #main{margin-left:0!important;}
+  body{background:#fff;color:#000;}
+  .print-content{display:block!important;}
+}.fg{grid-template-columns:1fr;}.fgroup.s2,.fgroup.s3,.fgroup.s4{grid-column:span 1;}.cal-grid{grid-template-columns:repeat(7,1fr);}.conv-grid{grid-template-columns:1fr;}}
 @media(max-width:640px){#content{padding:14px;}}
 /* SORT HEADERS */
 .sortable{cursor:pointer;user-select:none;}
@@ -344,6 +369,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ni-item" onclick="showPage('maestri')"><span class="ico">🧑‍🏫</span><span class="lbl">Maestri/Tecnici</span></div>
     <div class="nav-sec-label">Gestione</div>
     <div class="ni-item" onclick="showPage('amministrazione')"><span class="ico">💰</span><span class="lbl">Amministrazione</span></div>
+    <div class="ni-item" onclick="showPage('comunicazioni')"><span class="ico">📨</span><span class="lbl">Comunicazioni</span></div>
+    <div class="ni-item" onclick="showPage('valutazioni')"><span class="ico">📊</span><span class="lbl">Valutazione atleti</span></div>
     <div class="nav-sec-label">Sistema</div>
     <div class="ni-item" onclick="exportData()"><span class="ico">📤</span><span class="lbl">Esporta JSON</span></div>
     <div class="ni-item" onclick="importData()"><span class="ico">📥</span><span class="lbl">Importa JSON</span></div>
@@ -671,8 +698,63 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </div>
     </div>
 
+    <!-- ═══ COMUNICAZIONI ═══ -->
+    <div class="page" id="page-comunicazioni">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
+        <div class="card">
+          <div class="card-title">👥 Destinatari</div>
+          <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;">
+            <button class="btn btn-s btn-sm" onclick="selezionaTutti()">Tutti</button>
+            <button class="btn btn-s btn-sm" onclick="deselezionaTutti()">Nessuno</button>
+            <select class="fsel" id="comm-filter-corso" onchange="filtraDestinatari()" style="max-width:150px;"><option value="">Tutti i corsi</option></select>
+            <select class="fsel" id="comm-filter-tipo" onchange="filtraDestinatari()" style="max-width:140px;"><option value="">Tutti i tipi</option></select>
+          </div>
+          <div id="comm-destinatari-list" style="display:flex;flex-direction:column;gap:5px;max-height:360px;overflow-y:auto;scrollbar-width:thin;"></div>
+          <div style="margin-top:9px;font-size:12px;color:var(--text2);">Selezionati: <strong id="comm-count">0</strong></div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">✍️ Messaggio</div>
+            <div class="fg c1">
+              <div class="fgroup"><label>Oggetto / Titolo</label><input class="fi" id="comm-oggetto" placeholder="es. Convocazione allenamento giovedì"></div>
+              <div class="fgroup"><label>Testo</label><textarea class="fta" id="comm-testo" placeholder="Scrivi il messaggio..." style="min-height:120px;"></textarea></div>
+              <div class="fgroup"><label>Firma</label><input class="fi" id="comm-firma" placeholder="Staff Spartans Hockey In-Line"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:0;">
+            <div class="card-title">📤 Invia</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-p" onclick="inviaEmail()" style="justify-content:center;">📧 Apri client email (BCC)</button>
+              <button class="btn btn-s" onclick="preparaWhatsapp()" style="justify-content:center;">💬 Copia testo per WhatsApp</button>
+              <button class="btn btn-s" onclick="esportaVCard()" style="justify-content:center;">📱 Esporta contatti .vcf</button>
+            </div>
+            <div id="comm-whatsapp-output" style="display:none;margin-top:11px;">
+              <div style="font-size:11px;color:var(--text2);margin-bottom:5px;">✅ Copiato negli appunti — incolla nella tua Broadcast List WhatsApp:</div>
+              <div id="comm-wa-preview" style="background:var(--surface2);border-radius:8px;padding:11px;font-size:12px;white-space:pre-wrap;border:1px solid var(--border);max-height:140px;overflow-y:auto;"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:0;border:1px dashed var(--border);opacity:.7;">
+            <div class="card-title" style="color:var(--text3);font-size:13px;">🔌 WhatsApp Business API</div>
+            <p style="font-size:11px;color:var(--text3);margin-bottom:8px;">Slot riservato per integrazione futura invio automatico.</p>
+            <input class="fi" id="wa-api-token" placeholder="Token API WhatsApp Business..." style="font-size:12px;">
+            <button class="btn btn-s btn-sm" style="margin-top:7px;" onclick="saveWaToken()">💾 Salva token</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VALUTAZIONE ATLETI ═══ -->
+    <div class="page" id="page-valutazioni">
+      <div class="sbar">
+        <div class="sinp"><span class="sico">🔍</span><input type="text" id="val-search" placeholder="Cerca atleta..." oninput="renderValutazioni(this.value)"></div>
+        <select class="fsel" id="val-filter-corso" onchange="renderValutazioni()" style="max-width:180px;"><option value="">Tutti i corsi</option></select>
+      </div>
+      <div id="val-atleti-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
+    </div>
+    <div class="page" id="page-valutazione-atleta"></div>
+
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v2.3 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v2.4 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -964,6 +1046,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" id="modal-evd-body"></div>
     <div class="mf">
       <button class="btn btn-d btn-sm" id="btn-evd-delete">🗑️ Elimina</button>
+      <button class="btn btn-s btn-sm" id="btn-evd-h2" style="display:none;">📋 Modulo H2</button>
       <button class="btn btn-s btn-sm" id="btn-evd-conv" style="display:none;">👥 Convocazioni</button>
       <button class="btn btn-s" onclick="closeModal('modal-evento-detail')">Chiudi</button>
     </div>
@@ -1030,6 +1113,19 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v2.4 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Sezione Comunicazioni</strong> — seleziona destinatari per corso/tipologia, componi messaggio con oggetto e firma; invio via email (BCC), copia testo per WhatsApp Broadcast List, esportazione contatti .vcf; slot riservato per integrazione futura WhatsApp Business API</div>
+        <div class="cl-item"><strong>Sezione Valutazione atleti</strong> — scheda completa per ogni atleta con 3 sezioni: Psico-fisica (capacità fisiche + tratti psicologici: aggressività, leadership, spirito di squadra), Tecnica (pattinaggio, bastone, passaggio, tiro, finte — dai moduli A/B/C/D FISR), Tattica (individuale offensiva/difensiva + collettiva — dalle tabelle FISR pag. 224-236)</div>
+        <div class="cl-item"><strong>Fasi sensibili Martin 1982</strong> — tab dedicato nella valutazione: visualizza per ciascuna capacità le fasce d'età sensibili (M/F) con evidenziazione della finestra biologica dell'atleta (±2 anni rispetto all'età anagrafica)</div>
+        <div class="cl-item"><strong>Modulo H2 FISR</strong> — generazione automatica del modulo elenco atleti per gara, compilato con i dati delle convocazioni; accessibile dal dettaglio evento con pulsante "📋 Modulo H2"; stampabile/salvabile come PDF</div>
+        <div class="cl-section">Modifiche</div>
+        <div class="cl-item">Sidebar: aggiunta voci Comunicazioni (📨) e Valutazione atleti (📊)</div>
+        <div class="cl-item">Dettaglio evento gara: aggiunto pulsante Modulo H2 accanto a Convocazioni</div>
+        <div class="cl-item">DB: aggiunto campo valutazioni per ogni atleta</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v2.3 · Maggio 2026</div>
@@ -1132,6 +1228,49 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   </div>
 </div>
 
+<!-- MODAL VALUTAZIONE ATLETA -->
+<div class="mo" id="modal-valutazione">
+  <div class="modal wide">
+    <div class="mh">
+      <div class="mt" id="modal-val-title">Scheda valutazione</div>
+      <button class="mc" onclick="closeModal('modal-valutazione')">✕</button>
+    </div>
+    <div class="mb">
+      <div class="tabs" id="val-tabs">
+        <div class="tab active" onclick="showValTab('psicofisica')">🧠 Psico-fisica</div>
+        <div class="tab" onclick="showValTab('tecnica')">🏒 Tecnica</div>
+        <div class="tab" onclick="showValTab('tattica')">♟️ Tattica</div>
+        <div class="tab" onclick="showValTab('fasi')">📈 Fasi sensibili</div>
+      </div>
+      <div id="val-tab-psicofisica" class="tab-panel active"></div>
+      <div id="val-tab-tecnica" class="tab-panel"></div>
+      <div id="val-tab-tattica" class="tab-panel"></div>
+      <div id="val-tab-fasi" class="tab-panel"></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-s" onclick="closeModal('modal-valutazione')">Chiudi</button>
+      <button class="btn btn-p" onclick="salvaValutazione()">💾 Salva valutazione</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MODULO H2 -->
+<div class="mo" id="modal-h2">
+  <div class="modal wide">
+    <div class="mh">
+      <div class="mt" id="modal-h2-title">Modulo H2 — Elenco atleti per gara</div>
+      <button class="mc" onclick="closeModal('modal-h2')">✕</button>
+    </div>
+    <div class="mb">
+      <div id="modal-h2-body"></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-s" onclick="closeModal('modal-h2')">Chiudi</button>
+      <button class="btn btn-p" onclick="stampaH2()">🖨️ Stampa / Salva PDF</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
@@ -1161,8 +1300,8 @@ function scadColor(d){if(!d)return'var(--text2)';const diff=(new Date(d)-new Dat
 function toast(msg,type='success'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast ${type}`;t.innerHTML=`<span>${{success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'}[type]||'ℹ️'}</span><span>${msg}</span>`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(40px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3200);}
 
 // ═══ NAV ══════════════════════════════════════════════════
-const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',impostazioni:'Impostazioni'};
-const pagesAdd=['anagrafiche','abbonamenti','corsi','impianti','maestri','amministrazione','calendario','stagioni'];
+const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta',impostazioni:'Impostazioni'};
+const pagesAdd=['anagrafiche','abbonamenti','corsi','impianti','maestri','amministrazione','calendario','stagioni','comunicazioni','valutazioni'];
 
 function showPage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1183,6 +1322,8 @@ function showPage(page){
   if(page==='impianti')renderImpianti();
   if(page==='maestri')renderMaestri();
   if(page==='amministrazione')renderAmministrazione();
+  if(page==='comunicazioni')initComunicazioni();
+  if(page==='valutazioni')renderValutazioni();
   if(page==='impostazioni'){loadTheme();const el=document.getElementById('settings-drive-status');if(el)el.textContent=driveAccessToken?'Connesso come '+(driveUserEmail||'account Google'):'Non connesso';renderBackupList();}
 }
 function topbarAdd(){const map={anagrafiche:()=>openModalSocio(),corsi:()=>openModal('modal-corso',''),impianti:()=>openModal('modal-impianto',''),maestri:()=>openModal('modal-maestro',''),calendario:()=>openModal('modal-evento','gara'),stagioni:()=>document.getElementById('card-nuova-stagione').scrollIntoView()};if(map[currentPage])map[currentPage]();else if(currentPage==='abbonamenti')openModal('modal-piano','');else if(currentPage==='amministrazione')openModal('modal-movimento','entrata');}
@@ -1660,7 +1801,7 @@ function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalend
 function calDayClick(date){document.getElementById('m-ev-data').value=date;openModal('modal-evento','gara');}
 function populateSquadreSel(){document.getElementById('m-ev-squadra').innerHTML='<option value="">—</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');}
 function saveEvento(){const titolo=document.getElementById('m-ev-titolo').value.trim(),data=document.getElementById('m-ev-data').value;if(!titolo||!data){toast('Titolo e data obbligatori','error');return;}const obj={id:editingId||uid(),titolo,tipo:eventoTipo,data,ora:document.getElementById('m-ev-ora').value,luogo:document.getElementById('m-ev-luogo').value,squadraId:document.getElementById('m-ev-squadra').value,squadraNome:DB.corsi.find(x=>x.id===document.getElementById('m-ev-squadra').value)?.nome||'',note:document.getElementById('m-ev-note').value,convocati:[]};if(editingId){const i=DB.eventi.findIndex(x=>x.id===editingId);if(i>-1)DB.eventi[i]=obj;}else DB.eventi.push(obj);saveDB();closeModal('modal-evento');renderCalendar();renderDashboard();toast('Evento salvato','success');}
-function showEventDetail(id){const ev=DB.eventi.find(x=>x.id===id);if(!ev)return;document.getElementById('modal-evd-title').textContent=ev.tipo==='gara'?'⚔️ Gara':'🏒 Allenamento';document.getElementById('modal-evd-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:9px;"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;">${ev.titolo}</div><div style="font-size:12px;color:var(--text2);">📅 ${formatDate(ev.data)}${ev.ora?' · '+ev.ora:''}${ev.luogo?' · '+ev.luogo:''}</div>${ev.squadraNome?`<div style="font-size:13px;">🏒 ${ev.squadraNome}</div>`:''}${ev.convocati?.length?`<div style="font-size:13px;">👥 Convocati: <strong>${ev.convocati.length}</strong></div>`:''}${ev.autoCorsoId?'<div style="font-size:11px;color:var(--text3);">⚡ Allenamento generato automaticamente</div>':''}${ev.note?`<div style="font-size:12px;color:var(--text2);padding:9px;background:var(--surface2);border-radius:7px;">${ev.note}</div>`:''}</div>`;const bc=document.getElementById('btn-evd-conv');bc.style.display=ev.tipo==='gara'?'':'none';bc.onclick=()=>{closeModal('modal-evento-detail');openConvocazioni(id);};document.getElementById('btn-evd-delete').onclick=()=>{if(!confirm('Eliminare?'))return;DB.eventi=DB.eventi.filter(x=>x.id!==id);saveDB();closeModal('modal-evento-detail');renderCalendar();renderDashboard();};document.getElementById('modal-evento-detail').classList.add('open');}
+function showEventDetail(id){const ev=DB.eventi.find(x=>x.id===id);if(!ev)return;document.getElementById('modal-evd-title').textContent=ev.tipo==='gara'?'⚔️ Gara':'🏒 Allenamento';document.getElementById('modal-evd-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:9px;"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;">${ev.titolo}</div><div style="font-size:12px;color:var(--text2);">📅 ${formatDate(ev.data)}${ev.ora?' · '+ev.ora:''}${ev.luogo?' · '+ev.luogo:''}</div>${ev.squadraNome?`<div style="font-size:13px;">🏒 ${ev.squadraNome}</div>`:''}${ev.convocati?.length?`<div style="font-size:13px;">👥 Convocati: <strong>${ev.convocati.length}</strong></div>`:''}${ev.autoCorsoId?'<div style="font-size:11px;color:var(--text3);">⚡ Allenamento generato automaticamente</div>':''}${ev.note?`<div style="font-size:12px;color:var(--text2);padding:9px;background:var(--surface2);border-radius:7px;">${ev.note}</div>`:''}</div>`;const bc=document.getElementById('btn-evd-conv');bc.style.display=ev.tipo==='gara'?'':'none';bc.onclick=()=>{closeModal('modal-evento-detail');openConvocazioni(id);};const bh2=document.getElementById('btn-evd-h2');if(bh2){bh2.style.display=ev.tipo==='gara'?'':'none';bh2.onclick=()=>{closeModal('modal-evento-detail');apriModuloH2(id);};}document.getElementById('btn-evd-delete').onclick=()=>{if(!confirm('Eliminare?'))return;DB.eventi=DB.eventi.filter(x=>x.id!==id);saveDB();closeModal('modal-evento-detail');renderCalendar();renderDashboard();};document.getElementById('modal-evento-detail').classList.add('open');}
 
 // ═══ CONVOCAZIONI ═════════════════════════════════════════
 function openConvocazioni(evId){convEventoId=evId;const ev=DB.eventi.find(x=>x.id===evId);if(!ev)return;document.getElementById('modal-conv-title').textContent=`Convocazioni — ${ev.titolo}`;const conv=ev.convocati||[];const atleti=DB.soci.filter(s=>s.tipologia==='atleta'||s.tipologia==='tecnico'||!s.tipologia);const renderA=(a,isc)=>`<div class="conv-item${isc?' selected':''}" onclick="toggleConvocazione('${a.id}')">${renderAvatar(a,26)}<span style="font-size:12px;">${a.nome} ${a.cognome}</span>${isc?'<span style="margin-left:auto;font-size:11px;">✓</span>':''}</div>`;document.getElementById('conv-disponibili').innerHTML=atleti.filter(a=>!conv.includes(a.id)).map(a=>renderA(a,false)).join('')||'<span style="font-size:11px;color:var(--text3);">Tutti convocati</span>';document.getElementById('conv-selezionati').innerHTML=atleti.filter(a=>conv.includes(a.id)).map(a=>renderA(a,true)).join('')||'<span style="font-size:11px;color:var(--text3);">Nessuno</span>';document.getElementById('modal-convocazioni').classList.add('open');}
@@ -1710,6 +1851,438 @@ function renderDashboard(){
   document.getElementById('ds-riepilogo').innerHTML=[{l:'Impianti',v:DB.impianti.length,i:'🏟️'},{l:'Tecnici',v:DB.maestri.length,i:'🧑‍🏫'},{l:'Entrate',v:`€${totE.toFixed(2)}`,i:'💚',c:'var(--green)'},{l:'Uscite',v:`€${totU.toFixed(2)}`,i:'🔴',c:'var(--red)'},{l:'Saldo',v:`€${(totE-totU).toFixed(2)}`,i:'💰',c:totE-totU>=0?'var(--green)':'var(--red)'}].map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 9px;background:var(--surface2);border-radius:7px;"><span style="font-size:12px;">${r.i} ${r.l}</span><strong style="${r.c?'color:'+r.c:''};font-size:13px;">${r.v}</strong></div>`).join('');
 }
 
+// ═══ COMUNICAZIONI ════════════════════════════════════════
+let commSelezionati = new Set();
+
+function initComunicazioni(){
+  // Popola filtri
+  const fc=document.getElementById('comm-filter-corso');
+  if(fc)fc.innerHTML='<option value="">Tutti i corsi</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  const ft=document.getElementById('comm-filter-tipo');
+  if(ft)ft.innerHTML='<option value="">Tutti i tipi</option>'+Object.entries(TIPOLOGIE).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+  // Firma default
+  const firma=document.getElementById('comm-firma');
+  if(firma&&!firma.value)firma.value=`Staff ${DB.struttura.nome||'Spartans Hockey In-Line'}`;
+  // Token WA salvato
+  const waToken=document.getElementById('wa-api-token');
+  if(waToken)waToken.value=localStorage.getItem('wa_api_token')||'';
+  filtraDestinatari();
+}
+
+function saveWaToken(){
+  const t=document.getElementById('wa-api-token').value.trim();
+  localStorage.setItem('wa_api_token',t);
+  toast('Token WhatsApp salvato','success');
+}
+
+function filtraDestinatari(){
+  const corsoF=document.getElementById('comm-filter-corso')?.value||'';
+  const tipoF=document.getElementById('comm-filter-tipo')?.value||'';
+  let lista=DB.soci.filter(s=>(s.email||s.tel));
+  if(corsoF)lista=lista.filter(s=>s.corsoId===corsoF);
+  if(tipoF)lista=lista.filter(s=>s.tipologia===tipoF);
+  const cont=document.getElementById('comm-destinatari-list');
+  if(!lista.length){cont.innerHTML='<div class="empty"><div class="ei">👥</div><p>Nessun contatto trovato con email o telefono</p></div>';return;}
+  cont.innerHTML=lista.map(s=>`
+    <div class="dest-item${commSelezionati.has(s.id)?' sel':''}" id="dest-${s.id}" onclick="toggleDestinatario('${s.id}')">
+      <div class="chk">${commSelezionati.has(s.id)?'✓':''}</div>
+      ${renderAvatar(s,26)}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">${s.nome} ${s.cognome}</div>
+        <div style="font-size:10px;color:var(--text2);">${s.email||''}${s.email&&s.tel?' · ':''}${s.tel||''}</div>
+      </div>
+    </div>`).join('');
+  aggiornaContattoCount();
+}
+
+function toggleDestinatario(id){
+  if(commSelezionati.has(id))commSelezionati.delete(id);
+  else commSelezionati.add(id);
+  const el=document.getElementById('dest-'+id);
+  if(el){el.classList.toggle('sel');el.querySelector('.chk').textContent=commSelezionati.has(id)?'✓':'';}
+  aggiornaContattoCount();
+}
+function selezionaTutti(){DB.soci.filter(s=>s.email||s.tel).forEach(s=>commSelezionati.add(s.id));filtraDestinatari();}
+function deselezionaTutti(){commSelezionati.clear();filtraDestinatari();}
+function aggiornaContattoCount(){const el=document.getElementById('comm-count');if(el)el.textContent=commSelezionati.size;}
+
+function buildMessaggio(){
+  const oggetto=document.getElementById('comm-oggetto').value.trim();
+  const testo=document.getElementById('comm-testo').value.trim();
+  const firma=document.getElementById('comm-firma').value.trim();
+  return{oggetto,testo,firma,full:`${oggetto?'📢 '+oggetto+'\n\n':''}${testo}${firma?'\n\n— '+firma:''}`};
+}
+
+function inviaEmail(){
+  if(!commSelezionati.size){toast('Seleziona almeno un destinatario','error');return;}
+  const destinatari=DB.soci.filter(s=>commSelezionati.has(s.id)&&s.email).map(s=>s.email);
+  if(!destinatari.length){toast('Nessun destinatario ha un email','error');return;}
+  const{oggetto,full}=buildMessaggio();
+  const bcc=destinatari.join(',');
+  const link=`mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(full)}`;
+  window.open(link,'_blank');
+  toast(`Email preparata per ${destinatari.length} destinatari`,'success');
+}
+
+function preparaWhatsapp(){
+  if(!commSelezionati.size){toast('Seleziona almeno un destinatario','error');return;}
+  const{full}=buildMessaggio();
+  navigator.clipboard.writeText(full).then(()=>{
+    document.getElementById('comm-whatsapp-output').style.display='';
+    document.getElementById('comm-wa-preview').textContent=full;
+    toast('Testo copiato negli appunti','success');
+  }).catch(()=>{
+    document.getElementById('comm-whatsapp-output').style.display='';
+    document.getElementById('comm-wa-preview').textContent=full;
+    toast('Copia manuale il testo qui sopra','warning');
+  });
+}
+
+function esportaVCard(){
+  if(!commSelezionati.size){toast('Seleziona almeno un destinatario','error');return;}
+  const soci=DB.soci.filter(s=>commSelezionati.has(s.id));
+  const vcf=soci.map(s=>`BEGIN:VCARD\nVERSION:3.0\nFN:${s.nome} ${s.cognome}\nN:${s.cognome};${s.nome};;;\n${s.tel?'TEL;TYPE=CELL:'+s.tel+'\n':''}${s.email?'EMAIL:'+s.email+'\n':''}ORG:${DB.struttura.nome||'Spartans'}\nEND:VCARD`).join('\n');
+  const blob=new Blob([vcf],{type:'text/vcard'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`spartans_contatti_${new Date().toISOString().slice(0,10)}.vcf`;a.click();
+  toast(`${soci.length} contatti esportati in .vcf`,'success');
+}
+
+// ═══ VALUTAZIONE ATLETI ════════════════════════════════════
+
+// Fasce sensibili Martin 1982 (FFFF0000 = rosso = fase sensibile)
+const FASI_SENSIBILI = {
+  'Capacità di apprendimento motorio': {M:[10,11,15],F:[7,8,9,10,11,14,15]},
+  'Capacità di differenziazione e controllo': {M:[10,11,12],F:[7,8,9,10,11,12,14,15]},
+  'Capacità di reagire a stimoli ottici ed acustici': {M:[8,9],F:[7,8,9,10]},
+  'Capacità di orientamento nello spazio': {M:[12,13,14],F:[6,7,8,9,10,11,12,13,14]},
+  'Capacità di ritmo': {M:[9,10],F:[6,7,8,9,10,11,12]},
+  'Capacità di equilibrio': {M:[10,11],F:[9,10,11,12]},
+  'Resistenza': {M:[11,12,13,14,15],F:[6,7,8,9,10,11,12,13,14,15]},
+  'Forza': {M:[13,14,15],F:[9,10,11,12,13,14,15]},
+  'Rapidità': {M:[7,8,9,10,11,12,13],F:[6,7,8,9,10,11,12,13,14]},
+  'Qualità Affettivo-Cognitive': {M:[10,11],F:[7,8,9,10,11,12,13,14,15]},
+  'Voglia di apprendere': {M:[7,8,9,10,11],F:[6,7,8,9,10,11,12]}
+};
+
+// Livelli valutazione
+const VAL_LIVELLI = ['','1 - Principiante','2 - Intermedio','3 - Avanzato','4 - Esperto','5 - Evoluto'];
+
+// Struttura scheda valutazione
+const SCHEDA_PSICOFISICA = [
+  {sez:'🏃 Capacità Fisiche', voci:[
+    {id:'resistenza',label:'Resistenza'},
+    {id:'forza',label:'Forza'},
+    {id:'rapidita',label:'Rapidità'},
+    {id:'equilibrio',label:'Equilibrio'},
+    {id:'ritmo',label:'Capacità di ritmo'},
+    {id:'coordinazione',label:'Capacità coordinativa generale'},
+    {id:'orientamento',label:'Orientamento spaziale'},
+    {id:'reazione',label:'Reazione a stimoli'},
+  ]},
+  {sez:'🧠 Capacità Psicologiche', voci:[
+    {id:'aggressivita',label:'Aggressività (agonistica)'},
+    {id:'leadership',label:'Leadership'},
+    {id:'spirito_squadra',label:'Spirito di squadra'},
+    {id:'concentrazione',label:'Concentrazione'},
+    {id:'determinazione',label:'Determinazione'},
+    {id:'voglia_apprendere',label:'Voglia di apprendere'},
+    {id:'gestione_pressione',label:'Gestione della pressione'},
+    {id:'autostima',label:'Autostima'},
+  ]}
+];
+
+const SCHEDA_TECNICA = [
+  {sez:'⛸️ Pattinaggio in avanti', voci:[
+    {id:'pos_base_av',label:'Posizione base'},
+    {id:'andatura_base',label:'Andatura base'},
+    {id:'partenza_frontale',label:'Partenza frontale'},
+    {id:'partenza_laterale',label:'Partenza laterale'},
+    {id:'arresto_parallelo',label:'Arresto pattini paralleli'},
+    {id:'arresto_powerslide',label:'Arresto power slide'},
+    {id:'passo_incrociato',label:'Passo incrociato'},
+    {id:'trottola',label:'Trottola'},
+  ]},
+  {sez:'⛸️ Pattinaggio all\'indietro', voci:[
+    {id:'pos_base_ind',label:'Posizione base indietro'},
+    {id:'partenza_catena',label:'Partenza passo a catena'},
+    {id:'partenza_incrocio_ind',label:'Partenza con incrocio'},
+    {id:'andatura_veloce_ind',label:'Andatura veloce'},
+    {id:'arresto_ind',label:'Arresto indietro'},
+    {id:'passo_inc_ind',label:'Passo incrociato indietro'},
+  ]},
+  {sez:'🏒 Uso del bastone / Dribbling', voci:[
+    {id:'pos_bastone',label:'Posizione base bastone'},
+    {id:'controllo_due_mani',label:'Controllo con due mani'},
+    {id:'controllo_una_mano',label:'Controllo con una mano'},
+    {id:'controllo_disco_terra',label:'Controllo disco a terra'},
+    {id:'dribbling',label:'Dribbling con disco'},
+    {id:'difesa_disco',label:'Difesa del disco'},
+  ]},
+  {sez:'🎯 Passaggio', voci:[
+    {id:'passaggio_accompagnato',label:'Passaggio accompagnato'},
+    {id:'passaggio_colpito',label:'Passaggio colpito'},
+    {id:'passaggio_polso',label:'Passaggio di polso aereo'},
+    {id:'passaggio_prima',label:'Passaggio di prima'},
+    {id:'ricezione_rasoterra',label:'Ricezione rasoterra'},
+    {id:'ricezione_sollevato',label:'Ricezione con bastone sollevato'},
+  ]},
+  {sez:'🥅 Tiro', voci:[
+    {id:'tiro_acc_rovescio',label:'Tiro accompagnato rovescio'},
+    {id:'tiro_acc_dritto',label:'Tiro accompagnato dritto'},
+    {id:'tiro_spazzato_dritto',label:'Tiro spazzato dritto'},
+    {id:'tiro_parabola',label:'Tiro a parabola'},
+    {id:'tiro_rapido',label:'Tiro rapido-corto'},
+    {id:'tiro_volo',label:'Tiro al volo'},
+    {id:'tiro_prima_rovescio',label:'Tiro di prima rovescio'},
+  ]},
+  {sez:'🤺 Finte', voci:[
+    {id:'finta_spalla',label:'Finta di spalla/testa'},
+    {id:'finta_tiro',label:'Finta di tiro'},
+    {id:'finta_passaggio',label:'Finta di passaggio'},
+    {id:'finta_direzione',label:'Cambio di direzione'},
+    {id:'finta_velocita',label:'Cambio di velocità'},
+  ]}
+];
+
+const SCHEDA_TATTICA = [
+  {sez:'⚔️ Tattica individuale offensiva', voci:[
+    {id:'tatt_azioni_portiere',label:'Azioni sul portiere'},
+    {id:'tatt_rigori',label:'Rigori e punizioni'},
+    {id:'tatt_dribbling',label:'Dribbling'},
+    {id:'tatt_uscita_angolo',label:'Uscita dall\'angolo'},
+    {id:'tatt_marcamento_stretto',label:'Marcamento stretto (1v1)'},
+    {id:'tatt_avvicinamento_porta',label:'Avvicinamento alla porta'},
+  ]},
+  {sez:'🛡️ Tattica individuale difensiva', voci:[
+    {id:'tatt_imbuto',label:'Imbuto (ridurre lo spazio)'},
+    {id:'tatt_intercettare',label:'Intercettare linea di passaggio'},
+    {id:'tatt_ripiegamento',label:'Ripiegamento difensivo'},
+    {id:'tatt_triangolo_dif',label:'Triangolo difensivo'},
+    {id:'tatt_blocco_tiro',label:'Bloccare un tiro'},
+  ]},
+  {sez:'🤝 Tattica collettiva offensiva', voci:[
+    {id:'tatt_dai_cambia',label:'Dai e cambia'},
+    {id:'tatt_dai_segui',label:'Dai e segui'},
+    {id:'tatt_incrocio',label:'Incrocio'},
+    {id:'tatt_2v1',label:'Due contro uno'},
+    {id:'tatt_superiorita',label:'Superiorità numerica'},
+    {id:'tatt_pressing_off',label:'Pressing offensivo'},
+  ]},
+  {sez:'🏰 Tattica collettiva difensiva', voci:[
+    {id:'tatt_uomo_uomo',label:'Marcatura uomo a uomo'},
+    {id:'tatt_zona',label:'Marcatura a zona'},
+    {id:'tatt_inferiorita',label:'Inferiorità numerica'},
+    {id:'tatt_contrattacco',label:'Contrattacco diretto'},
+    {id:'tatt_pressing_dif',label:'Pressing difensivo'},
+    {id:'tatt_posizione_base',label:'Posizione di base — gioco di posizione'},
+  ]}
+];
+
+let currentValAtletaId = null;
+let currentValData = {};
+
+function renderValutazioni(search=''){
+  const corsoF=document.getElementById('val-filter-corso')?.value||'';
+  const vc=document.getElementById('val-filter-corso');
+  if(vc&&DB.corsi.length)vc.innerHTML='<option value="">Tutti i corsi</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  let atleti=DB.soci.filter(s=>s.tipologia==='atleta'||!s.tipologia);
+  if(search)atleti=atleti.filter(a=>`${a.nome} ${a.cognome}`.toLowerCase().includes(search.toLowerCase()));
+  if(corsoF)atleti=atleti.filter(a=>a.corsoId===corsoF);
+  const grid=document.getElementById('val-atleti-grid');
+  if(!atleti.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">📊</div><h3>Nessun atleta</h3></div>';return;}
+  grid.innerHTML=atleti.map(a=>{
+    const val=DB.valutazioni?.[a.id];
+    const totale=val?calcolaTotaleVal(val):null;
+    return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all var(--tr);" onclick="apriValutazione('${a.id}')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)')">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">${renderAvatar(a,36)}<div><div style="font-weight:600;font-size:14px;">${a.nome} ${a.cognome}</div><div style="font-size:11px;color:var(--text2);">${a.eta?a.eta+' anni · ':''}<span class="badge bgold" style="font-size:10px;">${getCategoriaFisr(a.nascita?a.nascita.slice(0,4):null)}</span></div></div></div>
+      ${totale?`<div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:11px;"><span style="color:var(--gold);">⚡</span> ${totale.fisico}/5</span>
+        <span style="font-size:11px;"><span style="color:var(--blue);">🏒</span> ${totale.tecnico}/5</span>
+        <span style="font-size:11px;"><span style="color:var(--green);">♟️</span> ${totale.tattico}/5</span>
+      </div>`:'<div style="font-size:11px;color:var(--text3);">Nessuna valutazione</div>'}
+      <div style="font-size:10px;color:var(--text3);margin-top:6px;">${val?.data?'Aggiornato '+formatDate(val.data):'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function calcolaTotaleVal(val){
+  const media=(keys)=>{const v=keys.map(k=>val[k]||0).filter(x=>x>0);return v.length?Math.round(v.reduce((a,b)=>a+b)/v.length*10)/10:0;};
+  const fKeys=[...SCHEDA_PSICOFISICA[0].voci,...SCHEDA_PSICOFISICA[1].voci].map(v=>v.id);
+  const tKeys=SCHEDA_TECNICA.flatMap(s=>s.voci.map(v=>v.id));
+  const ttKeys=SCHEDA_TATTICA.flatMap(s=>s.voci.map(v=>v.id));
+  return{fisico:media(fKeys),tecnico:media(tKeys),tattico:media(ttKeys)};
+}
+
+function apriValutazione(atletaId){
+  currentValAtletaId=atletaId;
+  const a=DB.soci.find(x=>x.id===atletaId);if(!a)return;
+  if(!DB.valutazioni)DB.valutazioni={};
+  currentValData=JSON.parse(JSON.stringify(DB.valutazioni[atletaId]||{}));
+  document.getElementById('modal-val-title').textContent=`📊 ${a.nome} ${a.cognome}`;
+  renderValTab('psicofisica');
+  showValTab('psicofisica');
+  document.getElementById('modal-valutazione').classList.add('open');
+}
+
+function showValTab(tab){
+  ['psicofisica','tecnica','tattica','fasi'].forEach(t=>{
+    document.getElementById('val-tab-'+t).classList.toggle('active',t===tab);
+  });
+  document.querySelectorAll('#val-tabs .tab').forEach(tb=>{tb.classList.toggle('active',tb.getAttribute('onclick').includes("'"+tab+"'"));});
+  renderValTab(tab);
+}
+
+function renderValTab(tab){
+  const cont=document.getElementById('val-tab-'+tab);
+  if(tab==='psicofisica') cont.innerHTML=renderValSezioni(SCHEDA_PSICOFISICA);
+  else if(tab==='tecnica') cont.innerHTML=renderValSezioni(SCHEDA_TECNICA);
+  else if(tab==='tattica') cont.innerHTML=renderValSezioni(SCHEDA_TATTICA);
+  else if(tab==='fasi') cont.innerHTML=renderFasiSensibili();
+}
+
+function renderValSezioni(sezioni){
+  return sezioni.map(s=>`
+    <div class="val-section">
+      <div class="val-section-title">${s.sez}</div>
+      ${s.voci.map(v=>`
+        <div class="val-row">
+          <div class="val-label">${v.label}</div>
+          <div class="val-stars">
+            ${[1,2,3,4,5].map(n=>`<div class="val-star${(currentValData[v.id]||0)>=n?' active':''}" onclick="setVal('${v.id}',${n})" title="${VAL_LIVELLI[n]}">${n}</div>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function setVal(key,val){
+  if(currentValData[key]===val)currentValData[key]=0;
+  else currentValData[key]=val;
+  // Aggiorna solo le stelle di questa riga senza re-render completo
+  const rows=document.querySelectorAll('.val-row');
+  rows.forEach(row=>{
+    const stars=row.querySelectorAll('.val-star');
+    if(stars.length&&row.querySelector('.val-label')?.textContent){
+      // Trova il key dalla closure dell'onclick
+      stars.forEach((star,i)=>{
+        const onclick=star.getAttribute('onclick');
+        if(onclick&&onclick.includes("'"+key+"'")){
+          star.classList.toggle('active',(currentValData[key]||0)>=i+1);
+        }
+      });
+    }
+  });
+}
+
+function renderFasiSensibili(){
+  const a=DB.soci.find(x=>x.id===currentValAtletaId);
+  const eta=a?getEtaAnagrafica(a.nascita):null;
+  const sesso=a?.sesso||'M';
+  const etaMin=eta?Math.max(6,eta-2):null;
+  const etaMax=eta?Math.min(15,eta+2):null;
+  return`<div style="font-size:12px;color:var(--text2);margin-bottom:14px;">
+    ${eta?`Età anagrafica: <strong>${eta} anni</strong> · Finestra biologica considerata: <strong>${etaMin}-${etaMax} anni</strong> · Sesso: <strong>${sesso}</strong>`:'Data di nascita non disponibile'}
+  </div>
+  <div class="val-section">
+    <div class="val-section-title">📈 Fasi sensibili di Martin 1982</div>
+    <div style="display:flex;gap:8px;font-size:11px;margin-bottom:10px;">
+      <span><span style="display:inline-block;width:14px;height:10px;background:var(--accent);border-radius:2px;margin-right:3px;"></span>Fase sensibile attiva</span>
+      <span><span style="display:inline-block;width:14px;height:10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;margin-right:3px;"></span>Non in fase sensibile</span>
+    </div>
+    ${Object.entries(FASI_SENSIBILI).map(([cap,dati])=>{
+      const fasiSesso=dati[sesso]||[];
+      const isFase=eta&&[...Array(5)].map((_,i)=>etaMin+i).some(e=>fasiSesso.includes(e));
+      return`<div class="val-row">
+        <div class="val-label">${cap}${isFase?` <span style="color:var(--accent);font-size:10px;">● FASE SENSIBILE</span>`:''}</div>
+        <div style="display:flex;gap:2px;">${[6,7,8,9,10,11,12,13,14,15].map(e=>{
+          const attiva=fasiSesso.includes(e);
+          const inFinestra=eta&&e>=etaMin&&e<=etaMax;
+          return`<div style="width:20px;height:14px;border-radius:3px;background:${attiva?'var(--accent)':'var(--surface2)'};border:${inFinestra?'2px solid var(--gold)':'1px solid var(--border)'};display:flex;align-items:center;justify-content:center;font-size:8px;color:${attiva?'#fff':'var(--text3)'};" title="${e} anni">${e}</div>`;
+        }).join('')}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function salvaValutazione(){
+  if(!currentValAtletaId)return;
+  if(!DB.valutazioni)DB.valutazioni={};
+  DB.valutazioni[currentValAtletaId]={...currentValData,data:new Date().toISOString().slice(0,10)};
+  saveDB();closeModal('modal-valutazione');renderValutazioni();
+  toast('Valutazione salvata','success');
+}
+
+// ═══ MODULO H2 ════════════════════════════════════════════
+function apriModuloH2(eventoId){
+  const ev=DB.eventi.find(x=>x.id===eventoId);if(!ev)return;
+  const convocati=DB.soci.filter(s=>ev.convocati?.includes(s.id));
+  document.getElementById('modal-h2-title').textContent=`Modulo H2 — ${ev.titolo}`;
+  document.getElementById('modal-h2-body').innerHTML=generaH2HTML(ev,convocati);
+  document.getElementById('modal-h2').classList.add('open');
+}
+
+function generaH2HTML(ev,convocati){
+  const struttura=DB.struttura;
+  const now=new Date();
+  return`<div id="h2-print-area" style="font-family:Arial,sans-serif;font-size:12px;color:#000;background:#fff;padding:20px;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:bold;border:2px solid #000;padding:8px;">FEDERAZIONE ITALIANA SPORT ROTELLISTICI<br>HOCKEY IN-LINE</div>
+      <div style="font-size:14px;font-weight:bold;margin-top:8px;border:1px solid #000;padding:6px;">MODULO H2 — ELENCO ATLETI PER GARA</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div style="border:1px solid #000;padding:8px;">
+        <div><strong>Società:</strong> ${struttura.nome||'_________________'}</div>
+        <div style="margin-top:4px;"><strong>Categoria:</strong> ${ev.squadraNome||'_________________'}</div>
+      </div>
+      <div style="border:1px solid #000;padding:8px;">
+        <div><strong>Gara:</strong> ${ev.titolo}</div>
+        <div style="margin-top:4px;"><strong>Data:</strong> ${formatDate(ev.data)}${ev.ora?' · '+ev.ora:''}</div>
+        <div style="margin-top:4px;"><strong>Luogo:</strong> ${ev.luogo||'_________________'}</div>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <thead>
+        <tr style="background:#eee;">
+          <th style="border:1px solid #000;padding:5px 8px;text-align:center;">#</th>
+          <th style="border:1px solid #000;padding:5px 8px;">Cognome e Nome</th>
+          <th style="border:1px solid #000;padding:5px 8px;text-align:center;">Data nascita</th>
+          <th style="border:1px solid #000;padding:5px 8px;text-align:center;">N° Tessera FISR</th>
+          <th style="border:1px solid #000;padding:5px 8px;text-align:center;">N° Maglia</th>
+          <th style="border:1px solid #000;padding:5px 8px;text-align:center;">Ruolo</th>
+          <th style="border:1px solid #000;padding:5px 8px;text-align:center;">Firma</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${convocati.length?convocati.map((a,i)=>`
+          <tr>
+            <td style="border:1px solid #000;padding:4px 8px;text-align:center;">${i+1}</td>
+            <td style="border:1px solid #000;padding:4px 8px;"><strong>${a.cognome||''} ${a.nome||''}</strong></td>
+            <td style="border:1px solid #000;padding:4px 8px;text-align:center;">${a.nascita?formatDate(a.nascita):'—'}</td>
+            <td style="border:1px solid #000;padding:4px 8px;text-align:center;">${a.tesseraFisr||'—'}</td>
+            <td style="border:1px solid #000;padding:4px 8px;text-align:center;">${a.maglia||'—'}</td>
+            <td style="border:1px solid #000;padding:4px 8px;text-align:center;">${a.tipologia==='portiere'?'P':'G'}</td>
+            <td style="border:1px solid #000;padding:4px 8px;"></td>
+          </tr>`).join('')
+        :Array(15).fill(0).map((_,i)=>`<tr>${['','','','','','',''].map(()=>`<td style="border:1px solid #000;padding:8px;">&nbsp;</td>`).join('')}</tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:20px;">
+      <div style="border:1px solid #000;padding:8px;"><strong>Il Responsabile Tecnico</strong><br><br>Firma: _______________</div>
+      <div style="border:1px solid #000;padding:8px;"><strong>Il Dirigente Accompagnatore</strong><br><br>Firma: _______________</div>
+      <div style="border:1px solid #000;padding:8px;"><strong>Il Medico Sociale</strong><br><br>Firma: _______________</div>
+    </div>
+    <div style="margin-top:12px;font-size:10px;color:#666;text-align:center;">Documento generato da Spartans Manager il ${now.toLocaleDateString('it-IT')}</div>
+  </div>`;
+}
+
+function stampaH2(){
+  const area=document.getElementById('h2-print-area');
+  if(!area)return;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Modulo H2</title><style>body{margin:20px;font-family:Arial,sans-serif;}</style></head><body>${area.outerHTML}</body></html>`);
+  w.document.close();w.focus();w.print();
+}
+
 // ═══ TEMA ═════════════════════════════════════════════════
 function setTheme(t){document.body.classList.toggle('theme-light',t==='light');localStorage.setItem('sm_theme',t);document.getElementById('theme-opt-dark').classList.toggle('selected',t==='dark');document.getElementById('theme-opt-light').classList.toggle('selected',t==='light');toast(t==='light'?'☀️ Tema chiaro':'🌙 Tema scuro','success');}
 function loadTheme(){const t=localStorage.getItem('sm_theme')||'dark';document.body.classList.toggle('theme-light',t==='light');const od=document.getElementById('theme-opt-dark'),ol=document.getElementById('theme-opt-light');if(od)od.classList.toggle('selected',t==='dark');if(ol)ol.classList.toggle('selected',t==='light');}
@@ -1725,7 +2298,7 @@ function confirmRestore(){if(restoreTargetIdx===null)return;const bk=JSON.parse(
 function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b.data],{type:'application/json'}));a.download=`spartans_backup_${b.ts.slice(0,10)}.json`;a.click();}
 
 // ═══ RENDER ALL ═══════════════════════════════════════════
-function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche')renderSoci();if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();}
+function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche')renderSoci();if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();}
 
 // ═══ GOOGLE DRIVE + LIVE SYNC ═════════════════════════════
 const GAPI_CLIENT_ID='604817164641-9v5jcl97m1nlp4lbcgd9i32nddkpdh69.apps.googleusercontent.com';

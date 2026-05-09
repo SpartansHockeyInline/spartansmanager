@@ -2,6 +2,24 @@
 
 ---
 
+## v2.4 · Maggio 2026
+
+### Nuove funzionalità
+- **Sezione Comunicazioni** — seleziona destinatari per corso o tipologia; componi messaggio con oggetto e firma; tre canali di invio: email via mailto (BCC a tutti), copia testo per WhatsApp Broadcast List, esportazione contatti .vcf per importazione in rubrica; slot riservato per integrazione futura WhatsApp Business API con campo token
+- **Sezione Valutazione atleti** — scheda completa per ogni atleta divisa in 3 tab:
+  - *Psico-fisica*: capacità fisiche (resistenza, forza, rapidità, equilibrio, ritmo, coordinazione, orientamento, reazione) + tratti psicologici (aggressività agonistica, leadership, spirito di squadra, concentrazione, determinazione, voglia di apprendere, gestione pressione, autostima)
+  - *Tecnica*: pattinaggio avanti/indietro, uso bastone/dribbling, passaggio, tiro, finte — basata sui Moduli A/B/C/D FISR (livelli 1-5: Principiante→Evoluto)
+  - *Tattica*: individuale offensiva/difensiva + collettiva offensiva/difensiva — dalle tabelle FISR pag. 224-236
+- **Fasi sensibili Martin 1982** — tab nella valutazione: per ogni capacità mostra le età sensibili (M/F separate) con evidenziazione della finestra biologica ±2 anni rispetto all'età dell'atleta
+- **Modulo H2 FISR** — generazione automatica del modulo ufficiale elenco atleti per gara, compilato con dati delle convocazioni (cognome/nome, data nascita, tessera FISR, numero maglia, ruolo); accessibile dal dettaglio evento gara con pulsante "📋 Modulo H2"; stampabile/esportabile come PDF
+
+### Modifiche
+- Sidebar: nuove voci Comunicazioni (📨) e Valutazione atleti (📊)
+- Dettaglio evento gara: aggiunto pulsante Modulo H2 accanto a Convocazioni
+- DB: aggiunto oggetto `valutazioni` per memorizzare le schede di ogni atleta
+
+---
+
 ## v2.3 · Maggio 2026
 
 ### Nuove funzionalità
