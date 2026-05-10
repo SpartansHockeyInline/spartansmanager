@@ -23,7 +23,9 @@
   --radius:10px;--sidebar:238px;--tr:0.18s cubic-bezier(.4,0,.2,1);
 }
 body.theme-light{--bg:#f2f2f2;--surface:#fff;--surface2:#ebebeb;--border:#d0d0d0;--text:#111;--text2:#555;--text3:#999;}
-body.theme-light thead th{background:#e8e8e8;}
+body.theme-light #sidebar-logo-img,
+body.theme-light #login-logo-img { filter: none !important; }
+body.theme-light .llogo { background: none !important; }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow:hidden;transition:background .3s,color .3s;}
@@ -369,7 +371,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <div id="login-overlay">
   <div class="lbox">
     <div class="llogo" style="background:none;padding:4px;">
-      <img src="logo.svg" alt="Spartans" style="width:52px;height:52px;object-fit:contain;filter:invert(1);">
+      <img src="logo.svg" alt="Spartans" id="login-logo-img" style="width:52px;height:52px;object-fit:contain;filter:invert(1);">
     </div>
     <div class="ltitle">Spartans Manager</div>
     <div class="lsub">Accedi con Google per sincronizzare i dati su Drive e abilitare la collaborazione in tempo reale.</div>
@@ -402,7 +404,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <div id="sidebar">
   <div id="sidebar-logo">
     <div class="logo-icon" style="background:none;padding:2px;overflow:hidden;">
-      <img src="logo.svg" alt="Spartans" style="width:34px;height:34px;object-fit:contain;filter:invert(1);">
+      <img src="logo.svg" alt="Spartans" id="sidebar-logo-img" style="width:34px;height:34px;object-fit:contain;filter:invert(1);">
     </div>
     <div class="logo-text">Spartans<div class="logo-sub">Hockey In-Line</div></div>
   </div>
