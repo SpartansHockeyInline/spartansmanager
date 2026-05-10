@@ -764,6 +764,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div id="backup-list"></div>
         <button class="btn btn-s btn-sm" style="margin-top:9px;" onclick="renderBackupList()">🔄 Aggiorna</button>
       </div>
+      <div class="card" style="max-width:480px;margin-top:0;border:1px solid rgba(212,160,23,.4);">
+        <div class="card-title" style="color:var(--gold);">⚠️ Recupera dati da versione precedente</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Se hai aggiornato dall'app precedente (v2.4 o prima) e hai perso i dati, clicca qui per recuperarli dal vecchio file Drive (appDataFolder).</p>
+        <div id="recupero-status" style="font-size:12px;margin-bottom:10px;display:none;"></div>
+        <button class="btn btn-p btn-sm" onclick="recuperaDatiVecchiaVersione()" id="btn-recupera">🔄 Recupera dati versione precedente</button>
+      </div>
     </div>
 
     <!-- ═══ COMUNICAZIONI ═══ -->
@@ -2416,6 +2422,93 @@ function stampaH2(){
   const w=window.open('','_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>Modulo H2</title><style>body{margin:20px;font-family:Arial,sans-serif;}</style></head><body>${area.outerHTML}</body></html>`);
   w.document.close();w.focus();w.print();
+}
+
+// ═══ RECUPERO DATI VERSIONE PRECEDENTE ════════════════════
+async function recuperaDatiVecchiaVersione(){
+  if(!driveAccessToken){toast('Devi essere connesso a Google Drive','error');return;}
+  const btn=document.getElementById('btn-recupera');
+  const status=document.getElementById('recupero-status');
+  btn.disabled=true;btn.textContent='⏳ Ricerca in corso...';
+  status.style.display='';status.style.color='var(--text2)';
+  status.textContent='Cerco il vecchio file su Drive (appDataFolder)...';
+  try{
+    // Cerca il vecchio file in appDataFolder con scope appdata
+    // Usiamo un token temporaneo con scope aggiuntivo
+    const client=google.accounts.oauth2.initTokenClient({
+      client_id:GAPI_CLIENT_ID,
+      scope:'https://www.googleapis.com/auth/drive.appdata',
+      callback:async(resp)=>{
+        if(resp.error){
+          status.style.color='var(--red)';
+          status.textContent='❌ Accesso negato: '+resp.error;
+          btn.disabled=false;btn.textContent='🔄 Recupera dati versione precedente';
+          return;
+        }
+        const tempToken=resp.access_token;
+        try{
+          status.textContent='Accesso a appDataFolder...';
+          // Lista file in appDataFolder
+          const sr=await fetch(
+            'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name,modifiedTime)&q=name%3D%27spartans_manager_data.json%27',
+            {headers:{Authorization:'Bearer '+tempToken}}
+          );
+          const sd=await sr.json();
+          if(!sd.files?.length){
+            // Prova anche il vecchio nome
+            const sr2=await fetch(
+              'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name,modifiedTime)',
+              {headers:{Authorization:'Bearer '+tempToken}}
+            );
+            const sd2=await sr2.json();
+            if(!sd2.files?.length){
+              status.style.color='var(--yellow)';
+              status.textContent='⚠️ Nessun file trovato in appDataFolder. I dati potrebbero essere già stati migrati o il vecchio file non esiste.';
+              btn.disabled=false;btn.textContent='🔄 Riprova';
+              return;
+            }
+            // Usa il primo file trovato
+            sd.files=sd2.files;
+          }
+          const fileId=sd.files[0].id;
+          const fileName=sd.files[0].name;
+          const modified=sd.files[0].modifiedTime;
+          status.textContent=`Trovato: ${fileName} (modificato: ${new Date(modified).toLocaleString('it-IT')}) — scarico...`;
+          // Scarica il contenuto
+          const dr=await fetch(
+            `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+            {headers:{Authorization:'Bearer '+tempToken}}
+          );
+          if(!dr.ok)throw new Error('HTTP '+dr.status);
+          const oldData=await dr.json();
+          // Mostra anteprima prima di importare
+          const soci=oldData.soci?.length||0;
+          const corsi=oldData.corsi?.length||0;
+          const eventi=oldData.eventi?.length||0;
+          if(confirm(`✅ Trovati i tuoi dati!\n\n• ${soci} soci\n• ${corsi} corsi/squadre\n• ${eventi} eventi\n\nVuoi importarli? I dati attuali verranno sovrascritti.`)){
+            saveBackup(); // salva backup prima di sovrascrivere
+            DB=Object.assign(DB,oldData);
+            saveDB();renderAll();
+            status.style.color='var(--green)';
+            status.textContent=`✅ Recuperati ${soci} soci, ${corsi} corsi, ${eventi} eventi. Salvo su Drive...`;
+            await driveSaveNow();
+            toast('Dati recuperati e salvati con successo','success');
+          }else{
+            status.textContent='Recupero annullato.';
+          }
+        }catch(err){
+          status.style.color='var(--red)';
+          status.textContent='❌ Errore durante il recupero: '+err.message;
+        }
+        btn.disabled=false;btn.textContent='🔄 Recupera dati versione precedente';
+      }
+    });
+    client.requestAccessToken({prompt:''});
+  }catch(e){
+    status.style.color='var(--red)';
+    status.textContent='❌ Errore: '+e.message;
+    btn.disabled=false;btn.textContent='🔄 Recupera dati versione precedente';
+  }
 }
 
 // ═══ TEMA ═════════════════════════════════════════════════
