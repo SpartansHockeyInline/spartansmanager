@@ -1429,9 +1429,8 @@ function showPage(page){
     loadTheme();
     const el=document.getElementById('settings-drive-status');
     if(el)el.textContent=driveAccessToken?`Connesso come ${driveUserEmail||'account Google'} (${driveRole==='admin'?'Admin':'Utente'})`:'Non connesso';
-    // Mostra sezione admin solo se è l'admin
-    const adminSection=document.getElementById('admin-file-id-section');
-    if(adminSection)adminSection.style.display=driveRole==='admin'&&driveFileId?'':'none';
+    // Recupera fileId da localStorage se non in memoria
+    if(!driveFileId) driveFileId=localStorage.getItem('sm_admin_file_id')||null;
     updateFileIdDisplay();
     // Precompila file ID se già salvato
     const savedId=localStorage.getItem('sm_shared_file_id')||'';
@@ -2696,10 +2695,15 @@ async function driveShareFile(){
 }
 
 function updateFileIdDisplay(){
-  const el=document.getElementById('settings-file-id');
-  if(el&&driveFileId)el.value=driveFileId;
-  const el2=document.getElementById('settings-file-id-display');
-  if(el2&&driveFileId)el2.textContent=driveFileId;
+  // Salva il fileId in localStorage per recuperarlo dopo reload
+  if(driveFileId){
+    localStorage.setItem('sm_admin_file_id', driveFileId);
+  }
+  const stored = driveFileId || localStorage.getItem('sm_admin_file_id') || '';
+  const el=document.getElementById('settings-file-id-display');
+  if(el) el.value = stored;
+  const adminSection=document.getElementById('admin-file-id-section');
+  if(adminSection) adminSection.style.display = stored ? '' : 'none';
 }
 
 function driveScheduleSave(){if(!driveAccessToken)return;clearTimeout(driveSaveTimer);driveSaveTimer=setTimeout(driveSaveNow,2000);}
