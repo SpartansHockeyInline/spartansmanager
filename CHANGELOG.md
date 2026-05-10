@@ -2,6 +2,22 @@
 
 ---
 
+## v2.5 · Maggio 2026
+
+### Nuove funzionalità
+- **Multi-account Google** — ogni utente accede con il proprio account Google personale; l'admin crea il file dati su Drive e condivide il File ID; gli altri utenti incollano il File ID nelle Impostazioni; nessuna credenziale condivisa, nessun problema di 2FA
+- **Layout responsive completo** — su tablet (< 900px) la sidebar diventa menu a tendina con bottone ☰; su mobile (< 640px) i modali si aprono dal basso, i form vanno su colonna singola, le tabelle scorrono orizzontalmente
+- **PWA (Progressive Web App)** — aggiunto `manifest.json`; su Android e iOS appare il banner "Aggiungi alla schermata home"; si installa come app nativa a schermo intero senza barra del browser
+- **Fasi sensibili Martin 1982 corrette** — la tab è ora una guida per il tecnico: classifica le capacità in 🔴 Priorità Alta (fase attiva), 🟡 Media (fase prossima/in uscita), ⚪ Bassa (fuori fase), con finestra biologica ±2 anni per tenere conto delle differenze tra età biologica e anagrafica
+
+### Modifiche
+- Scope OAuth: da `drive.appdata` a `drive.file` per supportare file condivisibili tra account diversi
+- Login con `prompt: select_account` — ogni utente sceglie il proprio account Google
+- Impostazioni: nuova sezione File ID con copia per admin e campo incolla per utenti
+- Backup Drive aggiornato per il nuovo sistema di file
+
+---
+
 ## v2.4 · Maggio 2026
 
 ### Nuove funzionalità
