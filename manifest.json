@@ -2,7 +2,7 @@
   "name": "Spartans Manager",
   "short_name": "Spartans",
   "description": "Gestionale ASD Spartans Hockey In-Line",
-  "start_url": "/sportmanager/",
+  "start_url": "/spartansmanager/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
