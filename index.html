@@ -2536,7 +2536,7 @@ function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(c
 // ═══ GOOGLE DRIVE MULTI-ACCOUNT ═══════════════════════════
 const GAPI_CLIENT_ID='604817164641-9v5jcl97m1nlp4lbcgd9i32nddkpdh69.apps.googleusercontent.com';
 // drive.file = accesso solo ai file creati dall'app, condivisibili
-const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
+const DRIVE_SCOPE='https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email';
 const DRIVE_FILENAME='spartans_manager_data.json';
 let driveAccessToken=null,driveFileId=null,driveSaveTimer=null,driveUserEmail='',driveRole='viewer';
 let liveSyncInterval=null,lastDriveModified='',liveSyncActive=false;
@@ -2603,6 +2603,12 @@ async function driveInit(){
       // Modalità utente: usa file ID condiviso dall'admin
       driveFileId=sharedFileId;
       driveRole='user';
+      // Recupera il modifiedTime prima di caricare
+      try{
+        const mr=await fetch(`https://www.googleapis.com/drive/v3/files/${sharedFileId}?fields=modifiedTime`,{headers:{Authorization:'Bearer '+driveAccessToken}});
+        const mm=await mr.json();
+        lastDriveModified=mm.modifiedTime||'';
+      }catch(e){}
       await driveLoadFromFile();
       driveSetStatus('connected',`✓ Connesso · ${driveUserEmail} · File condiviso`);
       driveShowControls(true);
@@ -2740,25 +2746,32 @@ async function checkRemoteChanges(){
   try{
     const r=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?fields=modifiedTime`,
       {headers:{Authorization:'Bearer '+driveAccessToken}});
-    if(!r.ok)return;
+    if(!r.ok){
+      if(r.status===401){driveAccessToken=null;localStorage.removeItem('sm_drive_token');}
+      return;
+    }
     const m=await r.json();
-    if(m.modifiedTime&&m.modifiedTime!==lastDriveModified){
+    if(!m.modifiedTime)return;
+    // Primo check — inizializza senza scaricare
+    if(!lastDriveModified){lastDriveModified=m.modifiedTime;return;}
+    if(m.modifiedTime!==lastDriveModified){
       const li=document.getElementById('live-indicator');
       if(li)li.style.display='';
-      driveSetStatus('live','🔄 Aggiornamento...');
+      driveSetStatus('syncing','🔄 Aggiornamento...');
       const dataR=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
         {headers:{Authorization:'Bearer '+driveAccessToken}});
       if(dataR.ok){
         const newData=await dataR.json();
+        lastDriveModified=m.modifiedTime; // aggiorna PRIMA di renderAll
         DB=Object.assign(DB,newData);
-        saveDB();lastDriveModified=m.modifiedTime;
+        saveDB();
         renderAll();
         if(li)li.style.display='none';
         driveSetStatus('connected','✓ Aggiornato · '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}));
         toast('📡 Dati aggiornati da altro dispositivo','info');
       }
     }
-  }catch(e){}
+  }catch(e){console.warn('Live sync error:',e);}
 }
 
 // ═══ INIT ═════════════════════════════════════════════════
