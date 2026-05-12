@@ -2552,9 +2552,12 @@ function driveShowControls(show){
   if(show)document.getElementById('btn-drive-account').textContent='👤 '+(driveUserEmail||'Account');
 }
 
+// Token client globale per il rinnovo silenzioso
+let tokenClient=null;
+
 function driveSignIn(){
   if(typeof google==='undefined'){toast('Libreria Google non disponibile — apri da GitHub Pages','error');return;}
-  const client=google.accounts.oauth2.initTokenClient({
+  tokenClient=google.accounts.oauth2.initTokenClient({
     client_id:GAPI_CLIENT_ID,
     scope:DRIVE_SCOPE,
     callback:async(resp)=>{
@@ -2567,7 +2570,21 @@ function driveSignIn(){
       await driveInit();
     }
   });
-  client.requestAccessToken({prompt:'select_account'}); // prompt=select_account permette di scegliere l'account
+  tokenClient.requestAccessToken({prompt:'select_account'});
+}
+
+// Rinnova il token silenziosamente senza mostrare popup
+async function renewToken(){
+  return new Promise((resolve)=>{
+    if(!tokenClient){resolve(false);return;}
+    tokenClient.callback=async(resp)=>{
+      if(resp.error){resolve(false);return;}
+      driveAccessToken=resp.access_token;
+      localStorage.setItem('sm_drive_token',driveAccessToken);
+      resolve(true);
+    };
+    tokenClient.requestAccessToken({prompt:''});
+  });
 }
 
 function skipLogin(){
@@ -2763,17 +2780,29 @@ function startLiveSync(){
 function stopLiveSync(){if(liveSyncInterval)clearInterval(liveSyncInterval);liveSyncActive=false;}
 
 async function checkRemoteChanges(){
-  if(!driveAccessToken||!driveFileId)return;
+  if(!driveFileId)return;
+  // Se token mancante, prova a rinnovarlo silenziosamente
+  if(!driveAccessToken){
+    const renewed=await renewToken();
+    if(!renewed)return;
+  }
   try{
     const r=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?fields=modifiedTime`,
       {headers:{Authorization:'Bearer '+driveAccessToken}});
     if(!r.ok){
-      if(r.status===401){driveAccessToken=null;localStorage.removeItem('sm_drive_token');}
+      if(r.status===401){
+        // Token scaduto — prova rinnovo silenzioso
+        driveAccessToken=null;
+        const renewed=await renewToken();
+        if(!renewed){driveSetStatus('error','⚠ Sessione scaduta — riaccedi');return;}
+        // Riprova dopo il rinnovo
+        checkRemoteChanges();
+        return;
+      }
       return;
     }
     const m=await r.json();
     if(!m.modifiedTime)return;
-    // Primo check — inizializza senza scaricare
     if(!lastDriveModified){lastDriveModified=m.modifiedTime;return;}
     if(m.modifiedTime!==lastDriveModified){
       const li=document.getElementById('live-indicator');
@@ -2783,7 +2812,7 @@ async function checkRemoteChanges(){
         {headers:{Authorization:'Bearer '+driveAccessToken}});
       if(dataR.ok){
         const newData=await dataR.json();
-        lastDriveModified=m.modifiedTime; // aggiorna PRIMA di renderAll
+        lastDriveModified=m.modifiedTime;
         DB=Object.assign(DB,newData);
         saveDB();
         renderAll();
@@ -2803,6 +2832,18 @@ async function checkRemoteChanges(){
     document.getElementById('login-overlay').classList.add('hidden');
     driveSetStatus('','Solo locale');
     loadDB();loadTheme();saveBackup();renderAll();return;
+  }
+  // Inizializza sempre il tokenClient per permettere il rinnovo silenzioso
+  if(typeof google!=='undefined'){
+    setTimeout(()=>{
+      try{
+        tokenClient=google.accounts.oauth2.initTokenClient({
+          client_id:GAPI_CLIENT_ID,
+          scope:DRIVE_SCOPE,
+          callback:()=>{}  // callback vuoto, viene sovrascritto al momento del rinnovo
+        });
+      }catch(e){}
+    },1000);
   }
   if(token){
     driveAccessToken=token;
