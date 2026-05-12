@@ -2538,6 +2538,8 @@ const GAPI_CLIENT_ID='604817164641-9v5jcl97m1nlp4lbcgd9i32nddkpdh69.apps.googleu
 // drive.file = accesso solo ai file creati dall'app, condivisibili
 const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
 const DRIVE_FILENAME='spartans_manager_data.json';
+// File ID fisso del database Spartans — non cambia mai
+const DRIVE_FILE_ID_FIXED='1rn16KfLDjczr8gidvn5ad9mrYU2OQYKx';
 let driveAccessToken=null,driveFileId=null,driveSaveTimer=null,driveUserEmail='',driveRole='viewer';
 let liveSyncInterval=null,lastDriveModified='',liveSyncActive=false;
 // driveRole: 'admin' (crea/possiede il file) | 'user' (usa file condiviso) | null
@@ -2612,67 +2614,22 @@ async function driveGetUserInfo(){
 }
 
 async function driveInit(){
-  // Legge il File ID condiviso dalle impostazioni (se presente)
-  const sharedFileId=localStorage.getItem('sm_shared_file_id')||'';
   try{
-    driveSetStatus('syncing','Ricerca file Drive...');
-    if(sharedFileId){
-      // Modalità utente: usa file ID condiviso dall'admin
-      driveFileId=sharedFileId;
-      driveRole='user';
-      // Recupera il modifiedTime prima di caricare
-      try{
-        const mr=await fetch(`https://www.googleapis.com/drive/v3/files/${sharedFileId}?fields=modifiedTime`,{headers:{Authorization:'Bearer '+driveAccessToken}});
-        const mm=await mr.json();
-        lastDriveModified=mm.modifiedTime||'';
-      }catch(e){}
-      await driveLoadFromFile();
-      driveSetStatus('connected',`✓ Connesso · ${driveUserEmail} · File condiviso`);
-      driveShowControls(true);
-      startLiveSync();
-      return;
-    }
-    // Modalità admin: prima controlla se abbiamo già il fileId salvato localmente
-    const savedAdminFileId=localStorage.getItem('sm_admin_file_id')||'';
-    if(savedAdminFileId){
-      // Verifica che il file esista ancora e sia accessibile
-      try{
-        const vr=await fetch(`https://www.googleapis.com/drive/v3/files/${savedAdminFileId}?fields=id,modifiedTime`,
-          {headers:{Authorization:'Bearer '+driveAccessToken}});
-        if(vr.ok){
-          const vd=await vr.json();
-          driveFileId=savedAdminFileId;
-          lastDriveModified=vd.modifiedTime||'';
-          driveRole='admin';
-          await driveLoadFromFile();
-          driveSetStatus('connected',`✓ Admin · ${driveUserEmail}`);
-          driveShowControls(true);
-          updateFileIdDisplay();
-          startLiveSync();
-          return;
-        }
-      }catch(e){console.warn('File ID salvato non valido, cerco su Drive...');}
-    }
-    // Cerca il file su Drive (solo file creati da questa app con drive.file)
-    const sr=await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=name%3D%27${DRIVE_FILENAME}%27+and+trashed%3Dfalse&fields=files(id,modifiedTime,name)`,
-      {headers:{Authorization:'Bearer '+driveAccessToken}}
-    );
-    const sd=await sr.json();
-    if(sd.files?.length>0){
-      driveFileId=sd.files[0].id;
-      lastDriveModified=sd.files[0].modifiedTime||'';
-      driveRole='admin';
-      await driveLoadFromFile();
-    }else{
-      // Primo avvio admin: crea il file
-      loadDB();loadTheme();saveBackup();renderAll();
-      await driveSaveNow();
-      driveRole='admin';
-    }
-    driveSetStatus('connected',`✓ Admin · ${driveUserEmail}`);
+    driveSetStatus('syncing','Connessione al file Drive...');
+    // Usa sempre il File ID fisso — elimina ambiguità tra sessioni e account
+    driveFileId=DRIVE_FILE_ID_FIXED;
+    localStorage.setItem('sm_admin_file_id', driveFileId);
+    // Recupera il modifiedTime attuale
+    try{
+      const mr=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?fields=modifiedTime`,
+        {headers:{Authorization:'Bearer '+driveAccessToken}});
+      if(mr.ok){const mm=await mr.json();lastDriveModified=mm.modifiedTime||'';}
+    }catch(e){}
+    // Carica i dati
+    await driveLoadFromFile();
+    driveRole='admin';
+    driveSetStatus('connected',`✓ Connesso · ${driveUserEmail}`);
     driveShowControls(true);
-    // Aggiorna il File ID nelle impostazioni
     updateFileIdDisplay();
     startLiveSync();
   }catch(e){
