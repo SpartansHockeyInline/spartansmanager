@@ -2523,8 +2523,12 @@ function loadTheme(){const t=localStorage.getItem('sm_theme')||'dark';document.b
 // ═══ BACKUP ═══════════════════════════════════════════════
 const BACKUP_KEY='spartans_backups';const MAX_BACKUPS=3;
 function saveBackup(){try{const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]');bk.unshift({ts:new Date().toISOString(),label:new Date().toLocaleString('it-IT'),soci:DB.soci.length,data:JSON.stringify(DB)});if(bk.length>MAX_BACKUPS)bk.splice(MAX_BACKUPS);localStorage.setItem(BACKUP_KEY,JSON.stringify(bk));if(driveAccessToken)driveBackupSave();}catch(e){}}
-async function driveBackupSave(){try{const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]');const content=JSON.stringify(bk,null,2);const sr=await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27spartans_backup.json%27&fields=files(id)`,{headers:{Authorization:'Bearer '+driveAccessToken}});const sd=await sr.json();if(sd.files?.length>0){await fetch(`https://www.googleapis.com/upload/drive/v3/files/${sd.files[0].id}?uploadType=media`,{method:'PATCH',headers:{Authorization:'Bearer '+driveAccessToken,'Content-Type':'application/json'},body:content});}else{const meta={name:'spartans_backup.json',parents:['appDataFolder']};const form=new FormData();form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));form.append('file',new Blob([content],{type:'application/json'}));await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{Authorization:'Bearer '+driveAccessToken},body:form});}}catch(e){}}
-async function driveBackupLoad(){try{const sr=await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27spartans_backup.json%27&fields=files(id)`,{headers:{Authorization:'Bearer '+driveAccessToken}});const sd=await sr.json();if(sd.files?.length>0){const r=await fetch(`https://www.googleapis.com/drive/v3/files/${sd.files[0].id}?alt=media`,{headers:{Authorization:'Bearer '+driveAccessToken}});if(r.ok){const db=await r.json();const lb=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]');const merged=[...db,...lb].reduce((acc,b)=>{if(!acc.find(x=>x.ts===b.ts))acc.push(b);return acc;},[]);merged.sort((a,b)=>b.ts.localeCompare(a.ts));merged.splice(MAX_BACKUPS);localStorage.setItem(BACKUP_KEY,JSON.stringify(merged));}}}catch(e){}}
+async function driveBackupSave(){
+  // Backup Drive disabilitato — backup solo in localStorage
+}
+async function driveBackupLoad(){
+  // Backup Drive disabilitato — backup solo in localStorage
+}
 function renderBackupList(){const c=document.getElementById('backup-list'),bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]');if(!bk.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun backup disponibile</span>';return;}c.innerHTML=bk.map((b,i)=>`<div style="display:flex;align-items:center;gap:9px;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;"><span style="font-size:16px;">💾</span><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${b.label}</div><div style="font-size:11px;color:var(--text2);">${b.soci} soci · ${i===0?'Più recente':'Precedente'}</div></div><button class="btn btn-s btn-sm" onclick="openRestoreModal(${i})">♻️</button><button class="btn btn-s btn-sm" onclick="exportBackup(${i})">📤</button></div>`).join('');}
 function openRestoreModal(idx){restoreTargetIdx=idx;const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];document.getElementById('modal-backup-info').innerHTML=`<strong>Backup del:</strong> ${b.label}<br><strong>Soci:</strong> ${b.soci}`;document.getElementById('modal-backup').classList.add('open');}
 function confirmRestore(){if(restoreTargetIdx===null)return;const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[restoreTargetIdx];saveBackup();try{DB=Object.assign(DB,JSON.parse(b.data));saveDB();renderAll();closeModal('modal-backup');toast('Dati ripristinati','success');renderBackupList();}catch(e){toast('Errore ripristino','error');}}
@@ -2572,7 +2576,7 @@ function driveSignIn(){
       await driveInit();
     }
   });
-  tokenClient.requestAccessToken({prompt:'select_account'});
+  tokenClient.requestAccessToken({prompt:'consent'});
 }
 
 // Rinnova il token silenziosamente senza mostrare popup
