@@ -2536,7 +2536,7 @@ function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(c
 // ═══ GOOGLE DRIVE MULTI-ACCOUNT ═══════════════════════════
 const GAPI_CLIENT_ID='604817164641-9v5jcl97m1nlp4lbcgd9i32nddkpdh69.apps.googleusercontent.com';
 // drive.file = accesso solo ai file creati dall'app, condivisibili
-const DRIVE_SCOPE='https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email';
+const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
 const DRIVE_FILENAME='spartans_manager_data.json';
 let driveAccessToken=null,driveFileId=null,driveSaveTimer=null,driveUserEmail='',driveRole='viewer';
 let liveSyncInterval=null,lastDriveModified='',liveSyncActive=false;
@@ -2615,7 +2615,28 @@ async function driveInit(){
       startLiveSync();
       return;
     }
-    // Modalità admin: cerca o crea il file nel Drive personale
+    // Modalità admin: prima controlla se abbiamo già il fileId salvato localmente
+    const savedAdminFileId=localStorage.getItem('sm_admin_file_id')||'';
+    if(savedAdminFileId){
+      // Verifica che il file esista ancora e sia accessibile
+      try{
+        const vr=await fetch(`https://www.googleapis.com/drive/v3/files/${savedAdminFileId}?fields=id,modifiedTime`,
+          {headers:{Authorization:'Bearer '+driveAccessToken}});
+        if(vr.ok){
+          const vd=await vr.json();
+          driveFileId=savedAdminFileId;
+          lastDriveModified=vd.modifiedTime||'';
+          driveRole='admin';
+          await driveLoadFromFile();
+          driveSetStatus('connected',`✓ Admin · ${driveUserEmail}`);
+          driveShowControls(true);
+          updateFileIdDisplay();
+          startLiveSync();
+          return;
+        }
+      }catch(e){console.warn('File ID salvato non valido, cerco su Drive...');}
+    }
+    // Cerca il file su Drive (solo file creati da questa app con drive.file)
     const sr=await fetch(
       `https://www.googleapis.com/drive/v3/files?q=name%3D%27${DRIVE_FILENAME}%27+and+trashed%3Dfalse&fields=files(id,modifiedTime,name)`,
       {headers:{Authorization:'Bearer '+driveAccessToken}}
