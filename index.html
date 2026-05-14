@@ -2542,8 +2542,7 @@ const GAPI_CLIENT_ID='604817164641-9v5jcl97m1nlp4lbcgd9i32nddkpdh69.apps.googleu
 // drive.file = accesso solo ai file creati dall'app, condivisibili
 const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
 const DRIVE_FILENAME='spartans_manager_data.json';
-// File ID fisso del database Spartans — non cambia mai
-const DRIVE_FILE_ID_FIXED='1rn16KfLDjczr8gidvn5ad9mrYU2OQYKx';
+// File ID viene salvato in localStorage dopo il primo accesso
 let driveAccessToken=null,driveFileId=null,driveSaveTimer=null,driveUserEmail='',driveRole='viewer';
 let liveSyncInterval=null,lastDriveModified='',liveSyncActive=false;
 // driveRole: 'admin' (crea/possiede il file) | 'user' (usa file condiviso) | null
@@ -2620,17 +2619,22 @@ async function driveGetUserInfo(){
 async function driveInit(){
   try{
     driveSetStatus('syncing','Connessione al file Drive...');
-    // Usa sempre il File ID fisso — elimina ambiguità tra sessioni e account
-    driveFileId=DRIVE_FILE_ID_FIXED;
-    localStorage.setItem('sm_admin_file_id', driveFileId);
-    // Recupera il modifiedTime attuale
-    try{
-      const mr=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?fields=modifiedTime`,
-        {headers:{Authorization:'Bearer '+driveAccessToken}});
-      if(mr.ok){const mm=await mr.json();lastDriveModified=mm.modifiedTime||'';}
-    }catch(e){}
-    // Carica i dati
-    await driveLoadFromFile();
+    // Cerca il file per nome nel Drive dell'utente connesso
+    const sr=await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name%3D%27${DRIVE_FILENAME}%27+and+trashed%3Dfalse&fields=files(id,modifiedTime,name)&orderBy=modifiedTime+desc`,
+      {headers:{Authorization:'Bearer '+driveAccessToken}}
+    );
+    const sd=await sr.json();
+    if(sd.files?.length>0){
+      driveFileId=sd.files[0].id;
+      lastDriveModified=sd.files[0].modifiedTime||'';
+      localStorage.setItem('sm_admin_file_id',driveFileId);
+    }else{
+      // Crea nuovo file
+      loadDB();loadTheme();saveBackup();renderAll();
+      await driveSaveNow();
+    }
+    if(driveFileId) await driveLoadFromFile();
     driveRole='admin';
     driveSetStatus('connected',`✓ Connesso · ${driveUserEmail}`);
     driveShowControls(true);
