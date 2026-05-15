@@ -2619,24 +2619,48 @@ async function driveGetUserInfo(){
 async function driveInit(){
   try{
     driveSetStatus('syncing','Connessione al file Drive...');
-    // Cerca il file per nome nel Drive dell'utente connesso
+    // Prima controlla se c'è un File ID condiviso salvato
+    const sharedFileId=localStorage.getItem('sm_shared_file_id')||'';
+    if(sharedFileId){
+      // Modalità utente — usa il file condiviso
+      driveFileId=sharedFileId;
+      driveRole='user';
+      try{
+        const mr=await fetch(`https://www.googleapis.com/drive/v3/files/${sharedFileId}?fields=modifiedTime`,
+          {headers:{Authorization:'Bearer '+driveAccessToken}});
+        if(mr.ok){const mm=await mr.json();lastDriveModified=mm.modifiedTime||'';}
+      }catch(e){}
+      await driveLoadFromFile();
+      driveSetStatus('connected',`✓ Connesso · ${driveUserEmail}`);
+      driveShowControls(true);
+      startLiveSync();
+      return;
+    }
+    // Nessun File ID condiviso — cerca file esistente nel Drive dell'utente
     const sr=await fetch(
       `https://www.googleapis.com/drive/v3/files?q=name%3D%27${DRIVE_FILENAME}%27+and+trashed%3Dfalse&fields=files(id,modifiedTime,name)&orderBy=modifiedTime+desc`,
       {headers:{Authorization:'Bearer '+driveAccessToken}}
     );
     const sd=await sr.json();
     if(sd.files?.length>0){
+      // Trovato file esistente — è l'admin
       driveFileId=sd.files[0].id;
       lastDriveModified=sd.files[0].modifiedTime||'';
       localStorage.setItem('sm_admin_file_id',driveFileId);
+      driveRole='admin';
+      await driveLoadFromFile();
     }else{
-      // Crea nuovo file
-      loadDB();loadTheme();saveBackup();renderAll();
-      await driveSaveNow();
+      // Nessun file trovato — chiede se è admin o utente
+      driveSetStatus('','');
+      loadDB();loadTheme();renderAll();
+      // Mostra messaggio nella barra
+      document.getElementById('drive-label').innerHTML=
+        '⚠️ Nessun file trovato. Sei l\'admin? <button onclick="driveCreaFile()" style="background:var(--accent);border:none;color:#fff;padding:2px 8px;border-radius:5px;cursor:pointer;font-size:11px;">Crea file</button> — Oppure inserisci il File ID in <strong>Impostazioni</strong>';
+      driveShowControls(true);
+      return;
     }
-    if(driveFileId) await driveLoadFromFile();
     driveRole='admin';
-    driveSetStatus('connected',`✓ Connesso · ${driveUserEmail}`);
+    driveSetStatus('connected',`✓ Admin · ${driveUserEmail}`);
     driveShowControls(true);
     updateFileIdDisplay();
     startLiveSync();
@@ -2645,6 +2669,16 @@ async function driveInit(){
     driveSetStatus('error','⚠ Errore Drive — dati locali');
     loadDB();loadTheme();saveBackup();renderAll();
   }
+}
+
+async function driveCreaFile(){
+  saveBackup();
+  await driveSaveNow();
+  driveRole='admin';
+  driveSetStatus('connected',`✓ Admin · ${driveUserEmail}`);
+  updateFileIdDisplay();
+  startLiveSync();
+  toast('File creato — copia il File ID dalle Impostazioni','success');
 }
 
 async function driveLoadFromFile(){
