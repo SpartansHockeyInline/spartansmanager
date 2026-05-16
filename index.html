@@ -2494,10 +2494,12 @@ function fbInit(){
 
 async function firebaseSignIn(){
   const email=document.getElementById('login-email').value.trim();
-  if(!email||!password){errEl.textContent='Inserisci email e password';errEl.style.display='';return;}
+  const pwd=document.getElementById('login-password').value;
+  const errEl=document.getElementById('login-error');
+  if(!email||!pwd){errEl.textContent='Inserisci email e password';errEl.style.display='';return;}
   try{
     errEl.style.display='none';
-    await fbAuth.signInWithEmailAndPassword(email,password);
+    await fbAuth.signInWithEmailAndPassword(email,pwd);
     localStorage.removeItem('sm_skip_login');
   }catch(e){
     errEl.textContent=e.code==='auth/wrong-password'||e.code==='auth/user-not-found'?'Email o password errati':e.message;
