@@ -2521,7 +2521,7 @@ function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(c
 // ═══ COMUNICATI FISR ══════════════════════════════════════
 // URL delle categorie per stagione
 const FISR_STAGIONI = {
-  '2025-26': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/576-2025-26.html',
+  '2025-26': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/587-2025-26.html',
   '2024-25': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/549-2024-25.html',
   '2023-24': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/516-2023-24.html',
 };
@@ -2594,31 +2594,36 @@ async function loadComunicatiFisr(){
 }
 
 function parseComunicatiFisr(html){
-  // Parsing del HTML del sito FISR per estrarre i comunicati
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const comunicati = [];
-  // Cerca i link ai PDF/documenti nella pagina
-  const links = doc.querySelectorAll('a[href*=".pdf"], a[href*="comunicat"]');
+  // I CU sono link con ?download= nel testo della pagina
+  const links = doc.querySelectorAll('a[href*="download"]');
   links.forEach(link => {
     const href = link.getAttribute('href') || '';
     const testo = link.textContent.trim();
-    if(!testo || testo.length < 3) return;
-    // Costruisci URL assoluto
+    if(!testo || testo.length < 5 || testo.toLowerCase()==='download') return;
+    if(!href.includes('download') && !href.includes('.pdf')) return;
     const urlCompleto = href.startsWith('http') ? href : 'https://www.fisr.it' + href;
-    // Estrai numero CU e data dal testo
-    const matchNum = testo.match(/n[°\.]?\s*(\d+)/i);
-    const matchData = testo.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-    comunicati.push({
-      id: matchNum ? matchNum[1].padStart(3,'0') : testo.slice(0,20),
-      titolo: testo,
-      url: urlCompleto,
-      data: matchData ? `${matchData[3].length===2?'20'+matchData[3]:matchData[3]}-${matchData[2].padStart(2,'0')}-${matchData[1].padStart(2,'0')}` : '',
-    });
+    // Estrai numero CU dal titolo (es. "CU 064 - ...")
+    const matchNum = testo.match(/CU\s*n?\.?\s*(\d+)/i);
+    const num = matchNum ? matchNum[1].padStart(3,'0') : '000';
+    // Cerca la data nel testo vicino (elemento successivo o parent)
+    let data = '';
+    const parent = link.closest('li, div, p') || link.parentElement;
+    if(parent){
+      const dataMatch = parent.textContent.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+      if(dataMatch){
+        const mesi={'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12};
+        const mese = mesi[dataMatch[2].toLowerCase()];
+        if(mese) data = `${dataMatch[3]}-${String(mese).padStart(2,'0')}-${dataMatch[1].padStart(2,'0')}`;
+      }
+    }
+    comunicati.push({id:num, titolo:testo, url:urlCompleto, data});
   });
   // Rimuovi duplicati per URL
   const seen = new Set();
-  return comunicati.filter(c => {if(seen.has(c.url))return false;seen.add(c.url);return true;});
+  return comunicati.filter(c=>{if(seen.has(c.url))return false;seen.add(c.url);return true;});
 }
 
 function renderComunicati(comunicati, containerId='fisr-list'){
