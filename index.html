@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;">
 <title>Spartans Manager</title>
 <meta name="application-name" content="Spartans Manager">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +14,10 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
 :root{
   --bg:#0a0a0a;--surface:#111;--surface2:#1a1a1a;--border:#2a2a2a;
@@ -374,13 +378,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       <img src="logo.svg" alt="Spartans" id="login-logo-img" style="width:52px;height:52px;object-fit:contain;filter:invert(1);">
     </div>
     <div class="ltitle">Spartans Manager</div>
-    <div class="lsub">Accedi con Google per sincronizzare i dati su Drive e abilitare la collaborazione in tempo reale.</div>
-    <button class="lgbtn" onclick="driveSignIn()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
-      Accedi con Google
-    </button>
-    <button class="lskip" onclick="skipLogin()">Continua senza Google Drive (solo locale)</button>
-    <div class="lnote">🔒 I dati restano nel tuo Google Drive personale.</div>
+    <div class="lsub">Accedi per sincronizzare i dati in tempo reale.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+      <input class="fi" id="login-email" type="email" placeholder="Email" autocomplete="email">
+      <input class="fi" id="login-password" type="password" placeholder="Password" autocomplete="current-password">
+      <div id="login-error" style="font-size:11px;color:var(--red);display:none;"></div>
+    </div>
+    <button class="lgbtn" onclick="firebaseSignIn()">🔐 Accedi</button>
+    <button class="lskip" onclick="skipLogin()">Continua senza sincronizzazione (solo locale)</button>
+    <div class="lnote">🔒 I dati sono sincronizzati in tempo reale su Firebase.</div>
   </div>
 </div>
 
@@ -389,9 +395,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="ddot" id="drive-dot"></div>
   <span class="dlabel" id="drive-label">Non connesso</span>
   <div class="dacts">
-    <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento in corso...</span>
+    <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
-    <button onclick="driveSwitchAccount()" id="btn-drive-account" style="display:none"></button>
+    <button onclick="fbSignOut()" id="btn-drive-account" style="display:none"></button>
     <button onclick="exportData()">📤 Esporta</button>
     <button onclick="importData()">📥 Importa</button>
   </div>
@@ -733,29 +739,11 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="card-title">🔄 Sincronizzazione</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface2);border-radius:8px;">
-            <div><div style="font-size:13px;font-weight:500;">Google Drive</div><div style="font-size:11px;color:var(--text2);" id="settings-drive-status">—</div></div>
-            <button class="btn btn-s btn-sm" onclick="driveSwitchAccount()">Cambia account</button>
-          </div>
-          <!-- File ID condiviso -->
-          <div style="padding:10px;background:var(--surface2);border-radius:8px;">
-            <div style="font-size:13px;font-weight:500;margin-bottom:6px;">📂 File ID condiviso</div>
-            <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">L'admin copia il File ID e lo condivide con gli altri utenti. Ogni utente lo incolla qui e accede con il proprio account Google.</div>
-            <div id="admin-file-id-section" style="display:none;margin-bottom:8px;">
-              <div style="font-size:11px;color:var(--gold);margin-bottom:4px;">👑 Sei l'admin — il tuo File ID:</div>
-              <div style="display:flex;gap:6px;">
-                <input class="fi" id="settings-file-id-display" readonly style="font-size:11px;flex:1;font-family:monospace;" placeholder="File ID apparirà dopo il primo salvataggio">
-                <button class="btn btn-s btn-sm" onclick="copyFileId()">📋 Copia</button>
-              </div>
-            </div>
-            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">File ID ricevuto dall'admin:</div>
-            <div style="display:flex;gap:6px;">
-              <input class="fi" id="settings-file-id" placeholder="Incolla qui il File ID..." style="font-size:11px;flex:1;font-family:monospace;">
-              <button class="btn btn-p btn-sm" onclick="saveSharedFileId()">💾 Salva</button>
-            </div>
-            <div style="font-size:10px;color:var(--text3);margin-top:5px;">Dopo aver salvato il File ID, ricarica la pagina per connetterti al file condiviso.</div>
+            <div><div style="font-size:13px;font-weight:500;">Firebase</div><div style="font-size:11px;color:var(--text2);" id="settings-drive-status">—</div></div>
+            <button class="btn btn-s btn-sm" onclick="fbSignOut()">Disconnetti</button>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface2);border-radius:8px;">
-            <div><div style="font-size:13px;font-weight:500;">Sincronizzazione live</div><div style="font-size:11px;color:var(--text2);">Polling ogni 30s per aggiornamenti da altri dispositivi</div></div>
+            <div><div style="font-size:13px;font-weight:500;">Sincronizzazione live</div><div style="font-size:11px;color:var(--text2);">Aggiornamento in tempo reale tra tutti i dispositivi</div></div>
             <span id="live-sync-status" class="badge bg">Attivo se connesso</span>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface2);border-radius:8px;">
@@ -834,7 +822,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="page" id="page-valutazione-atleta"></div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v2.5 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.0.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1195,6 +1183,17 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v3.0.0 · Maggio 2026</div>
+        <div class="cl-section">Cambiamento architetturale</div>
+        <div class="cl-item"><strong>Migrazione da Google Drive a Firebase</strong> — eliminato il sistema OAuth Google Drive, sostituito con Firebase Realtime Database + Firebase Authentication</div>
+        <div class="cl-item"><strong>Login email/password</strong> — accesso con credenziali dedicate all'app, indipendenti dagli account Google; nessun problema di scope OAuth, nessuna verifica Google richiesta</div>
+        <div class="cl-item"><strong>Sincronizzazione in tempo reale</strong> — tutti gli utenti vedono le modifiche istantaneamente tramite listener Firebase, senza polling ogni 30 secondi</div>
+        <div class="cl-item"><strong>Multi-account nativo</strong> — ogni utente ha le proprie credenziali Firebase; tutti leggono e scrivono sullo stesso database senza restrizioni</div>
+        <div class="cl-section">Note versioning</div>
+        <div class="cl-item">Da questa versione il formato è X.Y.Z: X = architettura, Y = funzionalità, Z = modifiche minori/grafiche</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v2.5 · Maggio 2026</div>
         <div class="cl-section">Nuove funzionalità</div>
         <div class="cl-item"><strong>Multi-account Google</strong> — ogni utente accede con il proprio account Google personale; l'admin crea il file dati e condivide il File ID; gli altri utenti incollano il File ID nelle Impostazioni e accedono in lettura/scrittura senza condividere credenziali</div>
@@ -1434,14 +1433,7 @@ function showPage(page){
   if(page==='impostazioni'){
     loadTheme();
     const el=document.getElementById('settings-drive-status');
-    if(el)el.textContent=driveAccessToken?`Connesso come ${driveUserEmail||'account Google'} (${driveRole==='admin'?'Admin':'Utente'})`:'Non connesso';
-    // Recupera fileId da localStorage se non in memoria
-    if(!driveFileId) driveFileId=localStorage.getItem('sm_admin_file_id')||null;
-    updateFileIdDisplay();
-    // Precompila file ID se già salvato
-    const savedId=localStorage.getItem('sm_shared_file_id')||'';
-    const fieldId=document.getElementById('settings-file-id');
-    if(fieldId&&savedId)fieldId.value=savedId;
+    if(el)el.textContent=fbUser?`Connesso come ${fbUser.email}`:'Non connesso';
     renderBackupList();
   }
 }
@@ -2431,98 +2423,15 @@ function stampaH2(){
 
 // ═══ RECUPERO DATI VERSIONE PRECEDENTE ════════════════════
 async function recuperaDatiVecchiaVersione(){
-  if(!driveAccessToken){toast('Devi essere connesso a Google Drive','error');return;}
-  const btn=document.getElementById('btn-recupera');
-  const status=document.getElementById('recupero-status');
-  btn.disabled=true;btn.textContent='⏳ Ricerca in corso...';
-  status.style.display='';status.style.color='var(--text2)';
-  status.textContent='Cerco il vecchio file su Drive (appDataFolder)...';
-  try{
-    // Cerca il vecchio file in appDataFolder con scope appdata
-    // Usiamo un token temporaneo con scope aggiuntivo
-    const client=google.accounts.oauth2.initTokenClient({
-      client_id:GAPI_CLIENT_ID,
-      scope:'https://www.googleapis.com/auth/drive.appdata',
-      callback:async(resp)=>{
-        if(resp.error){
-          status.style.color='var(--red)';
-          status.textContent='❌ Accesso negato: '+resp.error;
-          btn.disabled=false;btn.textContent='🔄 Recupera dati versione precedente';
-          return;
-        }
-        const tempToken=resp.access_token;
-        try{
-          status.textContent='Accesso a appDataFolder...';
-          // Lista file in appDataFolder
-          const sr=await fetch(
-            'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name,modifiedTime)&q=name%3D%27spartans_manager_data.json%27',
-            {headers:{Authorization:'Bearer '+tempToken}}
-          );
-          const sd=await sr.json();
-          if(!sd.files?.length){
-            // Prova anche il vecchio nome
-            const sr2=await fetch(
-              'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name,modifiedTime)',
-              {headers:{Authorization:'Bearer '+tempToken}}
-            );
-            const sd2=await sr2.json();
-            if(!sd2.files?.length){
-              status.style.color='var(--yellow)';
-              status.textContent='⚠️ Nessun file trovato in appDataFolder. I dati potrebbero essere già stati migrati o il vecchio file non esiste.';
-              btn.disabled=false;btn.textContent='🔄 Riprova';
-              return;
-            }
-            // Usa il primo file trovato
-            sd.files=sd2.files;
-          }
-          const fileId=sd.files[0].id;
-          const fileName=sd.files[0].name;
-          const modified=sd.files[0].modifiedTime;
-          status.textContent=`Trovato: ${fileName} (modificato: ${new Date(modified).toLocaleString('it-IT')}) — scarico...`;
-          // Scarica il contenuto
-          const dr=await fetch(
-            `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-            {headers:{Authorization:'Bearer '+tempToken}}
-          );
-          if(!dr.ok)throw new Error('HTTP '+dr.status);
-          const oldData=await dr.json();
-          // Mostra anteprima prima di importare
-          const soci=oldData.soci?.length||0;
-          const corsi=oldData.corsi?.length||0;
-          const eventi=oldData.eventi?.length||0;
-          if(confirm(`✅ Trovati i tuoi dati!\n\n• ${soci} soci\n• ${corsi} corsi/squadre\n• ${eventi} eventi\n\nVuoi importarli? I dati attuali verranno sovrascritti.`)){
-            saveBackup(); // salva backup prima di sovrascrivere
-            DB=Object.assign(DB,oldData);
-            saveDB();renderAll();
-            status.style.color='var(--green)';
-            status.textContent=`✅ Recuperati ${soci} soci, ${corsi} corsi, ${eventi} eventi. Salvo su Drive...`;
-            await driveSaveNow();
-            toast('Dati recuperati e salvati con successo','success');
-          }else{
-            status.textContent='Recupero annullato.';
-          }
-        }catch(err){
-          status.style.color='var(--red)';
-          status.textContent='❌ Errore durante il recupero: '+err.message;
-        }
-        btn.disabled=false;btn.textContent='🔄 Recupera dati versione precedente';
-      }
-    });
-    client.requestAccessToken({prompt:''});
-  }catch(e){
-    status.style.color='var(--red)';
-    status.textContent='❌ Errore: '+e.message;
-    btn.disabled=false;btn.textContent='🔄 Recupera dati versione precedente';
-  }
+  toast('Questa funzione non è disponibile con Firebase. Usa Importa JSON per caricare i tuoi dati.','warning');
 }
-
 // ═══ TEMA ═════════════════════════════════════════════════
 function setTheme(t){document.body.classList.toggle('theme-light',t==='light');localStorage.setItem('sm_theme',t);document.getElementById('theme-opt-dark').classList.toggle('selected',t==='dark');document.getElementById('theme-opt-light').classList.toggle('selected',t==='light');toast(t==='light'?'☀️ Tema chiaro':'🌙 Tema scuro','success');}
 function loadTheme(){const t=localStorage.getItem('sm_theme')||'dark';document.body.classList.toggle('theme-light',t==='light');const od=document.getElementById('theme-opt-dark'),ol=document.getElementById('theme-opt-light');if(od)od.classList.toggle('selected',t==='dark');if(ol)ol.classList.toggle('selected',t==='light');}
 
 // ═══ BACKUP ═══════════════════════════════════════════════
 const BACKUP_KEY='spartans_backups';const MAX_BACKUPS=3;
-function saveBackup(){try{const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]');bk.unshift({ts:new Date().toISOString(),label:new Date().toLocaleString('it-IT'),soci:DB.soci.length,data:JSON.stringify(DB)});if(bk.length>MAX_BACKUPS)bk.splice(MAX_BACKUPS);localStorage.setItem(BACKUP_KEY,JSON.stringify(bk));if(driveAccessToken)driveBackupSave();}catch(e){}}
+function saveBackup(){try{const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]');bk.unshift({ts:new Date().toISOString(),label:new Date().toLocaleString('it-IT'),soci:DB.soci.length,data:JSON.stringify(DB)});if(bk.length>MAX_BACKUPS)bk.splice(MAX_BACKUPS);localStorage.setItem(BACKUP_KEY,JSON.stringify(bk));}catch(e){}}
 async function driveBackupSave(){
   // Backup Drive disabilitato — backup solo in localStorage
 }
@@ -2537,59 +2446,69 @@ function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)|
 // ═══ RENDER ALL ═══════════════════════════════════════════
 function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche')renderSoci();if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();}
 
-// ═══ GOOGLE DRIVE MULTI-ACCOUNT ═══════════════════════════
-const GAPI_CLIENT_ID='604817164641-9v5jcl97m1nlp4lbcgd9i32nddkpdh69.apps.googleusercontent.com';
-// drive.file = accesso solo ai file creati dall'app, condivisibili
-const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
-const DRIVE_FILENAME='spartans_manager_data.json';
-// File ID viene salvato in localStorage dopo il primo accesso
-let driveAccessToken=null,driveFileId=null,driveSaveTimer=null,driveUserEmail='',driveRole='viewer';
-let liveSyncInterval=null,lastDriveModified='',liveSyncActive=false;
-// driveRole: 'admin' (crea/possiede il file) | 'user' (usa file condiviso) | null
+// ═══ FIREBASE ═════════════════════════════════════════════
+// Configurazione Firebase — da completare dopo setup console.firebase.google.com
+const FB_CONFIG = {
+  apiKey: "AIzaSyDKbb-3GrlfjEKFV_hkwuvfWFNtOoW-tMo",
+  authDomain: "spartansmanager-735c1.firebaseapp.com",
+  databaseURL: "https://spartansmanager-735c1-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "spartansmanager-735c1",
+  storageBucket: "spartansmanager-735c1.firebasestorage.app",
+  messagingSenderId: "686498180992",
+  appId: "1:686498180992:web:de0991c1d2ab8c54d71b65"
+};
 
-function driveSetStatus(state,label){
-  const dot=document.getElementById('drive-dot'),lbl=document.getElementById('drive-label');
-  dot.className='ddot'+(state?' '+state:'');lbl.textContent=label;
+let fbApp=null, fbDb=null, fbAuth=null, fbUser=null;
+let fbSaveTimer=null, fbListenerActive=false;
+
+function fbInit(){
+  try{
+    fbApp=firebase.initializeApp(FB_CONFIG);
+    fbDb=firebase.database();
+    fbAuth=firebase.auth();
+    fbAuth.onAuthStateChanged(user=>{
+      if(user){
+        fbUser=user;
+        document.getElementById('login-overlay').classList.add('hidden');
+        driveSetStatus('syncing','Connessione Firebase...');
+        fbLoadData();
+        fbStartLiveSync();
+        driveSetStatus('connected',`✓ Connesso · ${user.email}`);
+        driveShowControls(true);
+        const btn=document.getElementById('btn-drive-account');
+        if(btn)btn.textContent='👤 '+user.email;
+      }else{
+        fbUser=null;
+        driveSetStatus('','Non connesso');
+        driveShowControls(false);
+        if(!localStorage.getItem('sm_skip_login'))
+          document.getElementById('login-overlay').classList.remove('hidden');
+      }
+    });
+  }catch(e){
+    console.error('Firebase init error:',e);
+    driveSetStatus('error','⚠ Firebase non configurato — solo locale');
+    loadDB();loadTheme();saveBackup();renderAll();
+  }
 }
-function driveShowControls(show){
-  document.getElementById('btn-drive-save').style.display=show?'':'none';
-  document.getElementById('btn-drive-account').style.display=show?'':'none';
-  if(show)document.getElementById('btn-drive-account').textContent='👤 '+(driveUserEmail||'Account');
+
+async function firebaseSignIn(){
+  const email=document.getElementById('login-email').value.trim();
+  if(!email||!password){errEl.textContent='Inserisci email e password';errEl.style.display='';return;}
+  try{
+    errEl.style.display='none';
+    await fbAuth.signInWithEmailAndPassword(email,password);
+    localStorage.removeItem('sm_skip_login');
+  }catch(e){
+    errEl.textContent=e.code==='auth/wrong-password'||e.code==='auth/user-not-found'?'Email o password errati':e.message;
+    errEl.style.display='';
+  }
 }
 
-// Token client globale per il rinnovo silenzioso
-let tokenClient=null;
-
-function driveSignIn(){
-  if(typeof google==='undefined'){toast('Libreria Google non disponibile — apri da GitHub Pages','error');return;}
-  tokenClient=google.accounts.oauth2.initTokenClient({
-    client_id:GAPI_CLIENT_ID,
-    scope:DRIVE_SCOPE,
-    callback:async(resp)=>{
-      if(resp.error){toast('Accesso negato: '+resp.error,'error');return;}
-      driveAccessToken=resp.access_token;
-      localStorage.setItem('sm_drive_token',driveAccessToken);
-      document.getElementById('login-overlay').classList.add('hidden');
-      driveSetStatus('syncing','Connessione...');
-      await driveGetUserInfo();
-      await driveInit();
-    }
-  });
-  tokenClient.requestAccessToken({prompt:'consent'});
-}
-
-// Rinnova il token silenziosamente senza mostrare popup
-async function renewToken(){
-  return new Promise((resolve)=>{
-    if(!tokenClient){resolve(false);return;}
-    tokenClient.callback=async(resp)=>{
-      if(resp.error){resolve(false);return;}
-      driveAccessToken=resp.access_token;
-      localStorage.setItem('sm_drive_token',driveAccessToken);
-      resolve(true);
-    };
-    tokenClient.requestAccessToken({prompt:''});
-  });
+function fbSignOut(){
+  if(!confirm('Disconnettersi?'))return;
+  fbAuth.signOut();
+  localStorage.removeItem('sm_skip_login');
 }
 
 function skipLogin(){
@@ -2599,266 +2518,108 @@ function skipLogin(){
   loadDB();loadTheme();saveBackup();renderAll();
 }
 
-function driveSwitchAccount(){
-  driveAccessToken=null;driveFileId=null;driveRole=null;
-  stopLiveSync();
-  localStorage.removeItem('sm_drive_token');
-  localStorage.removeItem('sm_skip_login');
-  driveSetStatus('','Non connesso');
-  driveShowControls(false);
-  document.getElementById('login-overlay').classList.remove('hidden');
-}
-
-async function driveGetUserInfo(){
+async function fbLoadData(){
   try{
-    const r=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+driveAccessToken}});
-    const i=await r.json();driveUserEmail=i.email||'';
-  }catch(e){}
-}
-
-async function driveInit(){
-  try{
-    driveSetStatus('syncing','Connessione al file Drive...');
-    // Prima controlla se c'è un File ID condiviso salvato
-    const sharedFileId=localStorage.getItem('sm_shared_file_id')||'';
-    if(sharedFileId){
-      // Modalità utente — usa il file condiviso
-      driveFileId=sharedFileId;
-      driveRole='user';
-      try{
-        const mr=await fetch(`https://www.googleapis.com/drive/v3/files/${sharedFileId}?fields=modifiedTime`,
-          {headers:{Authorization:'Bearer '+driveAccessToken}});
-        if(mr.ok){const mm=await mr.json();lastDriveModified=mm.modifiedTime||'';}
-      }catch(e){}
-      await driveLoadFromFile();
-      driveSetStatus('connected',`✓ Connesso · ${driveUserEmail}`);
-      driveShowControls(true);
-      startLiveSync();
-      return;
-    }
-    // Nessun File ID condiviso — cerca file esistente nel Drive dell'utente
-    const sr=await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=name%3D%27${DRIVE_FILENAME}%27+and+trashed%3Dfalse&fields=files(id,modifiedTime,name)&orderBy=modifiedTime+desc`,
-      {headers:{Authorization:'Bearer '+driveAccessToken}}
-    );
-    const sd=await sr.json();
-    if(sd.files?.length>0){
-      // Trovato file esistente — è l'admin
-      driveFileId=sd.files[0].id;
-      lastDriveModified=sd.files[0].modifiedTime||'';
-      localStorage.setItem('sm_admin_file_id',driveFileId);
-      driveRole='admin';
-      await driveLoadFromFile();
+    const snap=await fbDb.ref('spartans/data').get();
+    if(snap.exists()){
+      DB=Object.assign(DB,snap.val());
+      saveDB();loadTheme();saveBackup();renderAll();
+      toast('Dati caricati da Firebase','success');
     }else{
-      // Nessun file trovato — chiede se è admin o utente
-      driveSetStatus('','');
-      loadDB();loadTheme();renderAll();
-      // Mostra messaggio nella barra
-      document.getElementById('drive-label').innerHTML=
-        '⚠️ Nessun file trovato. Sei l\'admin? <button onclick="driveCreaFile()" style="background:var(--accent);border:none;color:#fff;padding:2px 8px;border-radius:5px;cursor:pointer;font-size:11px;">Crea file</button> — Oppure inserisci il File ID in <strong>Impostazioni</strong>';
-      driveShowControls(true);
-      return;
+      // Prima volta — carica dati locali e salva
+      loadDB();loadTheme();saveBackup();renderAll();
+      await fbSaveNow();
     }
-    driveRole='admin';
-    driveSetStatus('connected',`✓ Admin · ${driveUserEmail}`);
-    driveShowControls(true);
-    updateFileIdDisplay();
-    startLiveSync();
   }catch(e){
-    console.error('Drive init error:',e);
-    driveSetStatus('error','⚠ Errore Drive — dati locali');
+    console.error('Firebase load error:',e);
+    toast('Errore lettura Firebase — uso dati locali','warning');
     loadDB();loadTheme();saveBackup();renderAll();
   }
 }
 
-async function driveCreaFile(){
-  saveBackup();
-  await driveSaveNow();
-  driveRole='admin';
-  driveSetStatus('connected',`✓ Admin · ${driveUserEmail}`);
-  updateFileIdDisplay();
-  startLiveSync();
-  toast('File creato — copia il File ID dalle Impostazioni','success');
-}
-
-async function driveLoadFromFile(){
-  try{
-    const r=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
-      {headers:{Authorization:'Bearer '+driveAccessToken}});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const data=await r.json();
-    DB=Object.assign(DB,data);
-    saveDB();loadTheme();saveBackup();renderAll();
-    toast('Dati caricati da Drive','success');
-  }catch(e){
-    console.error('Drive load error:',e);
-    toast('Errore lettura file Drive — uso dati locali','warning');
-    loadDB();loadTheme();saveBackup();renderAll();
-  }
-}
-
-async function driveSaveNow(){
-  if(!driveAccessToken)return;
+async function fbSaveNow(){
+  if(!fbUser||!fbDb)return;
   driveSetStatus('syncing','Salvataggio...');
-  const content=JSON.stringify(DB,null,2);
   try{
-    if(driveFileId){
-      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
-        {method:'PATCH',headers:{Authorization:'Bearer '+driveAccessToken,'Content-Type':'application/json'},body:content});
-      const meta=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?fields=modifiedTime`,
-        {headers:{Authorization:'Bearer '+driveAccessToken}});
-      const m=await meta.json();lastDriveModified=m.modifiedTime||'';
-    }else{
-      // Crea nuovo file nel Drive dell'admin
-      const fileMeta={name:DRIVE_FILENAME,mimeType:'application/json'};
-      const form=new FormData();
-      form.append('metadata',new Blob([JSON.stringify(fileMeta)],{type:'application/json'}));
-      form.append('file',new Blob([content],{type:'application/json'}));
-      const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime',
-        {method:'POST',headers:{Authorization:'Bearer '+driveAccessToken},body:form});
-      const cr=await r.json();
-      driveFileId=cr.id;lastDriveModified=cr.modifiedTime||'';
-      updateFileIdDisplay();
-      // Rendi il file condivisibile (link sharing)
-      await driveShareFile();
-    }
+    await fbDb.ref('spartans/data').set(DB);
     const now=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-    driveSetStatus('connected',`✓ Sincronizzato · ${driveUserEmail} · ${now}`);
+    driveSetStatus('connected',`✓ Sincronizzato · ${fbUser.email} · ${now}`);
   }catch(e){
-    console.error('Drive save error:',e);
-    driveSetStatus('error','⚠ Errore salvataggio Drive');
-    toast('Salvataggio Drive fallito','error');
+    console.error('Firebase save error:',e);
+    driveSetStatus('error','⚠ Errore salvataggio Firebase');
+    toast('Salvataggio Firebase fallito','error');
   }
 }
 
-async function driveShareFile(){
-  // Rende il file leggibile/scrivibile a chiunque abbia il link
-  // In produzione si potrebbe limitare a email specifiche
-  try{
-    await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}/permissions`,{
-      method:'POST',
-      headers:{Authorization:'Bearer '+driveAccessToken,'Content-Type':'application/json'},
-      body:JSON.stringify({role:'writer',type:'anyone'})
-    });
-  }catch(e){console.warn('Share file error:',e);}
-}
-
-function updateFileIdDisplay(){
-  // Salva il fileId in localStorage per recuperarlo dopo reload
-  if(driveFileId){
-    localStorage.setItem('sm_admin_file_id', driveFileId);
-  }
-  const stored = driveFileId || localStorage.getItem('sm_admin_file_id') || '';
-  const el=document.getElementById('settings-file-id-display');
-  if(el) el.value = stored;
-  const adminSection=document.getElementById('admin-file-id-section');
-  if(adminSection) adminSection.style.display = stored ? '' : 'none';
-}
-
-function driveScheduleSave(){if(!driveAccessToken)return;clearTimeout(driveSaveTimer);driveSaveTimer=setTimeout(driveSaveNow,2000);}
-function driveForceSave(){driveSaveNow();}
-
-function saveSharedFileId(){
-  const v=document.getElementById('settings-file-id')?.value.trim();
-  if(!v){toast('Inserisci un File ID valido','error');return;}
-  localStorage.setItem('sm_shared_file_id',v);
-  toast('File ID salvato — ricarica la pagina per connetterti','success');
-}
-
-function copyFileId(){
-  if(!driveFileId){toast('Nessun File ID disponibile','error');return;}
-  navigator.clipboard.writeText(driveFileId).then(()=>toast('File ID copiato negli appunti','success'));
-}
-
-// ═══ LIVE SYNC ════════════════════════════════════════════
-function startLiveSync(){
-  if(liveSyncInterval)clearInterval(liveSyncInterval);
-  liveSyncActive=true;
-  liveSyncInterval=setInterval(checkRemoteChanges,30000);
-}
-function stopLiveSync(){if(liveSyncInterval)clearInterval(liveSyncInterval);liveSyncActive=false;}
-
-async function checkRemoteChanges(){
-  if(!driveFileId)return;
-  // Se token mancante, prova a rinnovarlo silenziosamente
-  if(!driveAccessToken){
-    const renewed=await renewToken();
-    if(!renewed)return;
-  }
-  try{
-    const r=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?fields=modifiedTime`,
-      {headers:{Authorization:'Bearer '+driveAccessToken}});
-    if(!r.ok){
-      if(r.status===401){
-        // Token scaduto — prova rinnovo silenzioso
-        driveAccessToken=null;
-        const renewed=await renewToken();
-        if(!renewed){driveSetStatus('error','⚠ Sessione scaduta — riaccedi');return;}
-        // Riprova dopo il rinnovo
-        checkRemoteChanges();
-        return;
-      }
-      return;
+function fbStartLiveSync(){
+  if(fbListenerActive||!fbDb)return;
+  fbListenerActive=true;
+  fbDb.ref('spartans/data').on('value',snap=>{
+    if(!snap.exists())return;
+    const newData=snap.val();
+    // Evita di ricaricare se è stato noi a salvare (confronta soci come proxy)
+    const newHash=JSON.stringify(newData?.soci?.length)+JSON.stringify(newData?.eventi?.length);
+    const curHash=JSON.stringify(DB?.soci?.length)+JSON.stringify(DB?.eventi?.length);
+    if(newHash!==curHash){
+      DB=Object.assign(DB,newData);
+      saveDB();renderAll();
+      driveSetStatus('connected','✓ Aggiornato · '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}));
+      toast('📡 Dati aggiornati da altro dispositivo','info');
     }
-    const m=await r.json();
-    if(!m.modifiedTime)return;
-    if(!lastDriveModified){lastDriveModified=m.modifiedTime;return;}
-    if(m.modifiedTime!==lastDriveModified){
-      const li=document.getElementById('live-indicator');
-      if(li)li.style.display='';
-      driveSetStatus('syncing','🔄 Aggiornamento...');
-      const dataR=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
-        {headers:{Authorization:'Bearer '+driveAccessToken}});
-      if(dataR.ok){
-        const newData=await dataR.json();
-        lastDriveModified=m.modifiedTime;
-        DB=Object.assign(DB,newData);
-        saveDB();
-        renderAll();
-        if(li)li.style.display='none';
-        driveSetStatus('connected','✓ Aggiornato · '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}));
-        toast('📡 Dati aggiornati da altro dispositivo','info');
-      }
-    }
-  }catch(e){console.warn('Live sync error:',e);}
+  });
 }
+
+// Compatibilità con il resto del codice che chiama driveScheduleSave
+function driveScheduleSave(){
+  if(!fbUser)return;
+  clearTimeout(fbSaveTimer);
+  fbSaveTimer=setTimeout(fbSaveNow,2000);
+}
+function driveForceSave(){fbSaveNow();}
+function driveSetStatus(state,label){
+  const dot=document.getElementById('drive-dot'),lbl=document.getElementById('drive-label');
+  if(dot)dot.className='ddot'+(state?' '+state:'');
+  if(lbl)lbl.textContent=label;
+}
+function driveShowControls(show){
+  const s=document.getElementById('btn-drive-save');
+  const a=document.getElementById('btn-drive-account');
+  if(s)s.style.display=show?'':'none';
+  if(a)a.style.display=show?'':'none';
+}
+
+// Funzioni Drive obsolete — mantenute per compatibilità
+function driveSwitchAccount(){fbSignOut();}
+function saveSharedFileId(){}
+function copyFileId(){}
+function updateFileIdDisplay(){}
+async function driveBackupLoad(){}
+async function recuperaDatiVecchiaVersione(){toast('Funzione disponibile solo con Google Drive','warning');}
 
 // ═══ INIT ═════════════════════════════════════════════════
 (function init(){
+  loadTheme();
   const skip=localStorage.getItem('sm_skip_login');
-  const token=localStorage.getItem('sm_drive_token');
   if(skip){
     document.getElementById('login-overlay').classList.add('hidden');
     driveSetStatus('','Solo locale');
-    loadDB();loadTheme();saveBackup();renderAll();return;
+    loadDB();loadTheme();saveBackup();renderAll();
   }
-  // Inizializza sempre il tokenClient per permettere il rinnovo silenzioso
-  if(typeof google!=='undefined'){
-    setTimeout(()=>{
-      try{
-        tokenClient=google.accounts.oauth2.initTokenClient({
-          client_id:GAPI_CLIENT_ID,
-          scope:DRIVE_SCOPE,
-          callback:()=>{}  // callback vuoto, viene sovrascritto al momento del rinnovo
-        });
-      }catch(e){}
-    },1000);
+  // Tenta di inizializzare Firebase con retry
+  let attempts=0;
+  function tryFirebase(){
+    attempts++;
+    if(typeof firebase!=='undefined'){
+      fbInit();
+    }else if(attempts<20){
+      setTimeout(tryFirebase,300);
+    }else{
+      driveSetStatus('error','⚠ Firebase non disponibile — solo locale');
+      loadDB();loadTheme();saveBackup();renderAll();
+      if(!skip)document.getElementById('login-overlay').classList.add('hidden');
+    }
   }
-  if(token){
-    driveAccessToken=token;
-    document.getElementById('login-overlay').classList.add('hidden');
-    driveSetStatus('syncing','Ripristino sessione...');
-    fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}})
-      .then(r=>{
-        if(r.ok)return r.json().then(async i=>{driveUserEmail=i.email||'';await driveBackupLoad();return driveInit();});
-        driveAccessToken=null;localStorage.removeItem('sm_drive_token');
-        driveSetStatus('','Sessione scaduta — accedi di nuovo');
-        loadDB();loadTheme();saveBackup();renderAll();
-        setTimeout(()=>document.getElementById('login-overlay').classList.remove('hidden'),1500);
-      }).catch(()=>{driveSetStatus('','Offline — dati locali');loadDB();loadTheme();saveBackup();renderAll();});
-    return;
-  }
-  loadDB();loadTheme();saveBackup();renderAll();
+  tryFirebase();
 })();
 </script>
 </body>

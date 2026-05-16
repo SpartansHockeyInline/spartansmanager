@@ -2,6 +2,19 @@
 
 ---
 
+## v3.0.0 · Maggio 2026
+
+### Cambiamento architetturale
+- **Migrazione da Google Drive a Firebase** — eliminato il sistema OAuth Google Drive con tutti i problemi di scope e verifica app; sostituito con Firebase Realtime Database + Firebase Authentication
+- **Login email/password** — accesso con credenziali dedicate all'app, indipendenti dagli account Google; nessun problema di 2FA condiviso, nessuna verifica Google richiesta
+- **Sincronizzazione in tempo reale** — tutti gli utenti vedono le modifiche istantaneamente tramite listener Firebase, senza polling ogni 30 secondi
+- **Multi-account nativo** — ogni utente ha le proprie credenziali Firebase; tutti leggono e scrivono sullo stesso database senza restrizioni di scope OAuth
+
+### Note versioning
+Da questa versione il formato è **X.Y.Z**: X = cambiamento architetturale, Y = nuove funzionalità, Z = modifiche minori e grafiche
+
+---
+
 ## v2.5 · Maggio 2026
 
 ### Nuove funzionalità
