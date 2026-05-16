@@ -2,6 +2,15 @@
 
 ---
 
+## v3.1.0 · Maggio 2026
+
+### Nuove funzionalità
+- **Comunicati FISR** — nuova sezione nel menu (📋); mostra l'elenco aggiornato dei comunicati ufficiali Hockey Inline dalla stagione selezionata; badge rosso sui nuovi CU non letti; verifica automatica giornaliera in background all'apertura dell'app; link diretto al download PDF; pulsante "Segna tutti come visti"
+- **Ordinamento amministrazione** — click sull'intestazione di ogni colonna (Data, Descrizione, Categoria, Importo, Metodo) ordina crescente/decrescente sia nelle entrate che nelle uscite; la colonna Azioni non è ordinabile
+- **Fasi sensibili Martin 1982 corrette** — la scheda nella valutazione atleti è ora una guida per il tecnico: classifica le capacità in 🔴 Priorità Alta (fase attiva — allena adesso), 🟡 Media (fase prossima/in uscita), ⚪ Bassa (fuori fase — non è il momento ottimale), con finestra biologica ±2 anni per tenere conto delle differenze tra età biologica e anagrafica
+
+---
+
 ## v3.0.0 · Maggio 2026
 
 ### Cambiamento architetturale

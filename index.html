@@ -431,6 +431,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ni-item" onclick="showPage('amministrazione')"><span class="ico">💰</span><span class="lbl">Amministrazione</span></div>
     <div class="ni-item" onclick="showPage('comunicazioni')"><span class="ico">📨</span><span class="lbl">Comunicazioni</span></div>
     <div class="ni-item" onclick="showPage('valutazioni')"><span class="ico">📊</span><span class="lbl">Valutazione atleti</span></div>
+    <div class="ni-item" onclick="showPage('comunicati-fisr')"><span class="ico">📋</span><span class="lbl">Comunicati FISR</span><span id="badge-fisr" class="nbadge" style="display:none;"></span></div>
     <div class="nav-sec-label">Sistema</div>
     <div class="ni-item" onclick="exportData()"><span class="ico">📤</span><span class="lbl">Esporta JSON</span></div>
     <div class="ni-item" onclick="importData()"><span class="ico">📥</span><span class="lbl">Importa JSON</span></div>
@@ -710,11 +711,25 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </div>
       <div class="tab-panel active" id="amm-tab-entrate">
         <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-movimento','entrata')">+ Nuova entrata</button></div>
-        <div class="tw"><table><thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th>Importo</th><th>Metodo</th><th>Azioni</th></tr></thead><tbody id="entrate-tbody"></tbody></table></div>
+        <div class="tw"><table><thead><tr>
+          <th class="sortable" onclick="sortAmm('entrata','data')" id="amm-e-th-data">Data <span></span></th>
+          <th class="sortable" onclick="sortAmm('entrata','descr')" id="amm-e-th-descr">Descrizione <span></span></th>
+          <th class="sortable" onclick="sortAmm('entrata','cat')" id="amm-e-th-cat">Categoria <span></span></th>
+          <th class="sortable" onclick="sortAmm('entrata','importo')" id="amm-e-th-importo">Importo <span></span></th>
+          <th class="sortable" onclick="sortAmm('entrata','metodo')" id="amm-e-th-metodo">Metodo <span></span></th>
+          <th>Azioni</th>
+        </tr></thead><tbody id="entrate-tbody"></tbody></table></div>
       </div>
       <div class="tab-panel" id="amm-tab-uscite">
         <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-movimento','uscita')">+ Nuova uscita</button></div>
-        <div class="tw"><table><thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th>Importo</th><th>Metodo</th><th>Azioni</th></tr></thead><tbody id="uscite-tbody"></tbody></table></div>
+        <div class="tw"><table><thead><tr>
+          <th class="sortable" onclick="sortAmm('uscita','data')" id="amm-u-th-data">Data <span></span></th>
+          <th class="sortable" onclick="sortAmm('uscita','descr')" id="amm-u-th-descr">Descrizione <span></span></th>
+          <th class="sortable" onclick="sortAmm('uscita','cat')" id="amm-u-th-cat">Categoria <span></span></th>
+          <th class="sortable" onclick="sortAmm('uscita','importo')" id="amm-u-th-importo">Importo <span></span></th>
+          <th class="sortable" onclick="sortAmm('uscita','metodo')" id="amm-u-th-metodo">Metodo <span></span></th>
+          <th>Azioni</th>
+        </tr></thead><tbody id="uscite-tbody"></tbody></table></div>
       </div>
       <div class="tab-panel" id="amm-tab-riepilogo">
         <div class="stats-grid" style="margin-bottom:16px;">
@@ -820,8 +835,24 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
     <div class="page" id="page-valutazione-atleta"></div>
 
+    <!-- ═══ COMUNICATI FISR ═══ -->
+    <div class="page" id="page-comunicati-fisr">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <select class="fsel" id="fisr-stagione" onchange="loadComunicatiFisr()" style="max-width:180px;">
+          <option value="2025-26">Stagione 2025/2026</option>
+          <option value="2024-25">Stagione 2024/2025</option>
+          <option value="2023-24">Stagione 2023/2024</option>
+        </select>
+        <button class="btn btn-s btn-sm" onclick="loadComunicatiFisr()">🔄 Aggiorna</button>
+        <span id="fisr-last-check" style="font-size:11px;color:var(--text2);"></span>
+      </div>
+      <div id="fisr-list">
+        <div class="empty"><div class="ei">📋</div><h3>Clicca Aggiorna per caricare i comunicati</h3></div>
+      </div>
+    </div>
+
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.0.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.1.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1182,6 +1213,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v3.1.0 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Comunicati FISR</strong> — nuova sezione nel menu; mostra l'elenco aggiornato dei comunicati ufficiali Hockey Inline dalla stagione selezionata; badge 🔴 sui nuovi CU; verifica automatica giornaliera in background; link diretto al download PDF; pulsante "Segna tutti come visti"</div>
+        <div class="cl-item"><strong>Ordinamento amministrazione</strong> — click sull'intestazione di ogni colonna (Data, Descrizione, Categoria, Importo, Metodo) ordina crescente/decrescente sia nelle entrate che nelle uscite</div>
+        <div class="cl-item"><strong>Fasi sensibili Martin 1982</strong> — la scheda è ora una guida per il tecnico: classifica le capacità in 🔴 Priorità Alta (fase attiva), 🟡 Media (fase prossima), ⚪ Bassa (fuori fase), con finestra biologica ±2 anni per differenze biologiche</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v3.0.0 · Maggio 2026</div>
         <div class="cl-section">Cambiamento architetturale</div>
         <div class="cl-item"><strong>Migrazione da Google Drive a Firebase</strong> — eliminato il sistema OAuth Google Drive, sostituito con Firebase Realtime Database + Firebase Authentication</div>
@@ -1404,7 +1443,7 @@ function closeMobileMenu(){
 }
 
 // ═══ NAV ══════════════════════════════════════════════════
-const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta',impostazioni:'Impostazioni'};
+const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta','comunicati-fisr':'Comunicati FISR',impostazioni:'Impostazioni'};
 const pagesAdd=['anagrafiche','abbonamenti','corsi','impianti','maestri','amministrazione','calendario','stagioni','comunicazioni','valutazioni'];
 
 function showPage(page){
@@ -1429,6 +1468,7 @@ function showPage(page){
   if(page==='amministrazione')renderAmministrazione();
   if(page==='comunicazioni')initComunicazioni();
   if(page==='valutazioni')renderValutazioni();
+  if(page==='comunicati-fisr')initComunicatiFisr();
   if(page==='impostazioni'){
     loadTheme();
     const el=document.getElementById('settings-drive-status');
@@ -1876,13 +1916,43 @@ function editMovimento(tipo,id){
   ['data','descr','importo','cat','metodo','note'].forEach(k=>{const el=document.getElementById('m-mov-'+k);if(el)el.value=m[k]||'';});
   document.getElementById('modal-movimento').classList.add('open');
 }
+// Stato ordinamento amministrazione
+let ammSort={entrata:{key:'data',dir:'desc'},uscita:{key:'data',dir:'desc'}};
+
+function sortAmm(tipo,key){
+  const s=ammSort[tipo];
+  if(s.key===key)s.dir=s.dir==='asc'?'desc':'asc';
+  else{s.key=key;s.dir=key==='data'?'desc':'asc';}
+  // Aggiorna header visivo
+  const prefix=tipo==='entrata'?'amm-e-th':'amm-u-th';
+  ['data','descr','cat','importo','metodo'].forEach(k=>{
+    const th=document.getElementById(`${prefix}-${k}`);
+    if(th){th.classList.remove('sort-asc','sort-desc');if(k===s.key)th.classList.add(s.dir==='asc'?'sort-asc':'sort-desc');}
+  });
+  renderAmministrazione();
+}
+
 function renderAmministrazione(){
-  const renderRows=(arr,tbody,sign,col)=>{
+  const renderRows=(arr,tbody,tipo,sign,col)=>{
     if(!arr.length){document.getElementById(tbody).innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">${sign==='+'?'💚':'🔴'}</div><h3>Nessun movimento</h3></div></td></tr>`;return;}
-    document.getElementById(tbody).innerHTML=arr.slice().sort((a,b)=>b.data.localeCompare(a.data)).map(e=>`<tr><td>${e.data?formatDate(e.data):'—'}</td><td>${e.descr}</td><td><span class="badge ${sign==='+'?'bb':'bo'}">${e.cat}</span></td><td style="color:${col};font-weight:700;">${sign}€${e.importo.toFixed(2)}</td><td>${e.metodo}</td><td><div class="tda"><button class="bico" onclick="editMovimento('${sign==='+'?'entrata':'uscita'}','${e.id}')">✏️</button><button class="bico" onclick="deleteMovimento('${sign==='+'?'entrata':'uscita'}','${e.id}')">🗑️</button></div></td></tr>`).join('');
+    const s=ammSort[tipo];
+    const sorted=arr.slice().sort((a,b)=>{
+      let va=a[s.key],vb=b[s.key];
+      if(s.key==='importo'){va=parseFloat(va)||0;vb=parseFloat(vb)||0;return s.dir==='asc'?va-vb:vb-va;}
+      const cmp=(va||'').toString().localeCompare((vb||'').toString(),'it');
+      return s.dir==='asc'?cmp:-cmp;
+    });
+    document.getElementById(tbody).innerHTML=sorted.map(e=>`<tr>
+      <td>${e.data?formatDate(e.data):'—'}</td>
+      <td>${e.descr}</td>
+      <td><span class="badge ${sign==='+'?'bb':'bo'}">${e.cat}</span></td>
+      <td style="color:${col};font-weight:700;">${sign}€${e.importo.toFixed(2)}</td>
+      <td>${e.metodo}</td>
+      <td><div class="tda"><button class="bico" onclick="editMovimento('${tipo}','${e.id}')">✏️</button><button class="bico" onclick="deleteMovimento('${tipo}','${e.id}')">🗑️</button></div></td>
+    </tr>`).join('');
   };
-  renderRows(DB.entrate,'entrate-tbody','+','var(--green)');
-  renderRows(DB.uscite,'uscite-tbody','-','var(--red)');
+  renderRows(DB.entrate,'entrate-tbody','entrata','+','var(--green)');
+  renderRows(DB.uscite,'uscite-tbody','uscita','-','var(--red)');
   const totE=DB.entrate.reduce((s,e)=>s+e.importo,0),totU=DB.uscite.reduce((s,u)=>s+u.importo,0),saldo=totE-totU;
   document.getElementById('amm-tot-entrate').textContent=`€${totE.toFixed(2)}`;
   document.getElementById('amm-tot-uscite').textContent=`€${totU.toFixed(2)}`;
@@ -2443,7 +2513,188 @@ function confirmRestore(){if(restoreTargetIdx===null)return;const bk=JSON.parse(
 function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b.data],{type:'application/json'}));a.download=`spartans_backup_${b.ts.slice(0,10)}.json`;a.click();}
 
 // ═══ RENDER ALL ═══════════════════════════════════════════
-function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche')renderSoci();if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();}
+function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche')renderSoci();if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();
+  // Verifica nuovi CU FISR in background
+  setTimeout(checkNuoviComunicatiFisr, 3000);
+}
+
+// ═══ COMUNICATI FISR ══════════════════════════════════════
+// URL delle categorie per stagione
+const FISR_STAGIONI = {
+  '2025-26': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/576-2025-26.html',
+  '2024-25': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/549-2024-25.html',
+  '2023-24': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/516-2023-24.html',
+};
+// Proxy CORS per bypassare le restrizioni CORS del sito FISR
+const CORS_PROXY = 'https://api.allorigins.win/get?url=';
+
+function initComunicatiFisr(){
+  // Controlla se ci sono nuovi CU e aggiorna il badge
+  const lastSeen = localStorage.getItem('fisr_last_seen') || '';
+  const lastFetch = localStorage.getItem('fisr_last_fetch');
+  const el = document.getElementById('fisr-last-check');
+  if(lastFetch && el) el.textContent = 'Ultimo aggiornamento: ' + new Date(lastFetch).toLocaleString('it-IT');
+  // Carica automaticamente se non caricato oggi
+  const oggi = new Date().toISOString().slice(0,10);
+  const lastFetchDate = lastFetch ? new Date(lastFetch).toISOString().slice(0,10) : '';
+  if(lastFetchDate !== oggi) loadComunicatiFisr();
+  else renderComunicatiSalvati();
+}
+
+function renderComunicatiSalvati(){
+  const saved = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
+  if(!saved.length){
+    document.getElementById('fisr-list').innerHTML = '<div class="empty"><div class="ei">📋</div><h3>Clicca Aggiorna per caricare i comunicati</h3></div>';
+    return;
+  }
+  renderComunicati(saved);
+}
+
+async function loadComunicatiFisr(){
+  const stagione = document.getElementById('fisr-stagione')?.value || '2025-26';
+  const url = FISR_STAGIONI[stagione];
+  const cont = document.getElementById('fisr-list');
+  cont.innerHTML = '<div class="empty"><div class="ei">⏳</div><h3>Caricamento comunicati...</h3></div>';
+  try{
+    const proxyUrl = CORS_PROXY + encodeURIComponent(url);
+    const r = await fetch(proxyUrl);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const html = data.contents;
+    const comunicati = parseComunicatiFisr(html);
+    if(!comunicati.length) throw new Error('Nessun comunicato trovato');
+    // Salva in localStorage
+    localStorage.setItem('fisr_comunicati', JSON.stringify(comunicati));
+    localStorage.setItem('fisr_last_fetch', new Date().toISOString());
+    // Aggiorna badge nuovi CU
+    const lastSeen = localStorage.getItem('fisr_last_seen_id') || '';
+    const nuovi = lastSeen ? comunicati.filter(c => c.id > lastSeen).length : 0;
+    aggiornaBadgeFisr(nuovi);
+    // Aggiorna timestamp
+    const el = document.getElementById('fisr-last-check');
+    if(el) el.textContent = 'Aggiornato: ' + new Date().toLocaleString('it-IT');
+    renderComunicati(comunicati);
+  }catch(e){
+    console.error('FISR load error:', e);
+    cont.innerHTML = `<div class="card" style="border:1px solid var(--red);">
+      <div style="color:var(--red);font-weight:600;margin-bottom:8px;">⚠️ Impossibile caricare i comunicati</div>
+      <p style="font-size:12px;color:var(--text2);">Il sito FISR potrebbe essere temporaneamente non raggiungibile o la struttura della pagina è cambiata.</p>
+      <a href="${FISR_STAGIONI[stagione]}" target="_blank" class="btn btn-s btn-sm" style="margin-top:8px;">🔗 Apri direttamente su fisr.it</a>
+    </div>`;
+    // Mostra i comunicati salvati precedentemente se disponibili
+    const saved = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
+    if(saved.length){
+      cont.innerHTML += '<div style="margin-top:12px;font-size:12px;color:var(--text2);">Mostrando i comunicati dell\'ultimo aggiornamento disponibile:</div>';
+      const listDiv = document.createElement('div');
+      listDiv.id = 'fisr-list-saved';
+      cont.appendChild(listDiv);
+      renderComunicati(saved, 'fisr-list-saved');
+    }
+  }
+}
+
+function parseComunicatiFisr(html){
+  // Parsing del HTML del sito FISR per estrarre i comunicati
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const comunicati = [];
+  // Cerca i link ai PDF/documenti nella pagina
+  const links = doc.querySelectorAll('a[href*=".pdf"], a[href*="comunicat"]');
+  links.forEach(link => {
+    const href = link.getAttribute('href') || '';
+    const testo = link.textContent.trim();
+    if(!testo || testo.length < 3) return;
+    // Costruisci URL assoluto
+    const urlCompleto = href.startsWith('http') ? href : 'https://www.fisr.it' + href;
+    // Estrai numero CU e data dal testo
+    const matchNum = testo.match(/n[°\.]?\s*(\d+)/i);
+    const matchData = testo.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    comunicati.push({
+      id: matchNum ? matchNum[1].padStart(3,'0') : testo.slice(0,20),
+      titolo: testo,
+      url: urlCompleto,
+      data: matchData ? `${matchData[3].length===2?'20'+matchData[3]:matchData[3]}-${matchData[2].padStart(2,'0')}-${matchData[1].padStart(2,'0')}` : '',
+    });
+  });
+  // Rimuovi duplicati per URL
+  const seen = new Set();
+  return comunicati.filter(c => {if(seen.has(c.url))return false;seen.add(c.url);return true;});
+}
+
+function renderComunicati(comunicati, containerId='fisr-list'){
+  const lastSeenId = localStorage.getItem('fisr_last_seen_id') || '';
+  const cont = document.getElementById(containerId);
+  if(!comunicati.length){
+    cont.innerHTML = '<div class="empty"><div class="ei">📋</div><h3>Nessun comunicato trovato</h3></div>';
+    return;
+  }
+  cont.innerHTML = `<div class="tw"><table>
+    <thead><tr><th>N°</th><th>Titolo</th><th>Data</th><th>Azioni</th></tr></thead>
+    <tbody>
+    ${comunicati.map(c=>{
+      const isNuovo = lastSeenId && c.id > lastSeenId;
+      return `<tr style="${isNuovo?'background:rgba(212,160,23,.08);':''}">
+        <td style="font-weight:700;color:var(--gold);">${c.id}${isNuovo?` <span class="badge br" style="font-size:9px;">NUOVO</span>`:''}
+        </td>
+        <td>${c.titolo}</td>
+        <td>${c.data?formatDate(c.data):'—'}</td>
+        <td><a href="${c.url}" target="_blank" class="btn btn-s btn-sm">📥 Scarica</a></td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table></div>
+  <div style="margin-top:10px;text-align:right;">
+    <button class="btn btn-s btn-sm" onclick="segnaVistiFisr()">✓ Segna tutti come visti</button>
+  </div>`;
+}
+
+function segnaVistiFisr(){
+  const comunicati = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
+  if(comunicati.length){
+    localStorage.setItem('fisr_last_seen_id', comunicati[0].id);
+  }
+  aggiornaBadgeFisr(0);
+  renderComunicati(comunicati);
+  toast('Tutti i comunicati segnati come visti','success');
+}
+
+function aggiornaBadgeFisr(n){
+  const badge = document.getElementById('badge-fisr');
+  if(!badge) return;
+  if(n > 0){badge.textContent=n;badge.style.display='';}
+  else badge.style.display='none';
+}
+
+// Verifica giornaliera nuovi CU (chiamata all'apertura dell'app)
+async function checkNuoviComunicatiFisr(){
+  const lastFetch = localStorage.getItem('fisr_last_fetch');
+  const oggi = new Date().toISOString().slice(0,10);
+  const lastFetchDate = lastFetch ? new Date(lastFetch).toISOString().slice(0,10) : '';
+  if(lastFetchDate === oggi) {
+    // Già controllato oggi — aggiorna solo il badge
+    const saved = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
+    const lastSeenId = localStorage.getItem('fisr_last_seen_id') || '';
+    const nuovi = lastSeenId && saved.length ? saved.filter(c=>c.id>lastSeenId).length : 0;
+    aggiornaBadgeFisr(nuovi);
+    return;
+  }
+  // Controlla in background senza mostrare nulla
+  try{
+    const stagione = '2025-26';
+    const url = FISR_STAGIONI[stagione];
+    const r = await fetch(CORS_PROXY + encodeURIComponent(url));
+    if(!r.ok) return;
+    const data = await r.json();
+    const comunicati = parseComunicatiFisr(data.contents);
+    if(!comunicati.length) return;
+    localStorage.setItem('fisr_comunicati', JSON.stringify(comunicati));
+    localStorage.setItem('fisr_last_fetch', new Date().toISOString());
+    const lastSeenId = localStorage.getItem('fisr_last_seen_id') || '';
+    const nuovi = lastSeenId ? comunicati.filter(c=>c.id>lastSeenId).length : 0;
+    aggiornaBadgeFisr(nuovi);
+    if(nuovi > 0) toast(`📋 ${nuovi} nuovo/i comunicato/i FISR disponibile/i`, 'info');
+  }catch(e){}
+}
 
 // ═══ FIREBASE ═════════════════════════════════════════════
 // Configurazione Firebase — da completare dopo setup console.firebase.google.com
