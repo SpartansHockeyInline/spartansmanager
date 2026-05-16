@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;">
 <title>Spartans Manager</title>
 <meta name="application-name" content="Spartans Manager">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2543,7 +2542,19 @@ async function fbSaveNow(){
   if(!fbUser||!fbDb)return;
   driveSetStatus('syncing','Salvataggio...');
   try{
-    await fbDb.ref('spartans/data').set(DB);
+    // Firebase non accetta undefined — pulizia ricorsiva
+    const clean=(obj)=>{
+      if(Array.isArray(obj))return obj.map(clean);
+      if(obj&&typeof obj==='object'){
+        const r={};
+        for(const k of Object.keys(obj)){
+          if(obj[k]!==undefined)r[k]=clean(obj[k]);
+        }
+        return r;
+      }
+      return obj??null;
+    };
+    await fbDb.ref('spartans/data').set(clean(DB));
     const now=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     driveSetStatus('connected',`✓ Sincronizzato · ${fbUser.email} · ${now}`);
   }catch(e){
