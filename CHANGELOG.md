@@ -2,6 +2,27 @@
 
 ---
 
+## v3.2.0 · Maggio 2026
+
+### Nuove funzionalità
+- **Separazione Atleti / Staff** — la sezione Anagrafiche è ora divisa in tre tab: Atleti, Staff e Macrogruppi
+- **Scheda atleta ristrutturata** — modal a 6 tab: Anagrafica, Sanitario (visita medica + assicurazione + dati sanitari), Genitori (due genitori con rapporto), Taglie, Pagamenti (quote collegate), Documenti (allegati + moduli)
+- **Visita medica** — campo dedicato con tipo (agonistica/non), scadenza, medico/struttura, allegato; badge colorato in tabella (verde/giallo scade entro 30gg/rosso scaduta)
+- **Genitori strutturati** — due genitori/tutori con nome, cognome, rapporto (padre/madre/tutore), CF, telefono, email
+- **Macrogruppi** — terzo tab per creare raggruppamenti trasversali (camp estivi, attività promozionali, ecc.)
+- **Quote collegate all'atleta** — nella scheda atleta puoi aggiungere quote direttamente senza passare per Amministrazione
+- **Filtro macrogruppo** — nella toolbar Atleti aggiunto filtro per macrogruppo
+- **Modulo iscrizione pre-compilato** — link generato dall'app con i dati dell'atleta già inseriti; il destinatario apre la pagina, la stampa come PDF, la firma e la restituisce
+- **Modulo consenso privacy pre-compilato** — stesso meccanismo per il modulo GDPR con nome atleta e genitore già presenti
+- **Link Google Form** — pulsante "🔗 Copia link form" nella toolbar Atleti per condividere il form di iscrizione via WhatsApp
+- **Importazione Google Form migliorata** — riconosce automaticamente tutte le 39 colonne del Google Form Spartans inclusi dati sanitari, taglie, due genitori
+
+### File aggiunti al repository
+- `modulo_iscrizione_spartans.html` — modulo iscrizione pre-compilabile da URL
+- `modulo_consenso_privacy.html` — modulo consenso GDPR pre-compilabile da URL
+
+---
+
 ## v3.1.0 · Maggio 2026
 
 ### Nuove funzionalità

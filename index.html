@@ -582,52 +582,98 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 
     <!-- ═══ ANAGRAFICHE ═══ -->
     <div class="page" id="page-anagrafiche">
-      <div class="sbar">
-        <div class="sinp"><span class="sico">🔍</span><input type="text" id="filter-search" placeholder="Cerca nome, email, tessera..." oninput="applyFilters()"></div>
-        <select class="fsel" id="filter-tipologia" onchange="applyFilters()" style="max-width:155px;"><option value="">Tutte le tipologie</option></select>
-        <select class="fsel" id="filter-corso" onchange="applyFilters()" style="max-width:150px;"><option value="">Tutti i corsi</option></select>
-        <select class="fsel" id="filter-stato" onchange="applyFilters()" style="max-width:130px;">
-          <option value="">Tutti gli stati</option>
-          <option value="attivo">Attivo</option>
-          <option value="sospeso">Sospeso</option>
-          <option value="inattivo">Inattivo</option>
-        </select>
-        <select class="fsel" id="filter-eta" onchange="applyFilters()" style="max-width:150px;">
-          <option value="">Tutte le categorie</option>
-          <option value="primi-passi">Primi Passi</option>
-          <option value="minihockey">Minihockey</option>
-          <option value="under10">Under 10</option>
-          <option value="under12">Under 12</option>
-          <option value="under14">Under 14</option>
-          <option value="under16">Under 16</option>
-          <option value="elite">Elite (U18)</option>
-          <option value="under20">Under 20</option>
-          <option value="seniores">Seniores</option>
-          <option value="amatori">Amatori</option>
-        </select>
-        <button class="btn btn-s btn-sm" onclick="resetFilters()">✕ Reset</button>
-        <button class="btn btn-p btn-sm" onclick="openModalSocio()">+ Nuovo socio</button>
-        <button class="btn btn-s btn-sm" onclick="openModal('modal-import-sheets','')">📊 Sheets</button>
+      <div class="tabs">
+        <div class="tab active" onclick="showAnaTab('atleti')">⛸️ Atleti</div>
+        <div class="tab" onclick="showAnaTab('staff')">👔 Staff</div>
+        <div class="tab" onclick="showAnaTab('macrogruppi')">📁 Macrogruppi</div>
       </div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">Totale visualizzati: <strong id="soci-count">0</strong></div>
-      <div class="tw"><table>
-        <thead><tr>
-          <th class="row-num">#</th>
-          <th class="sortable" onclick="sortSoci('cognome')" id="th-cognome">Socio <span></span></th>
-          <th class="sortable" onclick="sortSoci('eta')" id="th-eta">Età <span></span></th>
-          <th class="sortable" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
-          <th class="sortable" onclick="sortSoci('tipologia')" id="th-tipologia">Tipologia <span></span></th>
-          <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso/Squadra <span></span></th>
-          <th class="sortable" onclick="sortSoci('email')" id="th-email">Email <span></span></th>
-          <th class="sortable" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd">Tessera ASD <span></span></th>
-          <th class="sortable" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
-          <th>Assicurazione</th>
-          <th>Abbonamento</th>
-          <th class="sortable" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
-          <th>Azioni</th>
-        </tr></thead>
-        <tbody id="soci-tbody"></tbody>
-      </table></div>
+
+      <!-- TAB ATLETI -->
+      <div class="tab-panel active" id="ana-tab-atleti">
+        <div class="sbar">
+          <div class="sinp"><span class="sico">🔍</span><input type="text" id="filter-search" placeholder="Cerca nome, email, tessera..." oninput="applyFilters()"></div>
+          <select class="fsel" id="filter-tipologia" onchange="applyFilters()" style="max-width:155px;"><option value="">Tutte le tipologie</option><option value="atleta">Atleta</option><option value="amatore">Amatore</option></select>
+          <select class="fsel" id="filter-corso" onchange="applyFilters()" style="max-width:150px;"><option value="">Tutti i corsi</option></select>
+          <select class="fsel" id="filter-macrogruppo" onchange="applyFilters()" style="max-width:150px;"><option value="">Tutti i macrogruppi</option></select>
+          <select class="fsel" id="filter-stato" onchange="applyFilters()" style="max-width:130px;"><option value="">Tutti gli stati</option><option value="attivo">Attivo</option><option value="sospeso">Sospeso</option><option value="inattivo">Inattivo</option></select>
+          <select class="fsel" id="filter-eta" onchange="applyFilters()" style="max-width:150px;">
+            <option value="">Tutte le categorie</option>
+            <option value="primi-passi">Primi Passi</option>
+            <option value="minihockey">Minihockey</option>
+            <option value="under10">Under 10</option>
+            <option value="under12">Under 12</option>
+            <option value="under14">Under 14</option>
+            <option value="under16">Under 16</option>
+            <option value="elite">Elite (U18)</option>
+            <option value="under20">Under 20</option>
+            <option value="seniores">Seniores</option>
+            <option value="amatori">Amatori</option>
+          </select>
+          <button class="btn btn-s btn-sm" onclick="resetFilters()">✕ Reset</button>
+          <button class="btn btn-p btn-sm" onclick="openModalSocio()">+ Nuovo atleta</button>
+          <button class="btn btn-s btn-sm" onclick="openModal('modal-import-sheets','')">📊 Sheets</button>
+          <button class="btn btn-s btn-sm" onclick="copiaLinkForm()" title="Copia il link del Google Form da inviare agli atleti">🔗 Copia link form</button>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">Visualizzati: <strong id="soci-count">0</strong></div>
+        <div class="tw"><table>
+          <thead><tr>
+            <th class="row-num">#</th>
+            <th class="sortable" onclick="sortSoci('cognome')" id="th-cognome">Atleta <span></span></th>
+            <th class="sortable" onclick="sortSoci('eta')" id="th-eta">Età <span></span></th>
+            <th class="sortable" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
+            <th class="sortable" onclick="sortSoci('tipologia')" id="th-tipologia">Tipo <span></span></th>
+            <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso <span></span></th>
+            <th class="sortable" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
+            <th>Vis. Medica</th>
+            <th>Assicurazione</th>
+            <th>Abbonamento</th>
+            <th class="sortable" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
+            <th>Azioni</th>
+          </tr></thead>
+          <tbody id="soci-tbody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- TAB STAFF -->
+      <div class="tab-panel" id="ana-tab-staff">
+        <div class="sbar">
+          <div class="sinp"><span class="sico">🔍</span><input type="text" id="filter-staff-search" placeholder="Cerca nome, ruolo..." oninput="renderStaff(this.value)"></div>
+          <select class="fsel" id="filter-staff-ruolo" onchange="renderStaff()" style="max-width:170px;">
+            <option value="">Tutti i ruoli</option>
+            <option value="dirigente">Dirigente</option>
+            <option value="tecnico">Tecnico</option>
+            <option value="presidente">Presidente</option>
+            <option value="vice-presidente">Vice Presidente</option>
+            <option value="segretario">Segretario</option>
+            <option value="tesoriere">Tesoriere</option>
+            <option value="attrezzista">Attrezzista</option>
+            <option value="cronometrista">Cronometrista</option>
+            <option value="segnapunti">Segnapunti</option>
+          </select>
+          <button class="btn btn-p btn-sm" onclick="openModalStaff()">+ Nuovo membro staff</button>
+        </div>
+        <div class="tw"><table>
+          <thead><tr>
+            <th class="row-num">#</th>
+            <th>Nome</th>
+            <th>Ruolo</th>
+            <th>Telefono</th>
+            <th>Email</th>
+            <th>Tessera ASD</th>
+            <th>Stato</th>
+            <th>Azioni</th>
+          </tr></thead>
+          <tbody id="staff-tbody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- TAB MACROGRUPPI -->
+      <div class="tab-panel" id="ana-tab-macrogruppi">
+        <div class="sbar">
+          <button class="btn btn-p btn-sm" onclick="openModalMacrogruppo()">+ Nuovo macrogruppo</button>
+        </div>
+        <div id="macrogruppi-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px;"></div>
+      </div>
     </div>
 
     <!-- ═══ ABBONAMENTI ═══ -->
@@ -862,116 +908,147 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.1.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.2.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
 <!-- SOCIO -->
 <div class="mo" id="modal-socio">
   <div class="modal wide">
-    <div class="mh"><div class="mt" id="modal-socio-title">Nuovo socio</div><button class="mc" onclick="closeModal('modal-socio')">✕</button></div>
+    <div class="mh"><div class="mt" id="modal-socio-title">Nuovo atleta</div><button class="mc" onclick="closeModal('modal-socio')">✕</button></div>
     <div class="mb">
-      <!-- Foto + dati base -->
-      <div style="display:flex;gap:16px;margin-bottom:16px;align-items:flex-start;">
-        <div style="text-align:center;">
-          <div class="foto-wrap" id="m-s-foto-wrap" onclick="document.getElementById('m-s-foto-file').click()">
-            <span id="m-s-foto-initials">?</span>
+      <div class="tabs" style="margin-bottom:12px;">
+        <div class="tab active" onclick="showSocioTab('anagrafica')">👤 Anagrafica</div>
+        <div class="tab" onclick="showSocioTab('sanitario')">🏥 Sanitario</div>
+        <div class="tab" onclick="showSocioTab('genitori')">👪 Genitori</div>
+        <div class="tab" onclick="showSocioTab('taglie')">👕 Taglie</div>
+        <div class="tab" onclick="showSocioTab('pagamenti')">💰 Pagamenti</div>
+        <div class="tab" onclick="showSocioTab('documenti')">📎 Documenti</div>
+      </div>
+      <div class="tab-panel active" id="socio-tab-anagrafica">
+        <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;">
+          <div style="text-align:center;">
+            <div class="foto-wrap" id="m-s-foto-wrap" onclick="document.getElementById('m-s-foto-file').click()"><span id="m-s-foto-initials">?</span></div>
+            <input type="file" id="m-s-foto-file" accept="image/*" style="display:none;" onchange="loadFotoSocio(event)">
+            <div style="font-size:10px;color:var(--text3);margin-top:4px;">Clicca per foto</div>
           </div>
-          <input type="file" id="m-s-foto-file" accept="image/*" style="display:none;" onchange="loadFotoSocio(event)">
-          <div style="font-size:10px;color:var(--text3);margin-top:5px;">Clicca per caricare</div>
+          <div class="fg" style="flex:1;">
+            <div class="fgroup"><label>Nome *</label><input class="fi" id="m-s-nome" placeholder="Nome" oninput="updateFotoInitials()"></div>
+            <div class="fgroup"><label>Cognome *</label><input class="fi" id="m-s-cognome" placeholder="Cognome" oninput="updateFotoInitials()"></div>
+            <div class="fgroup"><label>Tipologia</label><select class="fsel" id="m-s-tipologia"><option value="atleta">🏒 Atleta</option><option value="amatore">Amatore</option></select></div>
+            <div class="fgroup"><label>Stato</label><select class="fsel" id="m-s-stato"><option value="attivo">Attivo</option><option value="sospeso">Sospeso</option><option value="inattivo">Inattivo</option></select></div>
+          </div>
         </div>
-        <div class="fg" style="flex:1;">
-          <div class="fgroup"><label>Nome *</label><input class="fi" id="m-s-nome" placeholder="Nome" oninput="updateFotoInitials()"></div>
-          <div class="fgroup"><label>Cognome *</label><input class="fi" id="m-s-cognome" placeholder="Cognome" oninput="updateFotoInitials()"></div>
-          <div class="fgroup"><label>Tipologia socio</label>
-            <select class="fsel" id="m-s-tipologia">
-              <option value="atleta">🏒 Atleta</option>
-              <option value="dirigente">👔 Dirigente</option>
-              <option value="tecnico">🧑‍🏫 Tecnico</option>
-              <option value="genitore">👨‍👧 Genitore</option>
-              <option value="presidente">⭐ Presidente</option>
-              <option value="vice-presidente">🔱 Vice-Presidente</option>
-              <option value="segretario">📋 Segretario</option>
-              <option value="tesoriere">💰 Tesoriere</option>
-              <option value="attrezzista">🔧 Attrezzista</option>
-              <option value="cronometrista">⏱️ Cronometrista</option>
-              <option value="segnapunti">📝 Segnapunti</option>
-            </select>
-          </div>
-          <div class="fgroup"><label>Corso/Squadra</label>
-            <select class="fsel" id="m-s-corso"><option value="">— Nessuno —</option></select>
-          </div>
-          <div class="fgroup"><label>Stato</label>
-            <select class="fsel" id="m-s-stato"><option value="attivo">Attivo</option><option value="sospeso">Sospeso</option><option value="inattivo">Inattivo</option></select>
-          </div>
-          <div class="fgroup"><label>N° Maglia gara</label><input class="fi" id="m-s-maglia" placeholder="es. 7" type="number"></div>
+        <div class="fg">
+          <div class="fgroup"><label>Data di nascita</label><input class="fi" id="m-s-nascita" type="date"></div>
+          <div class="fgroup"><label>Luogo di nascita</label><input class="fi" id="m-s-luogo"></div>
+          <div class="fgroup"><label>Sesso</label><select class="fsel" id="m-s-sesso"><option value="">-</option><option value="M">M</option><option value="F">F</option></select></div>
+          <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="m-s-cf"></div>
+          <div class="fgroup s2"><label>Indirizzo</label><input class="fi" id="m-s-indirizzo"></div>
+          <div class="fgroup"><label>Telefono</label><input class="fi" id="m-s-tel"></div>
+          <div class="fgroup"><label>Email</label><input class="fi" id="m-s-email" type="email"></div>
+          <div class="fgroup"><label>Corso/Squadra</label><select class="fsel" id="m-s-corso"><option value="">— Nessuno —</option></select></div>
+          <div class="fgroup"><label>Macrogruppo</label><select class="fsel" id="m-s-macrogruppo"><option value="">— Nessuno —</option></select></div>
+          <div class="fgroup"><label>N° Maglia</label><input class="fi" id="m-s-maglia" type="number"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 8px;">📇 Tessere</div>
+        <div class="fg">
+          <div class="fgroup"><label>N° Tessera ASD</label><input class="fi" id="m-s-tessera-asd"></div>
+          <div class="fgroup"><label>Scad. ASD</label><input class="fi" id="m-s-tessera-asd-scad" type="date"></div>
+          <div class="fgroup"><label>N° Tessera FISR</label><input class="fi" id="m-s-tessera-fisr"></div>
+          <div class="fgroup"><label>Scad. FISR</label><input class="fi" id="m-s-tessera-fisr-scad" type="date"></div>
+        </div>
+        <div class="fgroup" style="margin-top:10px;"><label>Note</label><textarea class="fta" id="m-s-note"></textarea></div>
+      </div>
+      <div class="tab-panel" id="socio-tab-sanitario">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🏥 Visita Medica</div>
+        <div class="fg">
+          <div class="fgroup"><label>Tipo visita</label><select class="fsel" id="m-s-visita-tipo"><option value="">—</option><option value="agonistica">Agonistica</option><option value="non-agonistica">Non agonistica</option></select></div>
+          <div class="fgroup"><label>Scadenza visita</label><input class="fi" id="m-s-visita-scad" type="date"></div>
+          <div class="fgroup"><label>Medico / Struttura</label><input class="fi" id="m-s-visita-medico"></div>
+          <div class="fgroup"><label>Allegato certificato</label><input class="fi" id="m-s-visita-allegato" placeholder="URL o nome file"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 8px;">🛡️ Assicurazione</div>
+        <div class="fg">
+          <div class="fgroup"><label>Stato</label><select class="fsel" id="m-s-assicurazione"><option value="">Non specificato</option><option value="pagata">✅ Pagata</option><option value="non-pagata">❌ Non pagata</option><option value="in-attesa">⏳ In attesa</option></select></div>
+          <div class="fgroup"><label>Scadenza</label><input class="fi" id="m-s-assicurazione-scad" type="date"></div>
+          <div class="fgroup"><label>Compagnia / Ente</label><input class="fi" id="m-s-assicurazione-ente"></div>
+          <div class="fgroup"><label>N° Polizza</label><input class="fi" id="m-s-assicurazione-polizza"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 8px;">📋 Dati Sanitari</div>
+        <div class="fg">
+          <div class="fgroup"><label>Allergie / Intolleranze</label><input class="fi" id="m-s-allergie"></div>
+          <div class="fgroup"><label>Farmaci in uso</label><input class="fi" id="m-s-farmaci"></div>
+          <div class="fgroup s2"><label>Note mediche</label><input class="fi" id="m-s-note-mediche"></div>
         </div>
       </div>
-      <!-- Dati anagrafici -->
-      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">👤 Dati anagrafici</div>
-      <div class="fg">
-        <div class="fgroup"><label>Email</label><input class="fi" id="m-s-email" type="email"></div>
-        <div class="fgroup"><label>Telefono</label><input class="fi" id="m-s-tel" placeholder="3xx..."></div>
-        <div class="fgroup"><label>Data di nascita</label><input class="fi" id="m-s-nascita" type="date"></div>
-        <div class="fgroup"><label>Luogo di nascita</label><input class="fi" id="m-s-luogo"></div>
-        <div class="fgroup"><label>Codice fiscale</label><input class="fi" id="m-s-cf"></div>
-        <div class="fgroup"><label>Sesso</label><select class="fsel" id="m-s-sesso"><option value="">-</option><option>M</option><option>F</option><option>Altro</option></select></div>
-        <div class="fgroup s2"><label>Indirizzo residenza</label><input class="fi" id="m-s-indirizzo"></div>
+      <div class="tab-panel" id="socio-tab-genitori">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">👪 Genitore / Tutore 1</div>
+        <div class="fg">
+          <div class="fgroup"><label>Nome</label><input class="fi" id="m-s-g1-nome"></div>
+          <div class="fgroup"><label>Cognome</label><input class="fi" id="m-s-g1-cognome"></div>
+          <div class="fgroup"><label>Rapporto</label><select class="fsel" id="m-s-g1-rapporto"><option value="">—</option><option value="padre">Padre</option><option value="madre">Madre</option><option value="tutore">Tutore</option></select></div>
+          <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="m-s-g1-cf"></div>
+          <div class="fgroup"><label>Telefono</label><input class="fi" id="m-s-g1-tel"></div>
+          <div class="fgroup"><label>Email</label><input class="fi" id="m-s-g1-email" type="email"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;">👪 Genitore / Tutore 2 <span style='font-weight:400;color:var(--text3);'>(facoltativo)</span></div>
+        <div class="fg">
+          <div class="fgroup"><label>Nome</label><input class="fi" id="m-s-g2-nome"></div>
+          <div class="fgroup"><label>Cognome</label><input class="fi" id="m-s-g2-cognome"></div>
+          <div class="fgroup"><label>Rapporto</label><select class="fsel" id="m-s-g2-rapporto"><option value="">—</option><option value="padre">Padre</option><option value="madre">Madre</option><option value="tutore">Tutore</option></select></div>
+          <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="m-s-g2-cf"></div>
+          <div class="fgroup"><label>Telefono</label><input class="fi" id="m-s-g2-tel"></div>
+          <div class="fgroup"><label>Email</label><input class="fi" id="m-s-g2-email" type="email"></div>
+        </div>
       </div>
-      <!-- Dati biometrici e taglie -->
-      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 10px;">📏 Dati biometrici e taglie</div>
-      <div class="fg c4">
-        <div class="fgroup"><label>Altezza (cm)</label><input class="fi" id="m-s-altezza" type="number" placeholder="175"></div>
-        <div class="fgroup"><label>Peso (kg)</label><input class="fi" id="m-s-peso" type="number" placeholder="70"></div>
-        <div class="fgroup"><label>T. Guanti</label><select class="fsel" id="m-s-t-guanti"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option></select></div>
-        <div class="fgroup"><label>T. Ginocchiere</label><select class="fsel" id="m-s-t-ginocchiere"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option></select></div>
-        <div class="fgroup"><label>T. Gomitiere</label><select class="fsel" id="m-s-t-gomitiere"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option></select></div>
-        <div class="fgroup"><label>T. Abbigliamento</label><select class="fsel" id="m-s-t-abbigliamento"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option></select></div>
+      <div class="tab-panel" id="socio-tab-taglie">
+        <div class="fg">
+          <div class="fgroup"><label>Altezza (cm)</label><input class="fi" id="m-s-altezza" type="number"></div>
+          <div class="fgroup"><label>Peso (kg)</label><input class="fi" id="m-s-peso" type="number"></div>
+          <div class="fgroup"><label>T. Abbigliamento</label><select class="fsel" id="m-s-t-abbigliamento"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option></select></div>
+          <div class="fgroup"><label>N° Pattini</label><input class="fi" id="m-s-t-pattini"></div>
+          <div class="fgroup"><label>T. Guanti</label><select class="fsel" id="m-s-t-guanti"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option></select></div>
+          <div class="fgroup"><label>T. Ginocchiere</label><select class="fsel" id="m-s-t-ginocchiere"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option></select></div>
+          <div class="fgroup"><label>T. Gomitiere</label><select class="fsel" id="m-s-t-gomitiere"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option></select></div>
+        </div>
       </div>
-      <!-- Tessere -->
-      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 10px;">📇 Tessere</div>
-      <div class="fg">
-        <div class="fgroup"><label>N° Tessera ASD</label><input class="fi" id="m-s-tessera-asd" placeholder="2024-001"></div>
-        <div class="fgroup"><label>Scad. Tessera ASD</label><input class="fi" id="m-s-tessera-asd-scad" type="date"></div>
-        <div class="fgroup"><label>N° Tessera FISR</label><input class="fi" id="m-s-tessera-fisr" placeholder="FISR-12345"></div>
-        <div class="fgroup"><label>Scad. Tessera FISR</label><input class="fi" id="m-s-tessera-fisr-scad" type="date"></div>
+      <div class="tab-panel" id="socio-tab-pagamenti">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:600;">Quote collegate</div>
+          <button class="btn btn-p btn-sm" onclick="aggiungiQuotaAtleta()">+ Aggiungi quota</button>
+        </div>
+        <div id="atleta-quote-list"><div class="empty" style="padding:16px;"><div class="ei">💰</div><p>Nessuna quota</p></div></div>
       </div>
-      <!-- Assicurazione -->
-      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 10px;">🛡️ Assicurazione</div>
-      <div class="fg">
-        <div class="fgroup"><label>Stato assicurazione</label>
-          <select class="fsel" id="m-s-assicurazione">
-            <option value="">Non specificato</option>
-            <option value="pagata">✅ Pagata</option>
-            <option value="non-pagata">❌ Non pagata</option>
-            <option value="in-attesa">⏳ In attesa</option>
+      <div class="tab-panel" id="socio-tab-documenti">
+        <div id="m-s-docs-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:9px;"></div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+          <select class="fsel" id="m-s-doc-tipo" style="max-width:180px;">
+            <option value="Documento d'identità">🪪 Documento d'identità</option>
+            <option value="Visita medica">🏥 Visita medica</option>
+            <option value="Modulo iscrizione">📋 Modulo iscrizione</option>
+            <option value="Liberatoria">📝 Liberatoria</option>
+            <option value="Altro">📄 Altro</option>
           </select>
+          <input class="fi" id="m-s-doc-note" placeholder="Note..." style="flex:1;">
+          <input type="file" id="m-s-doc-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none;" onchange="addDocSocio(event)">
+          <button class="btn btn-s btn-sm" onclick="document.getElementById('m-s-doc-file').click()">📎 Allega</button>
         </div>
-        <div class="fgroup"><label>Scadenza assicurazione</label><input class="fi" id="m-s-assicurazione-scad" type="date"></div>
-        <div class="fgroup"><label>Compagnia / Ente</label><input class="fi" id="m-s-assicurazione-ente" placeholder="es. FISR, AXA..."></div>
-        <div class="fgroup"><label>N° Polizza</label><input class="fi" id="m-s-assicurazione-polizza" placeholder="es. POL-2025-001"></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--gold);">📋 Moduli da inviare per firma</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Genera il link del modulo pre-compilato con i dati dell'atleta e invialo via WhatsApp o email. Il destinatario lo stampa, lo firma e lo restituisce.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-s btn-sm" onclick="apriModuloIscrizione(editingId)">👁️ Anteprima iscrizione</button>
+            <button class="btn btn-p btn-sm" onclick="generaLinkIscrizione(editingId)">🔗 Copia link iscrizione</button>
+            <button class="btn btn-s btn-sm" onclick="apriModuloPrivacy(editingId)">👁️ Anteprima privacy</button>
+            <button class="btn btn-p btn-sm" onclick="generaLinkPrivacy(editingId)">🔗 Copia link privacy</button>
+          </div>
+          <div class="fgroup" style="margin-top:10px;"><label>Modulo iscrizione firmato (URL o nome file)</label><input class="fi" id="m-s-iscrizione-allegato" placeholder="Link o nome del file firmato..."></div>
+          <div class="fgroup" style="margin-top:6px;"><label>Modulo privacy firmato (URL o nome file)</label><input class="fi" id="m-s-privacy-allegato" placeholder="Link o nome del file firmato..."></div>
+        </div>
       </div>
-      <!-- Note -->
-      <div style="margin-top:12px;"><div class="fgroup"><label>Note</label><textarea class="fta" id="m-s-note"></textarea></div></div>
-      <!-- Documenti allegati -->
-      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 10px;">📎 Documenti allegati</div>
-      <div id="m-s-docs-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:9px;"></div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
-        <select class="fsel" id="m-s-doc-tipo" style="max-width:180px;">
-          <option value="Documento d'identità">🪪 Documento d'identità</option>
-          <option value="Visita medica">🏥 Visita medica</option>
-          <option value="Cert. medico sportivo">⚕️ Cert. medico sportivo</option>
-          <option value="Modulo iscrizione">📋 Modulo iscrizione</option>
-          <option value="Liberatoria">📝 Liberatoria</option>
-          <option value="Altro">📄 Altro</option>
-        </select>
-        <input class="fi" id="m-s-doc-note" placeholder="Note (es. scad. 2026-01)" style="flex:1;min-width:130px;">
-        <input type="file" id="m-s-doc-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none;" onchange="addDocSocio(event)">
-        <button class="btn btn-s btn-sm" onclick="document.getElementById('m-s-doc-file').click()">📎 Allega</button>
-      </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:5px;">Formati: PDF, JPG, PNG, DOC · Max 3MB</div>
     </div>
-    <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-socio')">Annulla</button><button class="btn btn-p" onclick="saveSocio()">💾 Salva</button></div>
+    <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-socio')">Annulla</button><button class="btn btn-p" onclick="saveSocio()">💾 Salva atleta</button></div>
   </div>
 </div>
 
@@ -1223,6 +1300,19 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v3.2.0 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Separazione Atleti / Staff</strong> — Anagrafiche divisa in 3 tab: Atleti, Staff, Macrogruppi</div>
+        <div class="cl-item"><strong>Scheda atleta a 6 tab</strong> — Anagrafica, Sanitario, Genitori (2), Taglie, Pagamenti, Documenti</div>
+        <div class="cl-item"><strong>Visita medica</strong> — tipo, scadenza, medico/struttura, allegato; badge colorato in tabella</div>
+        <div class="cl-item"><strong>Genitori strutturati</strong> — due genitori/tutori con rapporto, CF, contatti</div>
+        <div class="cl-item"><strong>Macrogruppi</strong> — raggruppamenti trasversali (camp estivi, attività promozionali ecc.)</div>
+        <div class="cl-item"><strong>Moduli pre-compilati</strong> — link generato dall'app con i dati dell'atleta già inseriti per modulo iscrizione e consenso privacy; il destinatario stampa, firma e restituisce</div>
+        <div class="cl-item"><strong>Link Google Form</strong> — pulsante per copiare e inviare il link del form di iscrizione via WhatsApp</div>
+        <div class="cl-item"><strong>Importazione Google Form</strong> — riconosce tutte le 39 colonne del form Spartans</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v3.1.0 · Maggio 2026</div>
         <div class="cl-section">Nuove funzionalità</div>
         <div class="cl-item"><strong>Comunicati FISR</strong> — nuova sezione nel menu; mostra l'elenco aggiornato dei comunicati ufficiali Hockey Inline dalla stagione selezionata; badge 🔴 sui nuovi CU; verifica automatica giornaliera in background; link diretto al download PDF; pulsante "Segna tutti come visti"</div>
@@ -1412,6 +1502,61 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   </div>
 </div>
 
+<!-- MODAL STAFF -->
+<div class="mo" id="modal-staff">
+  <div class="modal wide">
+    <div class="mh"><div class="mt" id="modal-staff-title">Nuovo membro staff</div><button class="mc" onclick="closeModal('modal-staff')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fgroup"><label>Nome *</label><input class="fi" id="m-st-nome" placeholder="Nome"></div>
+        <div class="fgroup"><label>Cognome *</label><input class="fi" id="m-st-cognome" placeholder="Cognome"></div>
+        <div class="fgroup"><label>Ruolo *</label>
+          <select class="fsel" id="m-st-ruolo">
+            <option value="dirigente">👔 Dirigente</option>
+            <option value="tecnico">🧑‍🏫 Tecnico</option>
+            <option value="presidente">⭐ Presidente</option>
+            <option value="vice-presidente">🔱 Vice-Presidente</option>
+            <option value="segretario">📋 Segretario</option>
+            <option value="tesoriere">💰 Tesoriere</option>
+            <option value="attrezzista">🔧 Attrezzista</option>
+            <option value="cronometrista">⏱️ Cronometrista</option>
+            <option value="segnapunti">📝 Segnapunti</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Stato</label><select class="fsel" id="m-st-stato"><option value="attivo">Attivo</option><option value="inattivo">Inattivo</option></select></div>
+        <div class="fgroup"><label>Email</label><input class="fi" id="m-st-email" type="email"></div>
+        <div class="fgroup"><label>Telefono</label><input class="fi" id="m-st-tel"></div>
+        <div class="fgroup"><label>Data di nascita</label><input class="fi" id="m-st-nascita" type="date"></div>
+        <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="m-st-cf"></div>
+        <div class="fgroup"><label>N° Tessera ASD</label><input class="fi" id="m-st-tessera-asd"></div>
+        <div class="fgroup"><label>Scad. Tessera ASD</label><input class="fi" id="m-st-tessera-asd-scad" type="date"></div>
+        <div class="fgroup s2"><label>Indirizzo</label><input class="fi" id="m-st-indirizzo"></div>
+      </div>
+      <div class="fgroup" style="margin-top:10px;"><label>Note</label><textarea class="fta" id="m-st-note"></textarea></div>
+      <!-- Pagamenti uscita staff -->
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;">💸 Rimborsi / Compensi (uscite)</div>
+      <div id="staff-pagamenti-list"><div class="empty" style="padding:12px;"><div class="ei">💸</div><p>Nessun rimborso registrato</p></div></div>
+      <button class="btn btn-s btn-sm" style="margin-top:6px;" onclick="aggiungiPagamentoStaff()">+ Aggiungi rimborso/compenso</button>
+    </div>
+    <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-staff')">Annulla</button><button class="btn btn-p" onclick="saveStaff()">💾 Salva</button></div>
+  </div>
+</div>
+
+<!-- MODAL MACROGRUPPO -->
+<div class="mo" id="modal-macrogruppo">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="modal-mg-title">Nuovo macrogruppo</div><button class="mc" onclick="closeModal('modal-macrogruppo')">✕</button></div>
+    <div class="mb">
+      <div class="fg c1">
+        <div class="fgroup"><label>Nome macrogruppo *</label><input class="fi" id="m-mg-nome" placeholder="es. Camp Estivo 2026, Attività Promozionale..."></div>
+        <div class="fgroup"><label>Descrizione</label><input class="fi" id="m-mg-descr" placeholder="Descrizione opzionale"></div>
+        <div class="fgroup"><label>Stagione di riferimento</label><input class="fi" id="m-mg-stagione" placeholder="es. 2025/2026"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-macrogruppo')">Annulla</button><button class="btn btn-p" onclick="saveMacrogruppo()">💾 Salva</button></div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
@@ -1419,7 +1564,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 const APP_VERSION = 'v2.0 · Giugno 2025';
 let DB = {
   struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
-  soci:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[]
+  soci:[],        // atleti
+  staff:[],       // dirigenti, tecnici, ecc.
+  macrogruppi:[], // livello superiore ai corsi
+  piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],
+  quoteAtleti:[], // quote collegate alle singole anagrafiche
+  valutazioni:{}
 };
 let currentPage='dashboard', editingId=null, movTipo='entrata', eventoTipo='gara', convEventoId=null;
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
@@ -1436,7 +1586,10 @@ function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new File
 // ═══ UTILS ════════════════════════════════════════════════
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 function formatDate(d){if(!d)return'—';const[y,m,g]=d.split('-');return`${g}/${m}/${y}`;}
-function updateBadges(){document.getElementById('badge-soci').textContent=DB.soci.length;}
+function updateBadges(){
+  const bSoci=document.getElementById('badge-soci');
+  if(bSoci)bSoci.textContent=(DB.soci?.length||0)+(DB.staff?.length||0);
+}
 function scadColor(d){if(!d)return'var(--text2)';const diff=(new Date(d)-new Date())/86400000;return diff<0?'var(--red)':diff<30?'var(--yellow)':'var(--green)';}
 function toast(msg,type='success'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast ${type}`;t.innerHTML=`<span>${{success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'}[type]||'ℹ️'}</span><span>${msg}</span>`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(40px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3200);}
 
@@ -1510,13 +1663,30 @@ function openModal(id,mode){
   if(id==='modal-impianto'){selectedImpiantoIcon='🏟️';document.querySelectorAll('.icon-opt').forEach(o=>o.classList.remove('sel'));const def=document.querySelector('.icon-opt[data-icon="🏟️"]');if(def)def.classList.add('sel');}
   ov.classList.add('open');
 }
-function openModalSocio(){
-  editingId=null;tempDocs=[];tempFoto='';
-  document.getElementById('modal-socio-title').textContent='Nuovo socio';
+function openModalSocio(id=null){
+  if(!DB.macrogruppi)DB.macrogruppi=[];
+  editingId=id;currentEditId=id;tempDocs=[];tempFoto='';
+  document.getElementById('modal-socio-title').textContent=id?'Modifica atleta':'Nuovo atleta';
   document.getElementById('modal-socio').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
   document.getElementById('m-s-foto-wrap').innerHTML='<span id="m-s-foto-initials">?</span>';
   populateCorseSel();
+  // Popola macrogruppi
+  const sm=document.getElementById('m-s-macrogruppo');
+  if(sm)sm.innerHTML='<option value="">— Nessuno —</option>'+(DB.macrogruppi||[]).map(mg=>`<option value="${mg.id}">${mg.nome}</option>`).join('');
+  showSocioTab('anagrafica');
   renderTempDocs();
+  if(id){
+    const s=DB.soci.find(x=>x.id===id);
+    if(s){
+      const map={nome:'m-s-nome',cognome:'m-s-cognome',email:'m-s-email',tel:'m-s-tel',nascita:'m-s-nascita',cf:'m-s-cf',luogo:'m-s-luogo',sesso:'m-s-sesso',indirizzo:'m-s-indirizzo',tipologia:'m-s-tipologia',stato:'m-s-stato',maglia:'m-s-maglia',altezza:'m-s-altezza',peso:'m-s-peso',tGuanti:'m-s-t-guanti',tGinocchiere:'m-s-t-ginocchiere',tGomitiere:'m-s-t-gomitiere',tAbbigliamento:'m-s-t-abbigliamento',tPattini:'m-s-t-pattini',tesseraAsd:'m-s-tessera-asd',tesseraAsdScad:'m-s-tessera-asd-scad',tesseraFisr:'m-s-tessera-fisr',tesseraFisrScad:'m-s-tessera-fisr-scad',assicurazione:'m-s-assicurazione',assicurazioneScad:'m-s-assicurazione-scad',assicurazioneEnte:'m-s-assicurazione-ente',assicurazionePolizza:'m-s-assicurazione-polizza',visitaTipo:'m-s-visita-tipo',visitaScad:'m-s-visita-scad',visitaMedico:'m-s-visita-medico',visitaAllegato:'m-s-visita-allegato',allergie:'m-s-allergie',farmaci:'m-s-farmaci',noteMediche:'m-s-note-mediche',g1Nome:'m-s-g1-nome',g1Cognome:'m-s-g1-cognome',g1Rapporto:'m-s-g1-rapporto',g1Cf:'m-s-g1-cf',g1Tel:'m-s-g1-tel',g1Email:'m-s-g1-email',g2Nome:'m-s-g2-nome',g2Cognome:'m-s-g2-cognome',g2Rapporto:'m-s-g2-rapporto',g2Cf:'m-s-g2-cf',g2Tel:'m-s-g2-tel',g2Email:'m-s-g2-email',privacyAllegato:'m-s-privacy-allegato',iscrizioneAllegato:'m-s-iscrizione-allegato',note:'m-s-note'};
+      Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&s[k]!==undefined)el.value=s[k];});
+      if(s.corsoId)document.getElementById('m-s-corso').value=s.corsoId;
+      if(s.macrogruppoId&&sm)sm.value=s.macrogruppoId;
+      if(s.foto){document.getElementById('m-s-foto-wrap').innerHTML=`<img src="${s.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;} 
+      tempFoto=s.foto||'';tempDocs=s.documenti?JSON.parse(JSON.stringify(s.documenti)):[];
+      renderTempDocs();renderQuoteAtleta();
+    }
+  }
   document.getElementById('modal-socio').classList.add('open');
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -1560,47 +1730,57 @@ function saveSocio(){
   if(!nome||!cognome){toast('Nome e cognome obbligatori','error');return;}
   const corsoId=document.getElementById('m-s-corso').value;
   const corso=corsoId?DB.corsi.find(x=>x.id===corsoId):null;
-  const obj={id:editingId||uid(),nome,cognome,
-    email:document.getElementById('m-s-email').value,tel:document.getElementById('m-s-tel').value,
-    nascita:document.getElementById('m-s-nascita').value,cf:document.getElementById('m-s-cf').value,
-    luogo:document.getElementById('m-s-luogo').value,sesso:document.getElementById('m-s-sesso').value,
-    indirizzo:document.getElementById('m-s-indirizzo').value,
-    tipologia:document.getElementById('m-s-tipologia').value,stato:document.getElementById('m-s-stato').value,
+  const macrogruppoId=document.getElementById('m-s-macrogruppo')?.value||'';
+  const mg=macrogruppoId?(DB.macrogruppi||[]).find(x=>x.id===macrogruppoId):null;
+  const g=id=>document.getElementById(id)?.value||'';
+  const obj={
+    id:editingId||uid(),nome,cognome,
+    email:g('m-s-email'),tel:g('m-s-tel'),
+    nascita:g('m-s-nascita'),cf:g('m-s-cf'),
+    luogo:g('m-s-luogo'),sesso:g('m-s-sesso'),
+    indirizzo:g('m-s-indirizzo'),
+    tipologia:g('m-s-tipologia'),stato:g('m-s-stato'),
     corsoId,corsoNome:corso?.nome||'',
-    maglia:document.getElementById('m-s-maglia').value,
-    altezza:document.getElementById('m-s-altezza').value,peso:document.getElementById('m-s-peso').value,
-    tGuanti:document.getElementById('m-s-t-guanti').value,tGinocchiere:document.getElementById('m-s-t-ginocchiere').value,
-    tGomitiere:document.getElementById('m-s-t-gomitiere').value,tAbbigliamento:document.getElementById('m-s-t-abbigliamento').value,
-    tesseraAsd:document.getElementById('m-s-tessera-asd').value,tesseraAsdScad:document.getElementById('m-s-tessera-asd-scad').value,
-    tesseraFisr:document.getElementById('m-s-tessera-fisr').value,tesseraFisrScad:document.getElementById('m-s-tessera-fisr-scad').value,
-    assicurazione:document.getElementById('m-s-assicurazione').value,
-    assicurazioneScad:document.getElementById('m-s-assicurazione-scad').value,
-    assicurazioneEnte:document.getElementById('m-s-assicurazione-ente').value,
-    assicurazionePolizza:document.getElementById('m-s-assicurazione-polizza').value,
-    note:document.getElementById('m-s-note').value,
+    macrogruppoId,macrogruppoNome:mg?.nome||'',
+    maglia:g('m-s-maglia'),
+    altezza:g('m-s-altezza'),peso:g('m-s-peso'),
+    tGuanti:g('m-s-t-guanti'),tGinocchiere:g('m-s-t-ginocchiere'),
+    tGomitiere:g('m-s-t-gomitiere'),tAbbigliamento:g('m-s-t-abbigliamento'),
+    tPattini:g('m-s-t-pattini'),
+    tesseraAsd:g('m-s-tessera-asd'),tesseraAsdScad:g('m-s-tessera-asd-scad'),
+    tesseraFisr:g('m-s-tessera-fisr'),tesseraFisrScad:g('m-s-tessera-fisr-scad'),
+    assicurazione:g('m-s-assicurazione'),
+    assicurazioneScad:g('m-s-assicurazione-scad'),
+    assicurazioneEnte:g('m-s-assicurazione-ente'),
+    assicurazionePolizza:g('m-s-assicurazione-polizza'),
+    // Visita medica
+    visitaTipo:g('m-s-visita-tipo'),
+    visitaScad:g('m-s-visita-scad'),
+    visitaMedico:g('m-s-visita-medico'),
+    visitaAllegato:g('m-s-visita-allegato'),
+    // Dati sanitari
+    allergie:g('m-s-allergie'),farmaci:g('m-s-farmaci'),noteMediche:g('m-s-note-mediche'),
+    // Genitori
+    g1Nome:g('m-s-g1-nome'),g1Cognome:g('m-s-g1-cognome'),g1Rapporto:g('m-s-g1-rapporto'),
+    g1Cf:g('m-s-g1-cf'),g1Tel:g('m-s-g1-tel'),g1Email:g('m-s-g1-email'),
+    g2Nome:g('m-s-g2-nome'),g2Cognome:g('m-s-g2-cognome'),g2Rapporto:g('m-s-g2-rapporto'),
+    g2Cf:g('m-s-g2-cf'),g2Tel:g('m-s-g2-tel'),g2Email:g('m-s-g2-email'),
+    // Privacy
+    privacyAllegato:g('m-s-privacy-allegato'),
+    iscrizioneAllegato:g('m-s-iscrizione-allegato'),
+    note:g('m-s-note'),
     foto:tempFoto||(editingId?DB.soci.find(x=>x.id===editingId)?.foto:''),
     documenti:tempDocs,
-    creato:editingId?(DB.soci.find(x=>x.id===editingId)?.creato||new Date().toISOString()):new Date().toISOString()};
-  if(editingId){const i=DB.soci.findIndex(x=>x.id===editingId);if(i>-1)DB.soci[i]=obj;}else DB.soci.push(obj);
+    creato:editingId?(DB.soci.find(x=>x.id===editingId)?.creato||new Date().toISOString()):new Date().toISOString()
+  };
+  if(editingId){const i=DB.soci.findIndex(x=>x.id===editingId);if(i>-1)DB.soci[i]=obj;}
+  else DB.soci.push(obj);
   saveDB();closeModal('modal-socio');renderSoci();updateBadges();renderDashboard();
-  toast(editingId?'Socio aggiornato':'Socio aggiunto','success');
+  toast(editingId?'Atleta aggiornato':'Atleta aggiunto','success');
 }
 
-function editSocio(id){
-  editingId=id;const s=DB.soci.find(x=>x.id===id);if(!s)return;
-  tempDocs=JSON.parse(JSON.stringify(s.documenti||[]));tempFoto=s.foto||'';
-  document.getElementById('modal-socio-title').textContent='Modifica socio';
-  const fw=document.getElementById('m-s-foto-wrap');
-  fw.innerHTML=s.foto?`<img src="${s.foto}">`:`<span id="m-s-foto-initials">${(s.nome?s.nome[0]:'')+(s.cognome?s.cognome[0]:'')}</span>`;
-  const map={nome:'m-s-nome',cognome:'m-s-cognome',email:'m-s-email',tel:'m-s-tel',nascita:'m-s-nascita',cf:'m-s-cf',luogo:'m-s-luogo',sesso:'m-s-sesso',indirizzo:'m-s-indirizzo',tipologia:'m-s-tipologia',stato:'m-s-stato',maglia:'m-s-maglia',altezza:'m-s-altezza',peso:'m-s-peso',tGuanti:'m-s-t-guanti',tGinocchiere:'m-s-t-ginocchiere',tGomitiere:'m-s-t-gomitiere',tAbbigliamento:'m-s-t-abbigliamento',tesseraAsd:'m-s-tessera-asd',tesseraAsdScad:'m-s-tessera-asd-scad',tesseraFisr:'m-s-tessera-fisr',tesseraFisrScad:'m-s-tessera-fisr-scad',assicurazione:'m-s-assicurazione',assicurazioneScad:'m-s-assicurazione-scad',assicurazioneEnte:'m-s-assicurazione-ente',assicurazionePolizza:'m-s-assicurazione-polizza',note:'m-s-note'};
-  populateCorseSel();
-  Object.entries(map).forEach(([k,id2])=>{const el=document.getElementById(id2);if(el)el.value=s[k]||'';});
-  document.getElementById('m-s-corso').value=s.corsoId||'';
-  renderTempDocs();
-  document.getElementById('modal-socio').classList.add('open');
-}
-
-function deleteSocio(id){if(!confirm('Eliminare questo socio?'))return;DB.soci=DB.soci.filter(x=>x.id!==id);saveDB();renderSoci();updateBadges();renderDashboard();toast('Eliminato','warning');}
+function editSocio(id){openModalSocio(id);}
+function deleteSocio(id){if(!confirm('Eliminare questo atleta?'))return;DB.soci=DB.soci.filter(x=>x.id!==id);saveDB();renderSoci();updateBadges();renderDashboard();toast('Eliminato','warning');}
 
 // ═══ CATEGORIE FISR ═══════════════════════════════════════
 // Calcola la categoria FISR di un atleta in base all'anno di nascita
@@ -1648,22 +1828,349 @@ function getEtaAnagrafica(nascita){
   return eta;
 }
 
+// ═══ TAB ANAGRAFICHE ══════════════════════════════════════
+function showAnaTab(tab){
+  ['atleti','staff','macrogruppi'].forEach(t=>{
+    document.getElementById('ana-tab-'+t).classList.toggle('active',t===tab);
+  });
+  document.querySelectorAll('#page-anagrafiche .tab').forEach((tb,i)=>{
+    tb.classList.toggle('active',['atleti','staff','macrogruppi'][i]===tab);
+  });
+  if(tab==='staff')renderStaff();
+  if(tab==='macrogruppi')renderMacrogruppi();
+  if(tab==='atleti')applyFilters();
+}
+
+// ═══ TAB MODAL SOCIO ══════════════════════════════════════
+function showSocioTab(tab){
+  ['anagrafica','sanitario','genitori','taglie','pagamenti','documenti'].forEach(t=>{
+    const el=document.getElementById('socio-tab-'+t);
+    if(el)el.classList.toggle('active',t===tab);
+  });
+  document.querySelectorAll('#modal-socio .tabs .tab').forEach((tb,i)=>{
+    tb.classList.toggle('active',['anagrafica','sanitario','genitori','taglie','pagamenti','documenti'][i]===tab);
+  });
+  if(tab==='pagamenti')renderQuoteAtleta();
+}
+
+// ═══ STAFF ════════════════════════════════════════════════
+function openModalStaff(id=null){
+  if(!DB.staff)DB.staff=[];
+  editingId=id;
+  document.getElementById('modal-staff-title').textContent=id?'Modifica membro staff':'Nuovo membro staff';
+  document.getElementById('modal-staff').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
+  if(id){
+    const s=DB.staff.find(x=>x.id===id);
+    if(s){
+      const map={nome:'m-st-nome',cognome:'m-st-cognome',ruolo:'m-st-ruolo',stato:'m-st-stato',email:'m-st-email',tel:'m-st-tel',nascita:'m-st-nascita',cf:'m-st-cf',tesseraAsd:'m-st-tessera-asd',tesseraAsdScad:'m-st-tessera-asd-scad',indirizzo:'m-st-indirizzo',note:'m-st-note'};
+      Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&s[k]!==undefined)el.value=s[k];});
+    }
+  }
+  openModal('modal-staff','');
+}
+
+function saveStaff(){
+  if(!DB.staff)DB.staff=[];
+  const nome=document.getElementById('m-st-nome').value.trim();
+  const cognome=document.getElementById('m-st-cognome').value.trim();
+  if(!nome||!cognome){toast('Nome e Cognome obbligatori','error');return;}
+  const obj={
+    id:editingId||uid(),
+    nome,cognome,
+    ruolo:document.getElementById('m-st-ruolo').value,
+    stato:document.getElementById('m-st-stato').value,
+    email:document.getElementById('m-st-email').value,
+    tel:document.getElementById('m-st-tel').value,
+    nascita:document.getElementById('m-st-nascita').value,
+    cf:document.getElementById('m-st-cf').value,
+    tesseraAsd:document.getElementById('m-st-tessera-asd').value,
+    tesseraAsdScad:document.getElementById('m-st-tessera-asd-scad').value,
+    indirizzo:document.getElementById('m-st-indirizzo').value,
+    note:document.getElementById('m-st-note').value,
+    creato:editingId?(DB.staff.find(x=>x.id===editingId)?.creato||new Date().toISOString()):new Date().toISOString()
+  };
+  if(editingId){const i=DB.staff.findIndex(x=>x.id===editingId);if(i>=0)DB.staff[i]=obj;}
+  else DB.staff.push(obj);
+  saveDB();closeModal('modal-staff');renderStaff();
+  toast(editingId?'Membro staff aggiornato':'Membro staff aggiunto','success');
+}
+
+function renderStaff(search=''){
+  const tbody=document.getElementById('staff-tbody');
+  if(!tbody)return;
+  if(!DB.staff)DB.staff=[];
+  const ruoloF=document.getElementById('filter-staff-ruolo')?.value||'';
+  let lista=DB.staff;
+  if(search)lista=lista.filter(s=>`${s.nome} ${s.cognome} ${s.ruolo||''}`.toLowerCase().includes(search.toLowerCase()));
+  if(ruoloF)lista=lista.filter(s=>s.ruolo===ruoloF);
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">👔</div><h3>Nessun membro staff</h3></div></td></tr>`;return;}
+  const ruoliLabel={dirigente:'👔 Dirigente',tecnico:'🧑‍🏫 Tecnico',presidente:'⭐ Presidente','vice-presidente':'🔱 Vice-Presidente',segretario:'📋 Segretario',tesoriere:'💰 Tesoriere',attrezzista:'🔧 Attrezzista',cronometrista:'⏱️ Cronometrista',segnapunti:'📝 Segnapunti'};
+  tbody.innerHTML=lista.map((s,idx)=>`<tr>
+    <td class="row-num">${idx+1}</td>
+    <td><strong>${s.nome} ${s.cognome}</strong></td>
+    <td><span class="badge bgy">${ruoliLabel[s.ruolo]||s.ruolo||'—'}</span></td>
+    <td>${s.tel||'—'}</td>
+    <td>${s.email||'—'}</td>
+    <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
+    <td><span class="badge ${s.stato==='attivo'?'bg':'bgy'}">${s.stato||'attivo'}</span></td>
+    <td><div class="tda"><button class="bico" onclick="openModalStaff('${s.id}')">✏️</button><button class="bico" onclick="deleteStaff('${s.id}')">🗑️</button></div></td>
+  </tr>`).join('');
+}
+
+function deleteStaff(id){if(!confirm('Eliminare questo membro staff?'))return;DB.staff=DB.staff.filter(x=>x.id!==id);saveDB();renderStaff();toast('Membro staff eliminato','success');}
+
+function aggiungiPagamentoStaff(){toast('Registra il pagamento direttamente in Amministrazione → Uscite','info');}
+
+// ═══ MACROGRUPPI ══════════════════════════════════════════
+function openModalMacrogruppo(id=null){
+  editingId=id;
+  document.getElementById('modal-mg-title').textContent=id?'Modifica macrogruppo':'Nuovo macrogruppo';
+  ['m-mg-nome','m-mg-descr','m-mg-stagione'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
+  if(id){
+    const mg=DB.macrogruppi?.find(x=>x.id===id);
+    if(mg){document.getElementById('m-mg-nome').value=mg.nome||'';document.getElementById('m-mg-descr').value=mg.descr||'';document.getElementById('m-mg-stagione').value=mg.stagione||'';}
+  }
+  openModal('modal-macrogruppo','');
+}
+
+function saveMacrogruppo(){
+  if(!DB.macrogruppi)DB.macrogruppi=[];
+  const nome=document.getElementById('m-mg-nome').value.trim();
+  if(!nome){toast('Nome obbligatorio','error');return;}
+  const obj={id:editingId||uid(),nome,descr:document.getElementById('m-mg-descr').value,stagione:document.getElementById('m-mg-stagione').value};
+  if(editingId){const i=DB.macrogruppi.findIndex(x=>x.id===editingId);if(i>=0)DB.macrogruppi[i]=obj;}
+  else DB.macrogruppi.push(obj);
+  saveDB();closeModal('modal-macrogruppo');renderMacrogruppi();
+  toast('Macrogruppo salvato','success');
+}
+
+function renderMacrogruppi(){
+  const cont=document.getElementById('macrogruppi-list');
+  if(!cont)return;
+  if(!DB.macrogruppi)DB.macrogruppi=[];
+  if(!DB.macrogruppi.length){cont.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">📁</div><h3>Nessun macrogruppo</h3><p>Crea macrogruppi per organizzare attività trasversali (camp estivi, tornei, ecc.)</p></div>';return;}
+  cont.innerHTML=DB.macrogruppi.map(mg=>{
+    const atleti=DB.soci.filter(s=>s.macrogruppoId===mg.id).length;
+    return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div><div style="font-weight:600;font-size:15px;">📁 ${mg.nome}</div>${mg.stagione?`<div style="font-size:11px;color:var(--gold);">${mg.stagione}</div>`:''}</div>
+        <div class="tda"><button class="bico" onclick="openModalMacrogruppo('${mg.id}')">✏️</button><button class="bico" onclick="deleteMacrogruppo('${mg.id}')">🗑️</button></div>
+      </div>
+      ${mg.descr?`<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">${mg.descr}</div>`:''}
+      <div style="font-size:12px;"><span class="badge bgy">${atleti} atleti</span></div>
+    </div>`;
+  }).join('');
+}
+
+function deleteMacrogruppo(id){if(!confirm('Eliminare questo macrogruppo?'))return;DB.macrogruppi=DB.macrogruppi.filter(x=>x.id!==id);saveDB();renderMacrogruppi();toast('Macrogruppo eliminato','success');}
+
+// ═══ QUOTE ATLETA ═════════════════════════════════════════
+let currentEditId=null;
+
+function renderQuoteAtleta(){
+  if(!currentEditId)return;
+  if(!DB.quoteAtleti)DB.quoteAtleti=[];
+  const quote=DB.quoteAtleti.filter(q=>q.atletaId===currentEditId);
+  const cont=document.getElementById('atleta-quote-list');
+  if(!cont)return;
+  if(!quote.length){cont.innerHTML='<div class="empty" style="padding:14px;"><div class="ei">💰</div><p>Nessuna quota</p></div>';return;}
+  cont.innerHTML=`<div class="tw"><table><thead><tr><th>Descrizione</th><th>Importo</th><th>Scadenza</th><th>Stato</th><th>Azioni</th></tr></thead><tbody>
+    ${quote.map(q=>`<tr>
+      <td>${q.descr}</td>
+      <td style="color:var(--green);font-weight:600;">€${parseFloat(q.importo||0).toFixed(2)}</td>
+      <td style="color:${scadColor(q.scadenza)};">${q.scadenza?formatDate(q.scadenza):'—'}</td>
+      <td><span class="badge ${q.pagata?'bg':'br'}">${q.pagata?'✓ Pagata':'In attesa'}</span></td>
+      <td><div class="tda">
+        <button class="bico" onclick="toggleQuotaPagata('${q.id}')">${q.pagata?'↩️':'✅'}</button>
+        <button class="bico" onclick="deleteQuotaAtleta('${q.id}')">🗑️</button>
+      </div></td>
+    </tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+function aggiungiQuotaAtleta(){
+  const descr=prompt('Descrizione quota (es. Quota associativa 2025/26):');
+  if(!descr)return;
+  const importo=prompt('Importo (€):');
+  if(!importo)return;
+  const scadenza=prompt('Scadenza (YYYY-MM-DD, opzionale):');
+  if(!DB.quoteAtleti)DB.quoteAtleti=[];
+  DB.quoteAtleti.push({id:uid(),atletaId:currentEditId,descr,importo:parseFloat(importo)||0,scadenza:scadenza||'',pagata:false,data:new Date().toISOString().slice(0,10)});
+  saveDB();renderQuoteAtleta();toast('Quota aggiunta','success');
+}
+
+function toggleQuotaPagata(id){
+  const q=DB.quoteAtleti?.find(x=>x.id===id);
+  if(q){q.pagata=!q.pagata;saveDB();renderQuoteAtleta();}
+}
+
+function deleteQuotaAtleta(id){
+  if(!confirm('Eliminare questa quota?'))return;
+  DB.quoteAtleti=DB.quoteAtleti.filter(x=>x.id!==id);
+  saveDB();renderQuoteAtleta();
+}
+
+// ═══ GENERAZIONE LINK MODULI ══════════════════════════════
+const BASE_URL='https://spartanshockeyinline.github.io/spartansmanager/';
+const FORM_URL='https://forms.gle/fPA6xzKAY38Syz5z6';
+
+function buildModuloParams(s){
+  const stagione=getStagioneCorrente()?.label||'';
+  const params=new URLSearchParams({
+    nome:s.nome||'',cognome:s.cognome||'',
+    nascita:s.nascita?formatDate(s.nascita):'',
+    luogo:s.luogo||'',sesso:s.sesso||'',cf:s.cf||'',
+    indirizzo:s.indirizzo||'',tel:s.tel||'',email:s.email||'',
+    tipologia:s.tipologia||'',corso:s.corsoNome||'',maglia:s.maglia||'',
+    visitaTipo:s.visitaTipo||'',visitaScad:s.visitaScad?formatDate(s.visitaScad):'',
+    visitaMedico:s.visitaMedico||'',
+    allergie:s.allergie||'',farmaci:s.farmaci||'',
+    altezza:s.altezza||'',peso:s.peso||'',
+    tAbbigliamento:s.tAbbigliamento||'',tPattini:s.tPattini||'',
+    tGuanti:s.tGuanti||'',tGinocchiere:s.tGinocchiere||'',tGomitiere:s.tGomitiere||'',
+    g1Nome:s.g1Nome||'',g1Cognome:s.g1Cognome||'',g1Rapporto:s.g1Rapporto||'',
+    g1Cf:s.g1Cf||'',g1Tel:s.g1Tel||'',g1Email:s.g1Email||'',
+    g2Nome:s.g2Nome||'',g2Cognome:s.g2Cognome||'',g2Rapporto:s.g2Rapporto||'',
+    g2Cf:s.g2Cf||'',g2Tel:s.g2Tel||'',g2Email:s.g2Email||'',
+    stagione
+  });
+  return params.toString();
+}
+
+function generaLinkIscrizione(atletaId){
+  const s=DB.soci.find(x=>x.id===atletaId);if(!s)return;
+  const url=`${BASE_URL}modulo_iscrizione_spartans.html?${buildModuloParams(s)}`;
+  navigator.clipboard.writeText(url).then(()=>toast('🔗 Link modulo iscrizione copiato — incollalo su WhatsApp','success'));
+}
+
+function generaLinkPrivacy(atletaId){
+  const s=DB.soci.find(x=>x.id===atletaId);if(!s)return;
+  const stagione=getStagioneCorrente()?.label||'';
+  const params=new URLSearchParams({
+    nome:s.nome||'',cognome:s.cognome||'',
+    nascita:s.nascita?formatDate(s.nascita):'',
+    g1Nome:s.g1Nome||'',g1Cognome:s.g1Cognome||'',g1Rapporto:s.g1Rapporto||'',
+    stagione
+  });
+  const url=`${BASE_URL}modulo_consenso_privacy.html?${params.toString()}`;
+  navigator.clipboard.writeText(url).then(()=>toast('🔗 Link modulo privacy copiato — incollalo su WhatsApp','success'));
+}
+
+function apriModuloIscrizione(atletaId){
+  const s=DB.soci.find(x=>x.id===atletaId);if(!s)return;
+  const url=`${BASE_URL}modulo_iscrizione_spartans.html?${buildModuloParams(s)}`;
+  window.open(url,'_blank');
+}
+
+function apriModuloPrivacy(atletaId){
+  const s=DB.soci.find(x=>x.id===atletaId);if(!s)return;
+  const stagione=getStagioneCorrente()?.label||'';
+  const params=new URLSearchParams({
+    nome:s.nome||'',cognome:s.cognome||'',
+    nascita:s.nascita?formatDate(s.nascita):'',
+    g1Nome:s.g1Nome||'',g1Cognome:s.g1Cognome||'',g1Rapporto:s.g1Rapporto||'',
+    stagione
+  });
+  window.open(`${BASE_URL}modulo_consenso_privacy.html?${params.toString()}`,'_blank');
+}
+
+function copiaLinkForm(){
+  navigator.clipboard.writeText(FORM_URL).then(()=>toast('🔗 Link form iscrizione copiato — incollalo su WhatsApp','success'));
+}
+
 // ═══ SOCI — SORT & FILTER ═════════════════════════════════
 let sociSortKey='cognome', sociSortDir='asc';
 
-function applyFilters(){
-  const search=document.getElementById('filter-search')?.value||'';
-  const tip=document.getElementById('filter-tipologia')?.value||'';
-  const corso=document.getElementById('filter-corso')?.value||'';
-  const stato=document.getElementById('filter-stato')?.value||'';
-  const eta=document.getElementById('filter-eta')?.value||'';
-  renderSoci(search,tip,corso,stato,eta);
-}
+function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilter='',mgFilter=''){
+  const tb=document.getElementById('soci-tbody');
+  if(!tb)return;
 
-function resetFilters(){
-  ['filter-search','filter-tipologia','filter-corso','filter-stato','filter-eta'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  renderSoci();
+  // Popola select tipologia
+  const tf=document.getElementById('filter-tipologia');
+  if(tf&&!tf.querySelector('option[value="atleta"]'))
+    tf.innerHTML='<option value="">Tutte le tipologie</option><option value="atleta">Atleta</option><option value="amatore">Amatore</option>';
+
+  // Popola select corso
+  const cf=document.getElementById('filter-corso');
+  if(cf)cf.innerHTML='<option value="">Tutti i corsi</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+
+  // Popola select macrogruppo
+  const mf=document.getElementById('filter-macrogruppo');
+  if(mf)mf.innerHTML='<option value="">Tutti i macrogruppi</option>'+(DB.macrogruppi||[]).map(mg=>`<option value="${mg.id}">${mg.nome}</option>`).join('');
+
+  let list=DB.soci.filter(s=>{
+    if(filter&&!`${s.nome} ${s.cognome} ${s.email||''} ${s.tesseraAsd||''} ${s.tesseraFisr||''}`.toLowerCase().includes(filter.toLowerCase()))return false;
+    if(tipFilter&&s.tipologia!==tipFilter)return false;
+    if(corsoFilter&&s.corsoId!==corsoFilter)return false;
+    if(mgFilter&&s.macrogruppoId!==mgFilter)return false;
+    if(statoFilter&&(s.stato||'attivo')!==statoFilter)return false;
+    if(etaFilter&&s.nascita){
+      const annoNascita=parseInt(s.nascita.slice(0,4));
+      const catFisr=getCategoriaFisr(annoNascita);
+      const catTarget=FISR_FILTER_MAP[etaFilter];
+      if(catFisr!==catTarget)return false;
+    }
+    return true;
+  });
+
+  // Calcola eta e categoria per ogni socio
+  const listaArricchita=list.map(s=>{
+    const eta=getEtaAnagrafica(s.nascita);
+    const annoNascita=s.nascita?parseInt(s.nascita.slice(0,4)):null;
+    const categoriaFisr=annoNascita?getCategoriaFisr(annoNascita):'—';
+    return{...s,eta,categoriaFisr};
+  });
+
+  // Ordinamento
+  listaArricchita.sort((a,b)=>{
+    let va,vb;
+    if(sociSortKey==='cognome'){va=`${a.cognome||''} ${a.nome||''}`.toLowerCase();vb=`${b.cognome||''} ${b.nome||''}`.toLowerCase();}
+    else if(sociSortKey==='eta'){va=a.eta??999;vb=b.eta??999;}
+    else if(sociSortKey==='categoriaFisr'){va=a.categoriaFisr||'';vb=b.categoriaFisr||'';}
+    else{va=(a[sociSortKey]||'').toString().toLowerCase();vb=(b[sociSortKey]||'').toString().toLowerCase();}
+    const cmp=typeof va==='number'?va-vb:va.localeCompare(vb,'it');
+    return sociSortDir==='asc'?cmp:-cmp;
+  });
+
+  const cnt=document.getElementById('soci-count');
+  if(cnt)cnt.textContent=listaArricchita.length;
+
+  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="12"><div class="empty"><div class="ei">👥</div><h3>Nessun atleta trovato</h3></div></td></tr>`;return;}
+
+  tb.innerHTML=listaArricchita.map((s,idx)=>{
+    const abb=getAbbStatoSocio(s.id);
+    const abbBadge=abb
+      ?`<span class="badge ${abb.stato==='attivo'?'bg':'br'}">${abb.stato==='attivo'?'✓':'✗ Scad.'}</span>`
+      :`<span class="badge bgy">—</span>`;
+    const assicBadge=s.assicurazione==='pagata'?`<span class="badge bg">✓</span>`
+      :s.assicurazione==='non-pagata'?`<span class="badge br">✗</span>`
+      :s.assicurazione==='in-attesa'?`<span class="badge by">⏳</span>`
+      :`<span class="badge bgy">—</span>`;
+    // Visita medica
+    let visitaBadge='<span class="badge bgy">—</span>';
+    if(s.visitaScad){
+      const diff=(new Date(s.visitaScad)-new Date())/86400000;
+      if(diff<0)visitaBadge=`<span class="badge br">Scaduta</span>`;
+      else if(diff<30)visitaBadge=`<span class="badge by">⚠ ${Math.round(diff)}gg</span>`;
+      else visitaBadge=`<span class="badge bg">✓ ${formatDate(s.visitaScad)}</span>`;
+    }
+    return`<tr>
+      <td class="row-num">${idx+1}</td>
+      <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
+      <td style="font-weight:600;">${s.eta!==null&&s.eta!==undefined?s.eta+' a':'—'}</td>
+      <td><span class="badge bgold" style="font-size:10px;">${s.categoriaFisr}</span></td>
+      <td><span class="badge bgy" style="font-size:10px;">${s.tipologia||'atleta'}</span></td>
+      <td>${s.corsoNome||'—'}</td>
+      <td>${s.tesseraFisr||'—'}${s.tesseraFisrScad?`<div style="font-size:10px;color:${scadColor(s.tesseraFisrScad)};">scad.${formatDate(s.tesseraFisrScad)}</div>`:''}</td>
+      <td>${visitaBadge}</td>
+      <td>${assicBadge}</td>
+      <td>${abbBadge}</td>
+      <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}">${s.stato||'attivo'}</span></td>
+      <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button><button class="bico" onclick="deleteSocio('${s.id}')">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
 }
+function filterSoci(v=''){renderSoci(v);}
 
 function sortSoci(key){
   if(sociSortKey===key)sociSortDir=sociSortDir==='asc'?'desc':'asc';
@@ -1776,18 +2283,83 @@ async function fetchSheetsCSV(){
 function importFromCSV(){
   const csv=document.getElementById('sheets-csv').value.trim();if(!csv){toast('Nessun CSV da importare','error');return;}
   const lines=csv.split('\n').filter(l=>l.trim());
-  let added=0;
-  lines.forEach((line,i)=>{
-    if(i===0&&line.toLowerCase().includes('nome'))return; // skip header
-    const cols=line.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
-    if(cols.length<2)return;
-    const [nome,cognome,email='',tel='',nascita='',cf='',tipologia='atleta',tesseraAsd='',tesseraFisr='']=cols;
-    if(!nome||!cognome)return;
-    DB.soci.push({id:uid(),nome,cognome,email,tel,nascita,cf,tipologia:tipologia||'atleta',tesseraAsd,tesseraFisr,stato:'attivo',foto:'',documenti:[],creato:new Date().toISOString()});
+  if(lines.length<2){toast('CSV vuoto o non valido','error');return;}
+  const headers=lines[0].split(',').map(c=>c.trim().replace(/^"|"$/g,'').toLowerCase().trim());
+  const col=(name)=>{
+    const n=name.toLowerCase().trim();
+    return headers.findIndex(h=>h===n||h.includes(n)||n.includes(h));
+  };
+  // Mappa intestazioni reali del Google Form Spartans
+  const MAP={
+    nome:'nome',cognome:'cognome',
+    nascita:'data di nascita',luogo:'luogo di nascita',
+    sesso:'sesso',cf:'codice fiscale',
+    indirizzo:'indirizzo di residenza',
+    tel:'telefono',email:'indirizzo email',
+    tipologia:'tipologia',corsoNome:'corso / squadra',maglia:'n° maglia preferito',
+    visitaTipo:'tipo visita medica',visitaScad:'scadenza visita medica',
+    visitaMedico:'medico / struttura',
+    allergie:'allergie / intolleranze',farmaci:'farmaci in uso',
+    altezza:'altezza (cm)',peso:'peso (kg)',
+    tAbbigliamento:'taglia abbigliamento',tPattini:'n° pattini',
+    tGuanti:'taglia guanti (pollici)',tGinocchiere:'taglia ginocchiere (pollici)',
+    tGomitiere:'taglia gomitiere (pollici)',
+    g1Nome:'nome genitore 1',g1Cognome:'cognome genitore 1',
+    g1Rapporto_:'rapporto',g1Cf:'codice fiscale genitore 1',
+    g1Tel:'telefono genitore 1',g1Email:'email genitore 1',
+    g2Nome:'nome genitore 2',g2Cognome:'cognome genitore 2',
+    g2Cf:'codice fiscale genitore 2',
+    g2Tel:'telefono genitore 2',g2Email:'email genitore 2',
+  };
+  // Calcola indici colonne una volta sola
+  const idx={};
+  Object.entries(MAP).forEach(([k,v])=>{idx[k]=col(v);});
+  // I due campi "Rapporto" hanno lo stesso nome — il primo è per G1, il secondo per G2
+  const rapportoIdx=headers.reduce((arr,h,i)=>{if(h.includes('rapporto'))arr.push(i);return arr;},[]);
+  const g=(cols,key,fallback='')=>{const i=idx[key];return i>=0?(cols[i]||fallback):fallback;};
+
+  let added=0,skipped=0;
+  lines.slice(1).forEach(line=>{
+    // Parse CSV rispettando le virgolette
+    const cols=[];let cur='',inQ=false;
+    for(const ch of line){if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}
+    cols.push(cur.trim());
+
+    const nome=g(cols,'nome'),cognome=g(cols,'cognome');
+    if(!nome||!cognome){skipped++;return;}
+    // Evita duplicati
+    const exists=DB.soci.find(s=>s.nome===nome&&s.cognome===cognome&&s.nascita===g(cols,'nascita'));
+    if(exists){skipped++;return;}
+
+    DB.soci.push({
+      id:uid(),nome,cognome,
+      nascita:g(cols,'nascita'),luogo:g(cols,'luogo'),
+      sesso:g(cols,'sesso'),cf:g(cols,'cf'),
+      indirizzo:g(cols,'indirizzo'),tel:g(cols,'tel'),
+      email:g(cols,'email'),
+      tipologia:(g(cols,'tipologia')||'atleta').toLowerCase(),
+      corsoId:'',corsoNome:g(cols,'corsoNome'),
+      maglia:g(cols,'maglia'),
+      stato:'attivo',
+      visitaTipo:g(cols,'visitaTipo'),visitaScad:g(cols,'visitaScad'),
+      visitaMedico:g(cols,'visitaMedico'),
+      allergie:g(cols,'allergie'),farmaci:g(cols,'farmaci'),
+      altezza:g(cols,'altezza'),peso:g(cols,'peso'),
+      tAbbigliamento:g(cols,'tAbbigliamento'),tPattini:g(cols,'tPattini'),
+      tGuanti:g(cols,'tGuanti'),tGinocchiere:g(cols,'tGinocchiere'),tGomitiere:g(cols,'tGomitiere'),
+      g1Nome:g(cols,'g1Nome'),g1Cognome:g(cols,'g1Cognome'),
+      g1Rapporto:rapportoIdx[0]>=0?(cols[rapportoIdx[0]]||''):'',
+      g1Cf:g(cols,'g1Cf'),g1Tel:g(cols,'g1Tel'),g1Email:g(cols,'g1Email'),
+      g2Nome:g(cols,'g2Nome'),g2Cognome:g(cols,'g2Cognome'),
+      g2Rapporto:rapportoIdx[1]>=0?(cols[rapportoIdx[1]]||''):'',
+      g2Cf:g(cols,'g2Cf'),g2Tel:g(cols,'g2Tel'),g2Email:g(cols,'g2Email'),
+      macrogruppoId:'',macrogruppoNome:'',
+      foto:'',documenti:[],creato:new Date().toISOString()
+    });
     added++;
   });
   saveDB();closeModal('modal-import-sheets');renderSoci();updateBadges();renderDashboard();
-  toast(`${added} soci importati da CSV`,'success');
+  toast(`${added} atleti importati${skipped?` · ${skipped} saltati`:''}`, 'success');
 }
 
 // ═══ PIANI ════════════════════════════════════════════════
@@ -2523,9 +3095,8 @@ function confirmRestore(){if(restoreTargetIdx===null)return;const bk=JSON.parse(
 function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b.data],{type:'application/json'}));a.download=`spartans_backup_${b.ts.slice(0,10)}.json`;a.click();}
 
 // ═══ RENDER ALL ═══════════════════════════════════════════
-function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche')renderSoci();if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();
-  // Verifica nuovi CU FISR in background
-  setTimeout(checkNuoviComunicatiFisr, 3000);
+function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche'){applyFilters();renderStaff();renderMacrogruppi();}if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();
+  setTimeout(checkNuoviComunicatiFisr,3000);
 }
 
 // ═══ COMUNICATI FISR ══════════════════════════════════════
