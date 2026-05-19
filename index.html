@@ -651,6 +651,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <option value="segnapunti">Segnapunti</option>
           </select>
           <button class="btn btn-p btn-sm" onclick="openModalStaff()">+ Nuovo membro staff</button>
+          <button class="btn btn-s btn-sm" onclick="migraStaffDaAtleti()" title="Sposta automaticamente i vecchi soci con ruolo dirigenziale nella sezione Staff">⚡ Migra staff da atleti</button>
         </div>
         <div class="tw"><table>
           <thead><tr>
@@ -1828,7 +1829,40 @@ function getEtaAnagrafica(nascita){
   return eta;
 }
 
-// ═══ TAB ANAGRAFICHE ══════════════════════════════════════
+// ═══ MIGRAZIONE DATI ══════════════════════════════════════
+const TIPOLOGIE_STAFF=['dirigente','tecnico','presidente','vice-presidente','segretario','tesoriere','attrezzista','cronometrista','segnapunti'];
+
+function migraStaffDaAtleti(){
+  if(!DB.staff)DB.staff=[];
+  const damigrare=DB.soci.filter(s=>TIPOLOGIE_STAFF.includes(s.tipologia));
+  if(!damigrare.length){toast('Nessun membro staff trovato tra gli atleti','info');return;}
+  if(!confirm(`Trovati ${damigrare.length} membri staff tra gli atleti:\n${damigrare.map(s=>`• ${s.nome} ${s.cognome} (${s.tipologia})`).join('\n')}\n\nSpostarli nella sezione Staff?`))return;
+  damigrare.forEach(s=>{
+    // Evita duplicati
+    if(!DB.staff.find(x=>x.id===s.id)){
+      DB.staff.push({
+        id:s.id,nome:s.nome,cognome:s.cognome,
+        ruolo:s.tipologia,stato:s.stato||'attivo',
+        email:s.email||'',tel:s.tel||'',
+        nascita:s.nascita||'',cf:s.cf||'',
+        tesseraAsd:s.tesseraAsd||'',tesseraAsdScad:s.tesseraAsdScad||'',
+        indirizzo:s.indirizzo||'',note:s.note||'',
+        creato:s.creato||new Date().toISOString()
+      });
+    }
+  });
+  // Rimuovi da soci
+  DB.soci=DB.soci.filter(s=>!TIPOLOGIE_STAFF.includes(s.tipologia));
+  // Fix dati vecchi: se visitaScad sembra una tessera FISR (es. "2026-019"), spostala
+  DB.soci.forEach(s=>{
+    if(s.visitaScad&&/^\d{4}-\d{3,}$/.test(s.visitaScad)&&!s.tesseraFisr){
+      s.tesseraFisr=s.visitaScad;
+      s.visitaScad='';
+    }
+  });
+  saveDB();renderSoci();renderStaff();updateBadges();
+  toast(`${damigrare.length} membri staff spostati correttamente 👔`,'success');
+}
 function showAnaTab(tab){
   ['atleti','staff','macrogruppi'].forEach(t=>{
     document.getElementById('ana-tab-'+t).classList.toggle('active',t===tab);
@@ -2572,7 +2606,20 @@ function salvaConvocazioni(){saveDB();closeModal('modal-convocazioni');toast('Co
 
 // ═══ STAGIONI ═════════════════════════════════════════════
 function getStagioneCorrente(){return DB.stagioni?.find(s=>s.attiva)||null;}
-function initStagioneDefault(){if(!DB.stagioni)DB.stagioni=[];if(!DB.stagioniArchivio)DB.stagioniArchivio=[];if(!DB.stagioni.find(s=>s.attiva)){const now=new Date(),anno=now.getMonth()>=8?now.getFullYear():now.getFullYear()-1;DB.stagioni.push({id:uid(),label:`Stagione ${anno}/${anno+1}`,inizio:`${anno}-09-01`,fine:`${anno+1}-06-30`,note:'',attiva:true,creata:new Date().toISOString()});}}
+function initStagioneDefault(){
+  if(!DB.stagioni)DB.stagioni=[];if(!DB.stagioniArchivio)DB.stagioniArchivio=[];
+  if(!DB.staff)DB.staff=[];if(!DB.macrogruppi)DB.macrogruppi=[];if(!DB.quoteAtleti)DB.quoteAtleti=[];
+  if(!DB.stagioni.find(s=>s.attiva)){const now=new Date(),anno=now.getMonth()>=8?now.getFullYear():now.getFullYear()-1;DB.stagioni.push({id:uid(),label:`Stagione ${anno}/${anno+1}`,inizio:`${anno}-09-01`,fine:`${anno+1}-06-30`,note:'',attiva:true,creata:new Date().toISOString()});}
+  // Fix automatico: se visitaScad contiene una tessera FISR (es. "2026-019"), correggila
+  let fixCount=0;
+  DB.soci.forEach(s=>{
+    if(s.visitaScad&&/^\d{4}-\d{3,}$/.test(s.visitaScad)){
+      if(!s.tesseraFisr)s.tesseraFisr=s.visitaScad;
+      s.visitaScad='';fixCount++;
+    }
+  });
+  if(fixCount>0){saveDB();}
+}
 function saveStagione(){const label=document.getElementById('st-label').value.trim(),inizio=document.getElementById('st-inizio').value,fine=document.getElementById('st-fine').value;if(!label||!inizio||!fine){toast('Dati obbligatori mancanti','error');return;}if(!DB.stagioni)DB.stagioni=[];DB.stagioni.forEach(s=>s.attiva=false);DB.stagioni.push({id:uid(),label,inizio,fine,note:document.getElementById('st-note').value,attiva:true,creata:new Date().toISOString()});DB.eventi=DB.eventi.filter(e=>!e.autoCorsoId);DB.corsi.filter(c=>c.stato==='attivo').forEach(c=>generateAllenamentiCorso(c));saveDB();renderStagioni();renderDashboard();renderCalendar();toast(`Stagione "${label}" attivata`,'success');resetStagioneForm();}
 function resetStagioneForm(){['st-label','st-inizio','st-fine','st-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('nuova-stagione-title').textContent='➕ Nuova stagione';const now=new Date(),anno=now.getMonth()>=8?now.getFullYear():now.getFullYear()-1,next=anno+1;const l=document.getElementById('st-label');if(l)l.value=`Stagione ${next}/${next+1}`;const si=document.getElementById('st-inizio');if(si)si.value=`${next}-09-01`;const sf=document.getElementById('st-fine');if(sf)sf.value=`${next+1}-06-30`;}
 function editStagioneCorrente(){const c=getStagioneCorrente();if(!c)return;document.getElementById('st-label').value=c.label;document.getElementById('st-inizio').value=c.inizio;document.getElementById('st-fine').value=c.fine;document.getElementById('st-note').value=c.note||'';document.getElementById('nuova-stagione-title').textContent='✏️ Modifica stagione corrente';}
