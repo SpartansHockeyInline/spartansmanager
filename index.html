@@ -2763,12 +2763,17 @@ function initStagioneDefault(){
   if(!DB.stagioni)DB.stagioni=[];if(!DB.stagioniArchivio)DB.stagioniArchivio=[];
   if(!DB.staff)DB.staff=[];if(!DB.macrogruppi)DB.macrogruppi=[];if(!DB.quoteAtleti)DB.quoteAtleti=[];
   if(!DB.stagioni.find(s=>s.attiva)){const now=new Date(),anno=now.getMonth()>=8?now.getFullYear():now.getFullYear()-1;DB.stagioni.push({id:uid(),label:`Stagione ${anno}/${anno+1}`,inizio:`${anno}-09-01`,fine:`${anno+1}-06-30`,note:'',attiva:true,creata:new Date().toISOString()});}
-  // Fix automatico: se visitaScad contiene una tessera FISR (es. "2026-019"), correggila
+  // Fix automatico dati vecchi
   let fixCount=0;
   DB.soci.forEach(s=>{
-    if(s.visitaScad&&/^\d{4}-\d{3,}$/.test(s.visitaScad)){
-      if(!s.tesseraFisr)s.tesseraFisr=s.visitaScad;
-      s.visitaScad='';fixCount++;
+    // caso 1: visitaScad contiene una tessera FISR reale (es. "FISR-12345")
+    if(s.visitaScad&&/^\d{4}-\d{3,}$/.test(s.visitaScad)&&!s.tesseraFisr){
+      s.tesseraFisr=s.visitaScad;s.visitaScad='';fixCount++;
+    }
+    // caso 2: tesseraFisr contiene un numero progressivo ASD (es. "2026-019")
+    // formato ASD: AAAA-NNN (anno-numero), formato FISR: alfanumerico più lungo
+    if(s.tesseraFisr&&/^\d{4}-\d{3}$/.test(s.tesseraFisr)&&!s.tesseraAsd){
+      s.tesseraAsd=s.tesseraFisr;s.tesseraFisr='';fixCount++;
     }
   });
   if(fixCount>0){saveDB();}
