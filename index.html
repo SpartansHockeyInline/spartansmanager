@@ -623,6 +623,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <th class="sortable" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
             <th class="sortable" onclick="sortSoci('tipologia')" id="th-tipologia">Tipo <span></span></th>
             <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso <span></span></th>
+            <th class="sortable" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd">Tessera ASD <span></span></th>
             <th class="sortable" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
             <th>Vis. Medica</th>
             <th>Assicurazione</th>
@@ -2363,6 +2364,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
       <td><span class="badge bgold" style="font-size:10px;">${s.categoriaFisr}</span></td>
       <td><span class="badge bgy" style="font-size:10px;">${s.tipologia||'atleta'}</span></td>
       <td>${s.corsoNome||'—'}</td>
+      <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
       <td>${s.tesseraFisr||'—'}${s.tesseraFisrScad?`<div style="font-size:10px;color:${scadColor(s.tesseraFisrScad)};">scad.${formatDate(s.tesseraFisrScad)}</div>`:''}</td>
       <td>${visitaBadge}</td>
       <td>${assicBadge}</td>
@@ -2698,20 +2700,30 @@ function initStagioneDefault(){
   if(!DB.stagioni)DB.stagioni=[];if(!DB.stagioniArchivio)DB.stagioniArchivio=[];
   if(!DB.staff)DB.staff=[];if(!DB.macrogruppi)DB.macrogruppi=[];if(!DB.quoteAtleti)DB.quoteAtleti=[];
   if(!DB.stagioni.find(s=>s.attiva)){const now=new Date(),anno=now.getMonth()>=8?now.getFullYear():now.getFullYear()-1;DB.stagioni.push({id:uid(),label:`Stagione ${anno}/${anno+1}`,inizio:`${anno}-09-01`,fine:`${anno+1}-06-30`,note:'',attiva:true,creata:new Date().toISOString()});}
-  // Fix automatico dati vecchi
+  // Fix automatico slittamento dati vecchia importazione CSV
+  // Il vecchio formato era: Nome,Cognome,Email,Tel,Nascita,CF,Tipologia,TesseraASD,TesseraFISR
+  // ma i dati venivano letti in ordine posizionale e potevano slittare
   let fixCount=0;
   DB.soci.forEach(s=>{
-    // caso 1: visitaScad contiene una tessera FISR reale (es. "FISR-12345")
-    if(s.visitaScad&&/^\d{4}-\d{3,}$/.test(s.visitaScad)&&!s.tesseraFisr){
-      s.tesseraFisr=s.visitaScad;s.visitaScad='';fixCount++;
+    // Se tesseraFisr contiene un'email → era l'email slittata
+    if(s.tesseraFisr&&s.tesseraFisr.includes('@')){
+      if(!s.email)s.email=s.tesseraFisr;
+      s.tesseraFisr='';fixCount++;
     }
-    // caso 2: tesseraFisr contiene un numero progressivo ASD (es. "2026-019")
-    // formato ASD: AAAA-NNN (anno-numero), formato FISR: alfanumerico più lungo
+    // Se tesseraFisr contiene un numero progressivo ASD (es. "2026-019") → è la tessera ASD
     if(s.tesseraFisr&&/^\d{4}-\d{3}$/.test(s.tesseraFisr)&&!s.tesseraAsd){
       s.tesseraAsd=s.tesseraFisr;s.tesseraFisr='';fixCount++;
     }
+    // Se visitaScad contiene un numero che sembra una tessera (es. "2026-019")
+    if(s.visitaScad&&/^\d{4}-\d{3,}$/.test(s.visitaScad)&&!s.tesseraAsd){
+      s.tesseraAsd=s.visitaScad;s.visitaScad='';fixCount++;
+    }
+    // Se assicurazioneScad contiene una data nel formato sbagliato ma è una tessera FISR (lunga)
+    if(s.assicurazioneScad&&/^\d{7,}$/.test(s.assicurazioneScad)&&!s.tesseraFisr){
+      s.tesseraFisr=s.assicurazioneScad;s.assicurazioneScad='';fixCount++;
+    }
   });
-  if(fixCount>0){saveDB();}
+  if(fixCount>0){console.log(`Fix automatico: corretti ${fixCount} campi`);saveDB();}
 }
 function saveStagione(){const label=document.getElementById('st-label').value.trim(),inizio=document.getElementById('st-inizio').value,fine=document.getElementById('st-fine').value;if(!label||!inizio||!fine){toast('Dati obbligatori mancanti','error');return;}if(!DB.stagioni)DB.stagioni=[];DB.stagioni.forEach(s=>s.attiva=false);DB.stagioni.push({id:uid(),label,inizio,fine,note:document.getElementById('st-note').value,attiva:true,creata:new Date().toISOString()});DB.eventi=DB.eventi.filter(e=>!e.autoCorsoId);DB.corsi.filter(c=>c.stato==='attivo').forEach(c=>generateAllenamentiCorso(c));saveDB();renderStagioni();renderDashboard();renderCalendar();toast(`Stagione "${label}" attivata`,'success');resetStagioneForm();}
 function resetStagioneForm(){['st-label','st-inizio','st-fine','st-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('nuova-stagione-title').textContent='➕ Nuova stagione';const now=new Date(),anno=now.getMonth()>=8?now.getFullYear():now.getFullYear()-1,next=anno+1;const l=document.getElementById('st-label');if(l)l.value=`Stagione ${next}/${next+1}`;const si=document.getElementById('st-inizio');if(si)si.value=`${next}-09-01`;const sf=document.getElementById('st-fine');if(sf)sf.value=`${next+1}-06-30`;}
