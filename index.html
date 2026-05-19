@@ -657,14 +657,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tw"><table>
           <thead><tr>
             <th class="row-num">#</th>
-            <th class="row-num">#</th>
+            <th>#</th>
             <th>Nome</th>
             <th>Età</th>
             <th>Ruolo</th>
             <th>Telefono</th>
             <th>Email</th>
             <th>Tessera ASD</th>
-            <th>Vis. Medica</th>
+            <th>Tessera FISR</th>
             <th>Stato</th>
             <th>Azioni</th>
           </tr></thead>
@@ -2055,14 +2055,14 @@ function renderStaff(search=''){
       else visitaBadge=`<span class="badge bg">✓ ${formatDate(s.visitaScad)}</span>`;
     }
     return`<tr>
-      <td class="row-num">${idx+1}</td>
+      <td>${idx+1}</td>
       <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div></div></div></td>
       <td style="font-weight:600;">${eta!==null&&eta!==undefined?eta+' a':'—'}</td>
       <td><span class="badge bgy">${ruoliLabel[s.ruolo]||s.ruolo||'—'}</span></td>
       <td>${s.tel||'—'}</td>
       <td>${s.email||'—'}</td>
       <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
-      <td>${visitaBadge}</td>
+      <td>${s.tesseraFisr||'—'}${s.tesseraFisrScad?`<div style="font-size:10px;color:${scadColor(s.tesseraFisrScad)};">scad.${formatDate(s.tesseraFisrScad)}</div>`:''}</td>
       <td><span class="badge ${s.stato==='attivo'?'bg':'bgy'}">${s.stato||'attivo'}</span></td>
       <td><div class="tda"><button class="bico" onclick="openModalStaff('${s.id}')">✏️</button><button class="bico" onclick="deleteStaff('${s.id}')">🗑️</button></div></td>
     </tr>`;
