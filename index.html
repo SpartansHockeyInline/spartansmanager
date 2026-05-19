@@ -657,11 +657,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tw"><table>
           <thead><tr>
             <th class="row-num">#</th>
+            <th class="row-num">#</th>
             <th>Nome</th>
+            <th>Età</th>
             <th>Ruolo</th>
             <th>Telefono</th>
             <th>Email</th>
             <th>Tessera ASD</th>
+            <th>Vis. Medica</th>
             <th>Stato</th>
             <th>Azioni</th>
           </tr></thead>
@@ -1995,7 +1998,7 @@ function openModalStaff(id=null){
       Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&s[k]!==undefined)el.value=s[k];});
     }
   }
-  openModal('modal-staff','');
+  document.getElementById('modal-staff').classList.add('open');
 }
 
 function saveStaff(){
@@ -2036,21 +2039,34 @@ function renderStaff(search=''){
   if(!tbody)return;
   if(!DB.staff)DB.staff=[];
   const ruoloF=document.getElementById('filter-staff-ruolo')?.value||'';
+  const searchVal=search||document.getElementById('filter-staff-search')?.value||'';
   let lista=DB.staff;
-  if(search)lista=lista.filter(s=>`${s.nome} ${s.cognome} ${s.ruolo||''}`.toLowerCase().includes(search.toLowerCase()));
+  if(searchVal)lista=lista.filter(s=>`${s.nome} ${s.cognome} ${s.ruolo||''}`.toLowerCase().includes(searchVal.toLowerCase()));
   if(ruoloF)lista=lista.filter(s=>s.ruolo===ruoloF);
-  if(!lista.length){tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">👔</div><h3>Nessun membro staff</h3></div></td></tr>`;return;}
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="ei">👔</div><h3>Nessun membro staff</h3></div></td></tr>`;return;}
   const ruoliLabel={dirigente:'👔 Dirigente',tecnico:'🧑‍🏫 Tecnico',presidente:'⭐ Presidente','vice-presidente':'🔱 Vice-Presidente',segretario:'📋 Segretario',tesoriere:'💰 Tesoriere',attrezzista:'🔧 Attrezzista',cronometrista:'⏱️ Cronometrista',segnapunti:'📝 Segnapunti'};
-  tbody.innerHTML=lista.map((s,idx)=>`<tr>
-    <td class="row-num">${idx+1}</td>
-    <td><strong>${s.nome} ${s.cognome}</strong></td>
-    <td><span class="badge bgy">${ruoliLabel[s.ruolo]||s.ruolo||'—'}</span></td>
-    <td>${s.tel||'—'}</td>
-    <td>${s.email||'—'}</td>
-    <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
-    <td><span class="badge ${s.stato==='attivo'?'bg':'bgy'}">${s.stato||'attivo'}</span></td>
-    <td><div class="tda"><button class="bico" onclick="openModalStaff('${s.id}')">✏️</button><button class="bico" onclick="deleteStaff('${s.id}')">🗑️</button></div></td>
-  </tr>`).join('');
+  tbody.innerHTML=lista.map((s,idx)=>{
+    const eta=getEtaAnagrafica(s.nascita);
+    let visitaBadge='<span class="badge bgy">—</span>';
+    if(s.visitaScad){
+      const diff=(new Date(s.visitaScad)-new Date())/86400000;
+      if(diff<0)visitaBadge=`<span class="badge br">Scaduta</span>`;
+      else if(diff<30)visitaBadge=`<span class="badge by">⚠ ${Math.round(diff)}gg</span>`;
+      else visitaBadge=`<span class="badge bg">✓ ${formatDate(s.visitaScad)}</span>`;
+    }
+    return`<tr>
+      <td class="row-num">${idx+1}</td>
+      <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div></div></div></td>
+      <td style="font-weight:600;">${eta!==null&&eta!==undefined?eta+' a':'—'}</td>
+      <td><span class="badge bgy">${ruoliLabel[s.ruolo]||s.ruolo||'—'}</span></td>
+      <td>${s.tel||'—'}</td>
+      <td>${s.email||'—'}</td>
+      <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
+      <td>${visitaBadge}</td>
+      <td><span class="badge ${s.stato==='attivo'?'bg':'bgy'}">${s.stato||'attivo'}</span></td>
+      <td><div class="tda"><button class="bico" onclick="openModalStaff('${s.id}')">✏️</button><button class="bico" onclick="deleteStaff('${s.id}')">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
 }
 
 function deleteStaff(id){if(!confirm('Eliminare questo membro staff?'))return;DB.staff=DB.staff.filter(x=>x.id!==id);saveDB();renderStaff();toast('Membro staff eliminato','success');}
