@@ -2268,6 +2268,21 @@ function copiaLinkForm(){
 // ═══ SOCI — SORT & FILTER ═════════════════════════════════
 let sociSortKey='cognome', sociSortDir='asc';
 
+function applyFilters(){
+  const search=document.getElementById('filter-search')?.value||'';
+  const tip=document.getElementById('filter-tipologia')?.value||'';
+  const corso=document.getElementById('filter-corso')?.value||'';
+  const mg=document.getElementById('filter-macrogruppo')?.value||'';
+  const stato=document.getElementById('filter-stato')?.value||'';
+  const eta=document.getElementById('filter-eta')?.value||'';
+  renderSoci(search,tip,corso,stato,eta,mg);
+}
+
+function resetFilters(){
+  ['filter-search','filter-tipologia','filter-corso','filter-macrogruppo','filter-stato','filter-eta'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderSoci();
+}
+
 function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilter='',mgFilter=''){
   const tb=document.getElementById('soci-tbody');
   if(!tb)return;
@@ -2378,87 +2393,7 @@ function getAbbStatoSocio(socioId){
   return null;
 }
 
-function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilter=''){
-  const tb=document.getElementById('soci-tbody');
 
-  // Popola select tipologia
-  const tf=document.getElementById('filter-tipologia');
-  if(tf&&!tf.querySelector('option[value="atleta"]'))
-    tf.innerHTML='<option value="">Tutte le tipologie</option>'+Object.entries(TIPOLOGIE).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
-
-  // Popola select corso
-  const cf=document.getElementById('filter-corso');
-  if(cf&&!cf.querySelector('option[value]')||DB.corsi.length!==cf?.querySelectorAll('option[value]').length)
-    if(cf)cf.innerHTML='<option value="">Tutti i corsi</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-
-  const now=new Date();
-  let list=DB.soci.filter(s=>{
-    if(filter&&!`${s.nome} ${s.cognome} ${s.email||''} ${s.tesseraAsd||''} ${s.tesseraFisr||''}`.toLowerCase().includes(filter.toLowerCase()))return false;
-    if(tipFilter&&s.tipologia!==tipFilter)return false;
-    if(corsoFilter&&s.corsoId!==corsoFilter)return false;
-    if(statoFilter&&(s.stato||'attivo')!==statoFilter)return false;
-    if(etaFilter&&s.nascita){
-      const annoNascita=parseInt(s.nascita.slice(0,4));
-      const catFisr=getCategoriaFisr(annoNascita);
-      const catTarget=FISR_FILTER_MAP[etaFilter];
-      if(catFisr!==catTarget)return false;
-    }
-    return true;
-  });
-
-  // Calcola eta e categoria per ogni socio (per ordinamento e display)
-  const listaArricchita=list.map(s=>{
-    const eta=getEtaAnagrafica(s.nascita);
-    const annoNascita=s.nascita?parseInt(s.nascita.slice(0,4)):null;
-    const categoriaFisr=annoNascita?getCategoriaFisr(annoNascita):'—';
-    return{...s,eta,categoriaFisr};
-  });
-
-  // Ordinamento
-  listaArricchita.sort((a,b)=>{
-    let va,vb;
-    if(sociSortKey==='cognome'){va=`${a.cognome||''} ${a.nome||''}`.toLowerCase();vb=`${b.cognome||''} ${b.nome||''}`.toLowerCase();}
-    else if(sociSortKey==='eta'){va=a.eta??999;vb=b.eta??999;}
-    else if(sociSortKey==='categoriaFisr'){va=a.categoriaFisr||'';vb=b.categoriaFisr||'';}
-    else{va=(a[sociSortKey]||'').toString().toLowerCase();vb=(b[sociSortKey]||'').toString().toLowerCase();}
-    const cmp=typeof va==='number'?va-vb:va.localeCompare(vb,'it');
-    return sociSortDir==='asc'?cmp:-cmp;
-  });
-
-  // Contatore
-  const cnt=document.getElementById('soci-count');
-  if(cnt)cnt.textContent=listaArricchita.length;
-
-  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="13"><div class="empty"><div class="ei">👥</div><h3>Nessun socio trovato</h3></div></td></tr>`;return;}
-
-  tb.innerHTML=listaArricchita.map((s,idx)=>{
-    const abb=getAbbStatoSocio(s.id);
-    const abbBadge=abb
-      ?`<span class="badge ${abb.stato==='attivo'?'bg':'br'}">${abb.stato==='attivo'?'✓ '+abb.pianoNome:'✗ Scaduto'}</span>`
-      :`<span class="badge bgy">Nessuno</span>`;
-    const assicBadge=s.assicurazione==='pagata'
-      ?`<span class="badge bg">✓ Pagata${s.assicurazioneScad?`<br><span style="font-size:9px;">scad.${formatDate(s.assicurazioneScad)}</span>`:''}</span>`
-      :s.assicurazione==='non-pagata'?`<span class="badge br">✗ Non pagata</span>`
-      :s.assicurazione==='in-attesa'?`<span class="badge by">⏳ In attesa</span>`
-      :`<span class="badge bgy">—</span>`;
-    const etaDisplay=s.eta!==null&&s.eta!==undefined?`${s.eta} anni`:'—';
-    return`<tr>
-      <td class="row-num">${idx+1}</td>
-      <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
-      <td style="font-weight:600;">${etaDisplay}</td>
-      <td><span class="badge bgold">${s.categoriaFisr}</span></td>
-      <td><span class="badge ${TIP_COL[s.tipologia]||'bgy'}">${TIPOLOGIE[s.tipologia]||s.tipologia||'—'}</span></td>
-      <td>${s.corsoNome||'—'}</td>
-      <td>${s.email||'—'}</td>
-      <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
-      <td>${s.tesseraFisr||'—'}${s.tesseraFisrScad?`<div style="font-size:10px;color:${scadColor(s.tesseraFisrScad)};">scad.${formatDate(s.tesseraFisrScad)}</div>`:''}</td>
-      <td>${assicBadge}</td>
-      <td>${abbBadge}</td>
-      <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}">${s.stato||'attivo'}</span></td>
-      <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button><button class="bico" onclick="deleteSocio('${s.id}')">🗑️</button></div></td>
-    </tr>`;
-  }).join('');
-}
 function filterSoci(v=''){renderSoci(v);}
 
 // ═══ IMPORT CSV / SHEETS ══════════════════════════════════
