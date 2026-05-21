@@ -2425,42 +2425,70 @@ async function fetchSheetsCSV(){
   catch(e){toast('Errore caricamento. Verifica che il foglio sia pubblico.','error');}
 }
 function importFromCSV(){
-  const csv=document.getElementById('sheets-csv').value.trim();if(!csv){toast('Nessun CSV da importare','error');return;}
+  const csv=document.getElementById('sheets-csv').value.trim();
+  if(!csv){toast('Nessun CSV da importare','error');return;}
   const lines=csv.split('\n').filter(l=>l.trim());
   if(lines.length<2){toast('CSV vuoto o non valido','error');return;}
-  const headers=lines[0].split(',').map(c=>c.trim().replace(/^"|"$/g,'').toLowerCase().trim());
-  const col=(name)=>{
-    const n=name.toLowerCase().trim();
-    return headers.findIndex(h=>h===n||h.includes(n)||n.includes(h));
+
+  // Parser CSV che gestisce le virgolette
+  const parseCSVLine=(line)=>{
+    const cols=[];let cur='',inQ=false;
+    for(const ch of line){
+      if(ch==='"'){inQ=!inQ;}
+      else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}
+      else cur+=ch;
+    }
+    cols.push(cur.trim());
+    return cols.map(c=>c.replace(/^"|"$/g,'').trim());
   };
-  // Mappa intestazioni reali del Google Form Spartans
-  const MAP={
-    nome:'nome',cognome:'cognome',
-    nascita:'data di nascita',luogo:'luogo di nascita',
-    sesso:'sesso',cf:'codice fiscale',
-    indirizzo:'indirizzo di residenza',
-    tel:'telefono',email:'indirizzo email',
-    tipologia:'tipologia',corsoNome:'corso / squadra',maglia:'n° maglia preferito',
-    visitaTipo:'tipo visita medica',visitaScad:'scadenza visita medica',
-    visitaMedico:'medico / struttura',
-    allergie:'allergie / intolleranze',farmaci:'farmaci in uso',
-    altezza:'altezza (cm)',peso:'peso (kg)',
-    tAbbigliamento:'taglia abbigliamento',tPattini:'n° pattini',
-    tGuanti:'taglia guanti (pollici)',tGinocchiere:'taglia ginocchiere (pollici)',
-    tGomitiere:'taglia gomitiere (pollici)',
-    g1Nome:'nome genitore 1',g1Cognome:'cognome genitore 1',
-    g1Rapporto_:'rapporto',g1Cf:'codice fiscale genitore 1',
-    g1Tel:'telefono genitore 1',g1Email:'email genitore 1',
-    g2Nome:'nome genitore 2',g2Cognome:'cognome genitore 2',
-    g2Cf:'codice fiscale genitore 2',
-    g2Tel:'telefono genitore 2',g2Email:'email genitore 2',
+
+  // Converti data da DD/MM/YYYY a YYYY-MM-DD
+  const parseData=(d)=>{
+    if(!d)return'';
+    const p=d.split(/[\/\-]/);
+    if(p.length===3){
+      if(p[0].length===4)return d;
+      return`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    }
+    return d;
   };
-  // Calcola indici colonne una volta sola
-  const idx={};
-  Object.entries(MAP).forEach(([k,v])=>{idx[k]=col(v);});
-  // I due campi "Rapporto" hanno lo stesso nome — il primo è per G1, il secondo per G2
-  const rapportoIdx=headers.reduce((arr,h,i)=>{if(h.includes('rapporto'))arr.push(i);return arr;},[]);
-  const g=(cols,key,fallback='')=>{const i=idx[key];return i>=0?(cols[i]||fallback):fallback;};
+
+  const headers=parseCSVLine(lines[0]).map(h=>h.toLowerCase().trim());
+  const ci=(name)=>headers.findIndex(h=>h===name.toLowerCase().trim());
+
+  // Indici fissi basati sul Google Form Spartans
+  const IDX={
+    nome:ci('nome'),cognome:ci('cognome'),
+    nascita:ci('data di nascita'),luogo:ci('luogo di nascita'),
+    sesso:ci('sesso'),cf:ci('codice fiscale'),
+    indirizzo:ci('indirizzo di residenza'),
+    tel:ci('telefono'),email:ci('email'),
+    tipologia:ci('tipologia'),corso:ci('corso / squadra'),
+    maglia:ci('n° maglia preferito'),
+    g1Nome:ci('nome genitore 1'),g1Cognome:ci('cognome genitore 1'),
+    g1Rapporto:headers.findIndex((h,i)=>h==='rapporto'&&i<20),
+    g1Cf:ci('codice fiscale genitore 1'),
+    g1Tel:ci('telefono genitore 1'),
+    g1Email:headers.findIndex(h=>h.includes('email genitore 1')),
+    g2Nome:ci('nome genitore 2'),g2Cognome:ci('cognome genitore 2'),
+    g2Rapporto:headers.findIndex((h,i)=>h==='rapporto'&&i>=20),
+    g2Cf:ci('codice fiscale genitore 2'),
+    g2Tel:ci('telefono genitore 2'),
+    g2Email:headers.findIndex(h=>h.includes('email genitore 2')),
+    visitaTipo:ci('tipo visita medica'),
+    visitaScad:ci('scadenza visita medica'),
+    visitaMedico:ci('medico / struttura'),
+    allergie:ci('allergie / intolleranze'),farmaci:ci('farmaci in uso'),
+    altezza:headers.findIndex(h=>h.includes('altezza')),
+    peso:ci('peso (kg)'),
+    tAbbigliamento:ci('taglia abbigliamento'),tPattini:ci('n° pattini'),
+    tGuanti:headers.findIndex(h=>h.includes('guanti')),
+    tGinocchiere:headers.findIndex(h=>h.includes('ginocchiere')),
+    tGomitiere:headers.findIndex(h=>h.includes('gomitiere')),
+    emailAlt:ci('indirizzo email'),
+  };
+
+  const g=(cols,key)=>{const i=IDX[key];return(i>=0&&i<cols.length)?cols[i]:'';};
 
   let added=0,updated=0,skipped=0;
   lines.slice(1).forEach(line=>{
@@ -2475,8 +2503,7 @@ function importFromCSV(){
       indirizzo:g(cols,'indirizzo'),tel:g(cols,'tel'),email,
       tipologia:(g(cols,'tipologia')||'atleta').toLowerCase(),
       corsoNome:g(cols,'corso'),maglia:g(cols,'maglia'),
-      visitaTipo:g(cols,'visitaTipo'),
-      visitaScad:parseData(g(cols,'visitaScad')),
+      visitaTipo:g(cols,'visitaTipo'),visitaScad:parseData(g(cols,'visitaScad')),
       visitaMedico:g(cols,'visitaMedico'),
       allergie:g(cols,'allergie'),farmaci:g(cols,'farmaci'),
       altezza:g(cols,'altezza'),peso:g(cols,'peso'),
@@ -2489,7 +2516,6 @@ function importFromCSV(){
     };
     const existing=DB.soci.find(s=>s.nome===nome&&s.cognome===cognome&&s.nascita===nascita);
     if(existing){
-      // Integra solo i campi vuoti nell'anagrafica esistente
       let changed=false;
       Object.entries(fromCSV).forEach(([k,v])=>{if(v&&!existing[k]){existing[k]=v;changed=true;}});
       if(changed)updated++;else skipped++;
