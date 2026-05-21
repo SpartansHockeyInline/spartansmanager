@@ -661,7 +661,6 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         </div>
         <div class="tw"><table>
           <thead><tr>
-            <th class="row-num">#</th>
             <th>#</th>
             <th>Nome</th>
             <th>Età</th>
@@ -1977,7 +1976,7 @@ function showSocioTab(tab){
 // ═══ STAFF ════════════════════════════════════════════════
 function openModalStaff(id=null){
   if(!DB.staff)DB.staff=[];
-  editingId=id;
+  editingId=id;currentStaffId=id;
   document.getElementById('modal-staff-title').textContent=id?'Modifica membro staff':'Nuovo membro staff';
   document.getElementById('modal-staff').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
   showStaffTab('anagrafica');
@@ -2076,6 +2075,8 @@ function renderStaff(search=''){
 
 function deleteStaff(id){if(!confirm('Eliminare questo membro staff?'))return;DB.staff=DB.staff.filter(x=>x.id!==id);saveDB();renderStaff();toast('Membro staff eliminato','success');}
 
+let currentStaffId=null;
+
 function showStaffTab(tab){
   ['anagrafica','sanitario','genitori','taglie','pagamenti'].forEach(t=>{
     const el=document.getElementById('staff-tab-'+t);
@@ -2088,8 +2089,8 @@ function showStaffTab(tab){
 }
 
 function renderRimborsiStaff(){
-  if(!editingId)return;
-  const rimborsi=(DB.uscite||[]).filter(u=>u.staffId===editingId);
+  if(!currentStaffId)return;
+  const rimborsi=(DB.uscite||[]).filter(u=>u.staffId===currentStaffId);
   const cont=document.getElementById('staff-pagamenti-list');
   const totEl=document.getElementById('staff-tot-rimborsi');
   if(!cont)return;
@@ -2110,8 +2111,8 @@ function renderRimborsiStaff(){
 }
 
 function aggiungiUscitaStaff(){
-  if(!editingId){toast('Salva prima la scheda staff','error');return;}
-  const s=DB.staff.find(x=>x.id===editingId);if(!s)return;
+  if(!currentStaffId){toast('Salva prima la scheda staff','error');return;}
+  const s=DB.staff.find(x=>x.id===currentStaffId);if(!s)return;
   const descr=prompt(`Descrizione rimborso/compenso per ${s.nome} ${s.cognome}:`);
   if(!descr)return;
   const importo=parseFloat(prompt('Importo (€):')||'0');
@@ -2123,7 +2124,7 @@ function aggiungiUscitaStaff(){
     data:new Date().toISOString().slice(0,10),
     descr,importo,metodo,
     cat:'Rimborso/compenso staff',
-    staffId:editingId,
+    staffId:currentStaffId,
     staffNome:`${s.nome} ${s.cognome}`
   });
   saveDB();renderRimborsiStaff();renderAmministrazione();
