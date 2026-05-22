@@ -3482,9 +3482,9 @@ const FISR_STAGIONI = {
   '2018-19': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/317-2018-19.html',
   '2017-18': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/256-2017-18.html',
   '2016-17': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/219-2016-17.html',
-  '2015-16': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/183-2015-2016.html',
-  '2014-15': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/152-2014-15.html',
-  '2013-14': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/113-2013-14.html',
+  '2015-16': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/188-2015-16.html',
+  '2014-15': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/66-2014-15.html',
+  '2013-14': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/2013.html',
 };
 // Proxy CORS per bypassare le restrizioni CORS del sito FISR
 const CORS_PROXY = 'https://corsproxy.io/?';
@@ -3557,20 +3557,20 @@ function parseComunicatiFisr(html){
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const comunicati = [];
-  // I CU sono link con ?download= nel testo della pagina
-  const links = doc.querySelectorAll('a[href*="download"]');
+  const links = doc.querySelectorAll('a[href*="download"], a[href*=".pdf"]');
   links.forEach(link => {
     const href = link.getAttribute('href') || '';
     const testo = link.textContent.trim();
-    if(!testo || testo.length < 5 || testo.toLowerCase()==='download') return;
+    if(!testo || testo.length < 3) return;
     if(!href.includes('download') && !href.includes('.pdf')) return;
+    // Filtra contenuti non pertinenti all'hockey inline
+    const testoLower = testo.toLowerCase();
+    if(testoLower.includes('monitoraggio') || testoLower.includes('legislat') || testoLower.includes('circo')) return;
     const urlCompleto = href.startsWith('http') ? href : 'https://www.fisr.it' + href;
-    // Estrai numero CU dal titolo (es. "CU 064 - ...")
-    const matchNum = testo.match(/CU\s*n?\.?\s*(\d+)/i);
+    const matchNum = testo.match(/[Cc][Uu]\.?\s*n?°?\s*(\d+)/i) || testo.match(/n[°\.]?\s*(\d+)/i);
     const num = matchNum ? matchNum[1].padStart(3,'0') : '000';
-    // Cerca la data nel testo vicino (elemento successivo o parent)
     let data = '';
-    const parent = link.closest('li, div, p') || link.parentElement;
+    const parent = link.closest('li, div, p, td, tr') || link.parentElement;
     if(parent){
       const dataMatch = parent.textContent.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
       if(dataMatch){
@@ -3581,7 +3581,6 @@ function parseComunicatiFisr(html){
     }
     comunicati.push({id:num, titolo:testo, url:urlCompleto, data});
   });
-  // Rimuovi duplicati per URL
   const seen = new Set();
   return comunicati.filter(c=>{if(seen.has(c.url))return false;seen.add(c.url);return true;});
 }
