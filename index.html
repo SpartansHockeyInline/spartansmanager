@@ -3418,10 +3418,21 @@ function apriDocumento(tipo){
     const s=DB.soci.find(x=>x.id===id);if(!s)return;
     const importo=document.getElementById('doc-ric-importo').value;
     const causale=document.getElementById('doc-ric-causale').value;
-    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
-      stagione,importo:importo||'',causale:causale||'',descr:causale||'',metodo:'Contanti',
-      numRicevuta:Date.now().toString().slice(-6),dataDoc:oggi,...ps});
-    window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
+    // Numero ricevuta progressivo da Firebase
+    const numRef=fbDb?fbDb.ref('spartans/contatori/ricevute'):null;
+    const generaRicevuta=(numRicevuta)=>{
+      const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
+        stagione,importo:importo||'',causale:causale||'',descr:causale||'',metodo:'Contanti',
+        numRicevuta:String(numRicevuta).padStart(4,'0'),dataDoc:oggi,...ps});
+      window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
+    };
+    if(numRef){
+      numRef.transaction(n=>(n||0)+1).then(res=>{
+        generaRicevuta(res.snapshot.val());
+      }).catch(()=>generaRicevuta(Date.now().toString().slice(-4)));
+    } else {
+      generaRicevuta(Date.now().toString().slice(-4));
+    }
   }
 }
 
