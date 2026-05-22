@@ -2857,6 +2857,12 @@ function renderDashboard(){
   DB.abbonamenti.forEach(a=>{
     if(a.scadenza){const diff=Math.round((new Date(a.scadenza)-now)/86400000);if(diff<=60)scad.push({nome:a.socioNome,tipo:`Abb. ${a.pianoNome}`,scad:a.scadenza,diff});}
   });
+  // Eventi non-allenamento entro 60 giorni
+  const today2=now.toISOString().slice(0,10);
+  DB.eventi.filter(e=>e.tipo!=='allenamento'&&!e.autoCorsoId&&e.data>=today2).forEach(e=>{
+    const diff=Math.round((new Date(e.data)-now)/86400000);
+    if(diff<=60)scad.push({nome:e.titolo,tipo:e.tipo==='gara'?'⚔️ Gara':`📅 ${e.tipo||'Evento'}`,scad:e.data,diff});
+  });
   scad.sort((a,b)=>a.diff-b.diff);
   if(!scad.length)cont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessuna scadenza imminente</p></div>';
   else cont.innerHTML=scad.slice(0,8).map(s=>{const col=s.diff<0?'var(--red)':s.diff<7?'var(--red)':s.diff<14?'var(--yellow)':'var(--text2)';const lbl=s.diff<0?`Scaduta ${Math.abs(s.diff)}gg fa`:s.diff===0?'Oggi!':s.diff===1?'Domani':`${s.diff}gg`;return`<div class="scad-item"><div class="scad-dot" style="background:${col};"></div><div class="scad-info"><div class="scad-name">${s.nome}</div><div class="scad-detail">${s.tipo} · ${formatDate(s.scad)}</div></div><div class="scad-days" style="color:${col};font-weight:${s.diff<=7?'700':'400'};">${lbl}</div></div>`;}).join('');

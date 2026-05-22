@@ -5,7 +5,7 @@
 ## v3.3.1 · Maggio 2026
 
 ### Fix
-- **Scadenze dashboard** — ora include anche visita medica, assicurazione e tessere dello staff; finestra estesa a 60 giorni; grassetto per scadenze entro 7 giorni
+- **Scadenze dashboard** — ora include anche visita medica, assicurazione e tessere dello staff; eventi non-allenamento (gare, tornei, ecc.) entro 60 giorni; finestra estesa a 60 giorni; grassetto per scadenze entro 7 giorni
 - **Timbro documenti** — semplificato a 5 righe con dati fissi dell'associazione
 - **Numero ricevuta** — progressivo salvato su Firebase, parte da 1, formattato a 4 cifre (0001, 0002...)
 
