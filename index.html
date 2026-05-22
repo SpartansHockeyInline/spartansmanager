@@ -961,7 +961,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.3.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.3.1 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1351,6 +1351,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v3.3.1 · Maggio 2026</div>
+        <div class="cl-section">Fix</div>
+        <div class="cl-item"><strong>Scadenze dashboard</strong> — ora include anche: visita medica, assicurazione, tessere dello staff; finestra estesa a 60 giorni; grassetto per scadenze entro 7 giorni</div>
+        <div class="cl-item"><strong>Timbro documenti</strong> — semplificato a 5 righe con dati fissi dell'associazione</div>
+        <div class="cl-item"><strong>Numero ricevuta</strong> — progressivo salvato su Firebase, parte da 1, formattato a 4 cifre</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v3.3.0 · Maggio 2026</div>
@@ -2826,13 +2834,32 @@ function renderDashboard(){
   const prossimi=DB.eventi.filter(e=>!e.autoCorsoId&&e.data>=today).sort((a,b)=>a.data.localeCompare(b.data)).slice(0,6);
   if(!prossimi.length)evCont.innerHTML='<div class="empty"><div class="ei">📅</div><p>Nessun evento</p></div>';
   else evCont.innerHTML=prossimi.map(e=>`<div style="display:flex;align-items:center;gap:9px;padding:8px;background:var(--surface2);border-radius:7px;margin-bottom:5px;cursor:pointer;" onclick="showPage('calendario')"><span style="font-size:15px;">${e.tipo==='gara'?'⚔️':'🏒'}</span><div style="flex:1;"><div style="font-size:13px;font-weight:500;">${e.titolo}</div><div style="font-size:11px;color:var(--text2);">${formatDate(e.data)}${e.ora?' · '+e.ora:''}${e.luogo?' · '+e.luogo:''}</div></div></div>`).join('');
-  // Scadenze
+  // Scadenze — finestra 60 giorni, include atleti e staff
   const cont=document.getElementById('ds-scadenze'),now=new Date();const scad=[];
-  DB.soci.forEach(s=>{if(s.tesseraAsdScad){const diff=Math.round((new Date(s.tesseraAsdScad)-now)/86400000);if(diff<=30)scad.push({nome:`${s.nome} ${s.cognome}`,tipo:'Tessera ASD',scad:s.tesseraAsdScad,diff});}if(s.tesseraFisrScad){const diff=Math.round((new Date(s.tesseraFisrScad)-now)/86400000);if(diff<=30)scad.push({nome:`${s.nome} ${s.cognome}`,tipo:'Tessera FISR',scad:s.tesseraFisrScad,diff});}});
-  DB.abbonamenti.forEach(a=>{if(a.scadenza){const diff=Math.round((new Date(a.scadenza)-now)/86400000);if(diff<=30)scad.push({nome:a.socioNome,tipo:`Abb. ${a.pianoNome}`,scad:a.scadenza,diff});}});
+  const addScad=(nome,tipo,dataScad,onclick)=>{
+    if(!dataScad)return;
+    const diff=Math.round((new Date(dataScad)-now)/86400000);
+    if(diff<=60)scad.push({nome,tipo,scad:dataScad,diff,onclick});
+  };
+  DB.soci.forEach(s=>{
+    const n=`${s.nome} ${s.cognome}`;
+    addScad(n,'Tessera ASD',s.tesseraAsdScad);
+    addScad(n,'Tessera FISR',s.tesseraFisrScad);
+    addScad(n,'Visita medica',s.visitaScad);
+    addScad(n,'Assicurazione',s.assicurazioneScad);
+  });
+  (DB.staff||[]).forEach(s=>{
+    const n=`${s.nome} ${s.cognome}`;
+    addScad(n,'Tessera ASD (staff)',s.tesseraAsdScad);
+    addScad(n,'Tessera FISR (staff)',s.tesseraFisrScad);
+    addScad(n,'Visita medica (staff)',s.visitaScad);
+  });
+  DB.abbonamenti.forEach(a=>{
+    if(a.scadenza){const diff=Math.round((new Date(a.scadenza)-now)/86400000);if(diff<=60)scad.push({nome:a.socioNome,tipo:`Abb. ${a.pianoNome}`,scad:a.scadenza,diff});}
+  });
   scad.sort((a,b)=>a.diff-b.diff);
   if(!scad.length)cont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessuna scadenza imminente</p></div>';
-  else cont.innerHTML=scad.slice(0,7).map(s=>{const col=s.diff<0?'var(--red)':s.diff<7?'var(--red)':s.diff<14?'var(--yellow)':'var(--green)';const lbl=s.diff<0?`Scaduta ${Math.abs(s.diff)}gg fa`:s.diff===0?'Oggi':s.diff===1?'Domani':`${s.diff}gg`;return`<div class="scad-item"><div class="scad-dot" style="background:${col};"></div><div class="scad-info"><div class="scad-name">${s.nome}</div><div class="scad-detail">${s.tipo} · ${formatDate(s.scad)}</div></div><div class="scad-days" style="color:${col};">${lbl}</div></div>`;}).join('');
+  else cont.innerHTML=scad.slice(0,8).map(s=>{const col=s.diff<0?'var(--red)':s.diff<7?'var(--red)':s.diff<14?'var(--yellow)':'var(--text2)';const lbl=s.diff<0?`Scaduta ${Math.abs(s.diff)}gg fa`:s.diff===0?'Oggi!':s.diff===1?'Domani':`${s.diff}gg`;return`<div class="scad-item"><div class="scad-dot" style="background:${col};"></div><div class="scad-info"><div class="scad-name">${s.nome}</div><div class="scad-detail">${s.tipo} · ${formatDate(s.scad)}</div></div><div class="scad-days" style="color:${col};font-weight:${s.diff<=7?'700':'400'};">${lbl}</div></div>`;}).join('');
   // Riepilogo
   const totE=DB.entrate.reduce((s,e)=>s+e.importo,0),totU=DB.uscite.reduce((s,u)=>s+u.importo,0);
   document.getElementById('ds-riepilogo').innerHTML=[{l:'Impianti',v:DB.impianti.length,i:'🏟️'},{l:'Tecnici',v:DB.maestri.length,i:'🧑‍🏫'},{l:'Entrate',v:`€${totE.toFixed(2)}`,i:'💚',c:'var(--green)'},{l:'Uscite',v:`€${totU.toFixed(2)}`,i:'🔴',c:'var(--red)'},{l:'Saldo',v:`€${(totE-totU).toFixed(2)}`,i:'💰',c:totE-totU>=0?'var(--green)':'var(--red)'}].map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 9px;background:var(--surface2);border-radius:7px;"><span style="font-size:12px;">${r.i} ${r.l}</span><strong style="${r.c?'color:'+r.c:''};font-size:13px;">${r.v}</strong></div>`).join('');

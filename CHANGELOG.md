@@ -2,16 +2,26 @@
 
 ---
 
+## v3.3.1 · Maggio 2026
+
+### Fix
+- **Scadenze dashboard** — ora include anche visita medica, assicurazione e tessere dello staff; finestra estesa a 60 giorni; grassetto per scadenze entro 7 giorni
+- **Timbro documenti** — semplificato a 5 righe con dati fissi dell'associazione
+- **Numero ricevuta** — progressivo salvato su Firebase, parte da 1, formattato a 4 cifre (0001, 0002...)
+
+---
+
 ## v3.3.0 · Maggio 2026
 
 ### Nuove funzionalità
-- **Genera documenti** — nuova sezione nel menu con 5 modelli pre-compilati con i dati dell'atleta/staff:
+- **Genera documenti** — 5 modelli pre-compilati con dati atleta/staff:
   - 📊 Certificazione pagamento quota (730) — detrazione fiscale art. 15 TUIR
   - 🏫 Giustificazione assenza scolastica per gara/evento sportivo
   - 🏥 Richiesta visita medica per idoneità sportiva agonistica
   - 🤝 Dichiarazione volontariato / Co.Co.Co. (D.Lgs. 36/2021 Riforma Sport)
   - 🧾 Ricevuta di pagamento
-- **Timbro digitale automatico** — ogni documento include il timbro dell'associazione generato con i dati di "La mia struttura" (denominazione, indirizzo, telefono, CF, P.IVA) in formato SVG vettoriale
+- **Timbro digitale automatico** — generato con i dati di "La mia struttura" in formato SVG
+- **Sidebar scrollabile** — il menu scorre verticalmente, tutti i pulsanti sempre raggiungibili
 
 ### File aggiunti al repository
 - `modulo_730.html`
