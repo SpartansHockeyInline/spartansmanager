@@ -43,7 +43,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 #sidebar.collapsed .logo-text{opacity:0;width:0;}
 #sidebar-toggle{position:absolute;top:18px;right:-12px;width:24px;height:24px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text2);z-index:10;transition:all var(--tr);}
 #sidebar-toggle:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
-nav{flex:1;overflow-y:auto;padding:8px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 8px 60px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
 .nav-sec-label{font-size:9px;font-weight:600;letter-spacing:1.5px;color:var(--text3);padding:8px 10px 3px;text-transform:uppercase;white-space:nowrap;transition:opacity var(--tr);}
 #sidebar.collapsed .nav-sec-label{opacity:0;}
 .ni-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all var(--tr);white-space:nowrap;overflow:hidden;}
@@ -433,6 +433,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ni-item" onclick="showPage('valutazioni')"><span class="ico">📊</span><span class="lbl">Valutazione atleti</span></div>
     <div class="ni-item" onclick="showPage('comunicati-fisr')"><span class="ico">📋</span><span class="lbl">Comunicati FISR</span><span id="badge-fisr" class="nbadge" style="display:none;"></span></div>
     <div class="nav-sec-label">Sistema</div>
+    <div class="ni-item" onclick="showPage('genera-documenti')"><span class="ico">📄</span><span class="lbl">Genera documenti</span></div>
     <div class="ni-item" onclick="exportData()"><span class="ico">📤</span><span class="lbl">Esporta JSON</span></div>
     <div class="ni-item" onclick="importData()"><span class="ico">📥</span><span class="lbl">Importa JSON</span></div>
     <div class="ni-item" onclick="showPage('impostazioni')"><span class="ico">⚙️</span><span class="lbl">Impostazioni</span></div>
@@ -884,6 +885,53 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </div>
       <div id="val-atleti-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
     </div>
+    <!-- ═══ GENERA DOCUMENTI ═══ -->
+    <div class="page" id="page-genera-documenti">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+        <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">📊</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Certificazione quota (730)</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Detrazione fiscale quote sportive figli minorenni. Art. 15 TUIR.</div>
+          <select class="fsel" id="doc-730-atleta" style="margin-bottom:8px;"><option value="">— Seleziona atleta —</option></select>
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('730')">📄 Genera documento</button>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">🏫</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Giustificazione scolastica</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Richiesta di giustificazione assenza per gara/evento sportivo.</div>
+          <select class="fsel" id="doc-giust-atleta" style="margin-bottom:8px;"><option value="">— Seleziona atleta —</option></select>
+          <input class="fi" id="doc-giust-evento" placeholder="Nome evento/gara" style="margin-bottom:6px;">
+          <input class="fi" id="doc-giust-date" placeholder="Data/e assenza (es. 15/06/2026)" style="margin-bottom:8px;">
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('giustificazione')">📄 Genera documento</button>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">🏥</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Richiesta visita medica</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Richiesta di visita per idoneità sportiva agonistica Hockey Inline.</div>
+          <select class="fsel" id="doc-visita-atleta" style="margin-bottom:8px;"><option value="">— Seleziona atleta —</option></select>
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('visita')">📄 Genera documento</button>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">🤝</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Dichiarazione volontariato / Co.Co.Co.</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">D.Lgs. 36/2021 — Riforma dello Sport. Per membri dello staff.</div>
+          <select class="fsel" id="doc-volont-staff" style="margin-bottom:8px;"><option value="">— Seleziona membro staff —</option></select>
+          <input class="fi" id="doc-volont-ore" placeholder="N° ore prestate" style="margin-bottom:6px;">
+          <input class="fi" id="doc-volont-compenso" placeholder="Compenso erogato (€)" style="margin-bottom:8px;">
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('volontariato')">📄 Genera documento</button>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">🧾</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Ricevuta pagamento</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Ricevuta di avvenuto pagamento quota/abbonamento/attrezzatura.</div>
+          <select class="fsel" id="doc-ric-atleta" style="margin-bottom:8px;"><option value="">— Seleziona atleta —</option></select>
+          <input class="fi" id="doc-ric-importo" placeholder="Importo (€)" style="margin-bottom:6px;">
+          <input class="fi" id="doc-ric-causale" placeholder="Causale (es. Quota associativa)" style="margin-bottom:8px;">
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('ricevuta')">📄 Genera documento</button>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-valutazione-atleta"></div>
 
     <!-- ═══ COMUNICATI FISR ═══ -->
@@ -913,7 +961,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.2.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.3.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1305,6 +1353,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v3.3.0 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Genera documenti</strong> — 5 modelli pre-compilati con dati atleta/staff: Certificazione 730, Giustificazione scolastica, Richiesta visita medica, Dichiarazione volontariato/Co.Co.Co., Ricevuta pagamento</div>
+        <div class="cl-item"><strong>Timbro digitale automatico</strong> — generato con i dati di "La mia struttura" (denominazione, indirizzo, telefono, CF, P.IVA) in formato SVG vettoriale</div>
+        <div class="cl-item"><strong>Sidebar scrollabile</strong> — il menu scorre verticalmente, tutti i pulsanti sempre raggiungibili</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v3.2.0 · Maggio 2026</div>
         <div class="cl-section">Nuove funzionalità</div>
         <div class="cl-item"><strong>Separazione Atleti / Staff</strong> — Anagrafiche divisa in 3 tab: Atleti, Staff, Macrogruppi</div>
@@ -1689,7 +1745,7 @@ function closeMobileMenu(){
 }
 
 // ═══ NAV ══════════════════════════════════════════════════
-const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta','comunicati-fisr':'Comunicati FISR',impostazioni:'Impostazioni'};
+const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta','comunicati-fisr':'Comunicati FISR','genera-documenti':'Genera documenti',impostazioni:'Impostazioni'};
 const pagesAdd=['anagrafiche','abbonamenti','corsi','impianti','maestri','amministrazione','calendario','stagioni','comunicazioni','valutazioni'];
 
 function showPage(page){
@@ -1715,6 +1771,7 @@ function showPage(page){
   if(page==='comunicazioni')initComunicazioni();
   if(page==='valutazioni')renderValutazioni();
   if(page==='comunicati-fisr')initComunicatiFisr();
+  if(page==='genera-documenti')initGeneraDocumenti();
   if(page==='impostazioni'){
     loadTheme();
     const el=document.getElementById('settings-drive-status');
@@ -3267,6 +3324,107 @@ function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(c
   setTimeout(checkNuoviComunicatiFisr,3000);
 }
 
+// ═══ GENERA DOCUMENTI ═════════════════════════════════════
+function generaTimbro(){
+  const s=DB.struttura;
+  const nome=(s.nome||'ASD Spartans Hockey Inline').toUpperCase();
+  const ind=((s.indirizzo||'')+(s.indirizzo&&s.citta?', ':'')+(s.citta||'')).trim()||'Bari (BA)';
+  const tel=s.telefono?'Tel. '+s.telefono:'';
+  const cf=s.cf?'C.F. '+s.cf:'';
+  const piva=s.piva?'P.IVA '+s.piva:'';
+  const fiscale=[cf,piva].filter(Boolean).join(' · ');
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="210" height="105" viewBox="0 0 210 105">
+    <ellipse cx="105" cy="52" rx="101" ry="48" fill="none" stroke="#1a3a6e" stroke-width="3"/>
+    <ellipse cx="105" cy="52" rx="94" ry="41" fill="none" stroke="#1a3a6e" stroke-width="1.2"/>
+    <text x="105" y="29" text-anchor="middle" font-family="Arial" font-size="10" font-weight="bold" fill="#1a3a6e">${nome}</text>
+    <line x1="25" y1="35" x2="185" y2="35" stroke="#1a3a6e" stroke-width="0.8"/>
+    <text x="105" y="48" text-anchor="middle" font-family="Arial" font-size="8.5" fill="#1a3a6e">${ind}</text>
+    <text x="105" y="59" text-anchor="middle" font-family="Arial" font-size="8.5" fill="#1a3a6e">${tel}</text>
+    <text x="105" y="70" text-anchor="middle" font-family="Arial" font-size="8" fill="#1a3a6e">${fiscale}</text>
+    <line x1="25" y1="77" x2="185" y2="77" stroke="#1a3a6e" stroke-width="0.8"/>
+    <text x="105" y="89" text-anchor="middle" font-family="Arial" font-size="7.5" fill="#1a3a6e" letter-spacing="0.8">ASSOCIAZIONE SPORTIVA DILETTANTISTICA</text>
+  </svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function initGeneraDocumenti(){
+  ['doc-730-atleta','doc-giust-atleta','doc-visita-atleta','doc-ric-atleta'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    sel.innerHTML='<option value="">— Seleziona atleta —</option>'+
+      DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
+      .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
+  });
+  const selSt=document.getElementById('doc-volont-staff');
+  if(selSt)selSt.innerHTML='<option value="">— Seleziona membro staff —</option>'+
+    (DB.staff||[]).filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
+    .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome} (${s.ruolo||''})</option>`).join('');
+}
+
+function apriDocumento(tipo){
+  const stagione=getStagioneCorrente()?.label||'';
+  const anno=new Date().getFullYear().toString();
+  const oggi=new Date().toLocaleDateString('it-IT');
+  const st=DB.struttura;
+  const ps={
+    asdNome:st.nome||'ASD Spartans Hockey Inline',
+    asdIndirizzo:((st.indirizzo||'')+(st.indirizzo&&st.citta?', ':'')+(st.citta||'')).trim()||'Bari (BA)',
+    asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||''
+  };
+  if(tipo==='730'){
+    const id=document.getElementById('doc-730-atleta').value;
+    if(!id){toast('Seleziona un atleta','error');return;}
+    const s=DB.soci.find(x=>x.id===id);if(!s)return;
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,nascita:s.nascita?formatDate(s.nascita):'',
+      cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',stagione,anno,
+      g1Nome:s.g1Nome||'',g1Cognome:s.g1Cognome||'',g1Cf:s.g1Cf||'',g1Rapporto:s.g1Rapporto||'',
+      dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_730.html?${p}`,'_blank');
+  }
+  else if(tipo==='giustificazione'){
+    const id=document.getElementById('doc-giust-atleta').value;
+    if(!id){toast('Seleziona un atleta','error');return;}
+    const s=DB.soci.find(x=>x.id===id);if(!s)return;
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,nascita:s.nascita?formatDate(s.nascita):'',
+      g1Nome:s.g1Nome||'',g1Cognome:s.g1Cognome||'',
+      evento:document.getElementById('doc-giust-evento').value||'',
+      dateAssenza:document.getElementById('doc-giust-date').value||'',dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_giustificazione.html?${p}`,'_blank');
+  }
+  else if(tipo==='visita'){
+    const id=document.getElementById('doc-visita-atleta').value;
+    if(!id){toast('Seleziona un atleta','error');return;}
+    const s=DB.soci.find(x=>x.id===id);if(!s)return;
+    const annoNascita=s.nascita?parseInt(s.nascita.slice(0,4)):null;
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,nascita:s.nascita?formatDate(s.nascita):'',
+      luogo:s.luogo||'',cf:s.cf||'',indirizzo:s.indirizzo||'',
+      tesseraFisr:s.tesseraFisr||'',categoria:annoNascita?getCategoriaFisr(annoNascita):'',stagione,
+      g1Nome:s.g1Nome||'',g1Cognome:s.g1Cognome||'',g1Cf:s.g1Cf||'',g1Tel:s.g1Tel||'',
+      dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_visita_medica.html?${p}`,'_blank');
+  }
+  else if(tipo==='volontariato'){
+    const id=document.getElementById('doc-volont-staff').value;
+    if(!id){toast('Seleziona un membro staff','error');return;}
+    const s=(DB.staff||[]).find(x=>x.id===id);if(!s)return;
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,nascita:s.nascita?formatDate(s.nascita):'',
+      cf:s.cf||'',indirizzo:s.indirizzo||'',ruolo:s.ruolo||'',anno,
+      ore:document.getElementById('doc-volont-ore').value||'',
+      compenso:document.getElementById('doc-volont-compenso').value||'',dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_volontariato.html?${p}`,'_blank');
+  }
+  else if(tipo==='ricevuta'){
+    const id=document.getElementById('doc-ric-atleta').value;
+    if(!id){toast('Seleziona un atleta','error');return;}
+    const s=DB.soci.find(x=>x.id===id);if(!s)return;
+    const importo=document.getElementById('doc-ric-importo').value;
+    const causale=document.getElementById('doc-ric-causale').value;
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
+      stagione,importo:importo||'',causale:causale||'',descr:causale||'',metodo:'Contanti',
+      numRicevuta:Date.now().toString().slice(-6),dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
+  }
+}
+
 // ═══ COMUNICATI FISR ══════════════════════════════════════
 // URL delle categorie per stagione
 const FISR_STAGIONI = {
@@ -3285,7 +3443,7 @@ const FISR_STAGIONI = {
   '2013-14': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/113-2013-14.html',
 };
 // Proxy CORS per bypassare le restrizioni CORS del sito FISR
-const CORS_PROXY = 'https://api.allorigins.win/get?url=';
+const CORS_PROXY = 'https://corsproxy.io/?';
 
 function initComunicatiFisr(){
   // Controlla se ci sono nuovi CU e aggiorna il badge
@@ -3318,8 +3476,7 @@ async function loadComunicatiFisr(){
     const proxyUrl = CORS_PROXY + encodeURIComponent(url);
     const r = await fetch(proxyUrl);
     if(!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    const html = data.contents;
+    const html = await r.text();
     const comunicati = parseComunicatiFisr(html);
     if(!comunicati.length) throw new Error('Nessun comunicato trovato');
     // Salva in localStorage
@@ -3448,9 +3605,8 @@ async function checkNuoviComunicatiFisr(){
     const url = FISR_STAGIONI[stagione];
     const r = await fetch(CORS_PROXY + encodeURIComponent(url));
     if(!r.ok) return;
-    const data = await r.json();
-    const comunicati = parseComunicatiFisr(data.contents);
-    if(!comunicati.length) return;
+    const html = await r.text();
+    const comunicati = parseComunicatiFisr(html);
     localStorage.setItem('fisr_comunicati', JSON.stringify(comunicati));
     localStorage.setItem('fisr_last_fetch', new Date().toISOString());
     const lastSeenId = localStorage.getItem('fisr_last_seen_id') || '';
