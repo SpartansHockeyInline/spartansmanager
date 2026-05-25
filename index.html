@@ -2898,18 +2898,27 @@ function saveWaToken(){
 function filtraDestinatari(){
   const corsoF=document.getElementById('comm-filter-corso')?.value||'';
   const tipoF=document.getElementById('comm-filter-tipo')?.value||'';
-  let lista=DB.soci.filter(s=>(s.email||s.tel));
+  // Atleti con email o telefono
+  let lista=DB.soci.map(s=>{
+    // Se atleta non ha email, usa quella del genitore 1
+    const email=s.email||(s.g1Email?s.g1Email:'');
+    const tel=s.tel||(s.g1Tel?s.g1Tel:'');
+    return{...s,email,tel,_emailGenitore:!s.email&&s.g1Email?`(${s.g1Nome||''} ${s.g1Cognome||''})`.trim():''};
+  }).filter(s=>s.email||s.tel);
   if(corsoF)lista=lista.filter(s=>s.corsoId===corsoF);
   if(tipoF)lista=lista.filter(s=>s.tipologia===tipoF);
+  // Aggiungi staff con email o telefono
+  const staff=(DB.staff||[]).filter(s=>s.email||s.tel).map(s=>({...s,_isStaff:true}));
+  const tuttiContatti=[...lista,...staff];
   const cont=document.getElementById('comm-destinatari-list');
-  if(!lista.length){cont.innerHTML='<div class="empty"><div class="ei">👥</div><p>Nessun contatto trovato con email o telefono</p></div>';return;}
-  cont.innerHTML=lista.map(s=>`
+  if(!tuttiContatti.length){cont.innerHTML='<div class="empty"><div class="ei">👥</div><p>Nessun contatto trovato con email o telefono</p></div>';return;}
+  cont.innerHTML=tuttiContatti.map(s=>`
     <div class="dest-item${commSelezionati.has(s.id)?' sel':''}" id="dest-${s.id}" onclick="toggleDestinatario('${s.id}')">
       <div class="chk">${commSelezionati.has(s.id)?'✓':''}</div>
       ${renderAvatar(s,26)}
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:500;">${s.nome} ${s.cognome}</div>
-        <div style="font-size:10px;color:var(--text2);">${s.email||''}${s.email&&s.tel?' · ':''}${s.tel||''}</div>
+        <div style="font-size:13px;font-weight:500;">${s.nome} ${s.cognome}${s._isStaff?` <span style="font-size:10px;color:var(--gold);">${s.ruolo||'Staff'}</span>`:''}</div>
+        <div style="font-size:10px;color:var(--text2);">${s.email||''}${s._emailGenitore?' '+s._emailGenitore:''}${s.email&&s.tel?' · ':''}${s.tel||''}</div>
       </div>
     </div>`).join('');
   aggiornaContattoCount();
@@ -2922,7 +2931,11 @@ function toggleDestinatario(id){
   if(el){el.classList.toggle('sel');el.querySelector('.chk').textContent=commSelezionati.has(id)?'✓':'';}
   aggiornaContattoCount();
 }
-function selezionaTutti(){DB.soci.filter(s=>s.email||s.tel).forEach(s=>commSelezionati.add(s.id));filtraDestinatari();}
+function selezionaTutti(){
+  DB.soci.filter(s=>s.email||s.tel||s.g1Email||s.g1Tel).forEach(s=>commSelezionati.add(s.id));
+  (DB.staff||[]).filter(s=>s.email||s.tel).forEach(s=>commSelezionati.add(s.id));
+  filtraDestinatari();
+}
 function deselezionaTutti(){commSelezionati.clear();filtraDestinatari();}
 function aggiornaContattoCount(){const el=document.getElementById('comm-count');if(el)el.textContent=commSelezionati.size;}
 
@@ -2935,8 +2948,13 @@ function buildMessaggio(){
 
 function inviaEmail(){
   if(!commSelezionati.size){toast('Seleziona almeno un destinatario','error');return;}
-  const destinatari=DB.soci.filter(s=>commSelezionati.has(s.id)&&s.email).map(s=>s.email);
-  if(!destinatari.length){toast('Nessun destinatario ha un email','error');return;}
+  const destinatari=[];
+  DB.soci.filter(s=>commSelezionati.has(s.id)).forEach(s=>{
+    const email=s.email||s.g1Email||'';
+    if(email)destinatari.push(email);
+  });
+  (DB.staff||[]).filter(s=>commSelezionati.has(s.id)&&s.email).forEach(s=>destinatari.push(s.email));
+  if(!destinatari.length){toast('Nessun destinatario ha un indirizzo email','error');return;}
   const{oggetto,full}=buildMessaggio();
   const bcc=destinatari.join(',');
   const link=`mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(full)}`;
