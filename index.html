@@ -396,9 +396,6 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
-    <button onclick="fbSignOut()" id="btn-drive-account" style="display:none"></button>
-    <button onclick="exportData()">📤 Esporta</button>
-    <button onclick="importData()">📥 Importa</button>
   </div>
 </div>
 
@@ -432,11 +429,10 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ni-item" onclick="showPage('comunicazioni')"><span class="ico">📨</span><span class="lbl">Comunicazioni</span></div>
     <div class="ni-item" onclick="showPage('valutazioni')"><span class="ico">📊</span><span class="lbl">Valutazione atleti</span></div>
     <div class="ni-item" onclick="showPage('comunicati-fisr')"><span class="ico">📋</span><span class="lbl">Comunicati FISR</span><span id="badge-fisr" class="nbadge" style="display:none;"></span></div>
-    <div class="nav-sec-label">Sistema</div>
     <div class="ni-item" onclick="showPage('genera-documenti')"><span class="ico">📄</span><span class="lbl">Genera documenti</span></div>
-    <div class="ni-item" onclick="exportData()"><span class="ico">📤</span><span class="lbl">Esporta JSON</span></div>
-    <div class="ni-item" onclick="importData()"><span class="ico">📥</span><span class="lbl">Importa JSON</span></div>
+    <div class="nav-sec-label">Sistema</div>
     <div class="ni-item" onclick="showPage('impostazioni')"><span class="ico">⚙️</span><span class="lbl">Impostazioni</span></div>
+    <div class="ni-item" onclick="fbSignOut()" style="color:var(--red);"><span class="ico">🚪</span><span class="lbl">Logout</span></div>
   </nav>
 </div>
 
@@ -446,7 +442,6 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <button id="mobile-menu-btn" onclick="toggleMobileMenu()" style="display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px;margin-right:4px;">☰</button>
     <div class="pt" id="topbar-title">Dashboard</div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button class="tbtn" onclick="exportData()">📤 Esporta</button>
       <button class="tbtn primary" id="topbar-add-btn" onclick="topbarAdd()" style="display:none;">+ Aggiungi</button>
     </div>
   </div>
@@ -3883,9 +3878,6 @@ function fbInit(){
         fbLoadData();
         fbStartLiveSync();
         driveSetStatus('connected',`✓ Connesso · ${user.email}`);
-        driveShowControls(true);
-        const btn=document.getElementById('btn-drive-account');
-        if(btn)btn.textContent='👤 '+user.email;
       }else{
         fbUser=null;
         driveSetStatus('','Non connesso');
@@ -4006,9 +3998,7 @@ function driveSetStatus(state,label){
 }
 function driveShowControls(show){
   const s=document.getElementById('btn-drive-save');
-  const a=document.getElementById('btn-drive-account');
   if(s)s.style.display=show?'':'none';
-  if(a)a.style.display=show?'':'none';
 }
 
 // Funzioni Drive obsolete — mantenute per compatibilità
