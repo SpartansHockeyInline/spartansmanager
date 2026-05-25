@@ -858,7 +858,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="card" style="margin-top:0;">
             <div class="card-title">📤 Invia</div>
             <div style="display:flex;flex-direction:column;gap:8px;">
-              <button class="btn btn-p" onclick="inviaEmail()" style="justify-content:center;">📧 Apri client email (BCC)</button>
+              <button class="btn btn-p" onclick="inviaEmail()" style="justify-content:center;">📧 Apri Gmail (BCC)</button>
               <button class="btn btn-s" onclick="preparaWhatsapp()" style="justify-content:center;">💬 Copia testo per WhatsApp</button>
               <button class="btn btn-s" onclick="esportaVCard()" style="justify-content:center;">📱 Esporta contatti .vcf</button>
             </div>
@@ -2957,9 +2957,9 @@ function inviaEmail(){
   if(!destinatari.length){toast('Nessun destinatario ha un indirizzo email','error');return;}
   const{oggetto,full}=buildMessaggio();
   const bcc=destinatari.join(',');
-  const link=`mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(full)}`;
-  window.open(link,'_blank');
-  toast(`Email preparata per ${destinatari.length} destinatari`,'success');
+  const url=`https://mail.google.com/mail/?view=cm&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(full)}`;
+  window.open(url,'_blank');
+  toast(`Email preparata per ${destinatari.length} destinatari — si apre Gmail`,'success');
 }
 
 function preparaWhatsapp(){
