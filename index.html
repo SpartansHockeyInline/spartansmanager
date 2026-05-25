@@ -2957,7 +2957,7 @@ function inviaEmail(){
   if(!destinatari.length){toast('Nessun destinatario ha un indirizzo email','error');return;}
   const{oggetto,full}=buildMessaggio();
   const bcc=destinatari.join(',');
-  const url=`https://mail.google.com/mail/?view=cm&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(full)}`;
+  const url=`https://mail.google.com/mail/?authuser=spartanshockeyinline@gmail.com&view=cm&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(full)}`;
   window.open(url,'_blank');
   toast(`Email preparata per ${destinatari.length} destinatari — si apre Gmail`,'success');
 }
