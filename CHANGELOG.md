@@ -2,33 +2,35 @@
 
 ---
 
+## v3.4.0 · Maggio 2026
+
+### Nuove funzionalità
+- **Prima nota** — nuovo tab in Amministrazione: elenco cronologico di tutti i movimenti con saldo progressivo, filtro per periodo e stampa
+- **Rendiconto economico** — nuovo tab: totali entrate e uscite per causale con avanzo/disavanzo di gestione, stampabile
+- **Solleciti di pagamento** — nuovo tab: lista automatica quote scadute o in scadenza entro 30 giorni; invio sollecito diretto via email (Gmail) o WhatsApp con testo precompilato
+- **Comunicazioni** — ora include genitori e staff nella lista destinatari; apertura Gmail diretta senza configurazione browser; account mittente fisso `spartanshockeyinline@gmail.com`
+
+---
+
 ## v3.3.1 · Maggio 2026
 
 ### Fix
-- **Scadenze dashboard** — ora include anche visita medica, assicurazione e tessere dello staff; eventi non-allenamento (gare, tornei, ecc.) entro 60 giorni; finestra estesa a 60 giorni; grassetto per scadenze entro 7 giorni
+- **Scadenze dashboard** — ora include visita medica, assicurazione, tessere staff; eventi non-allenamento entro 60 giorni; grassetto per scadenze entro 7 giorni
 - **Timbro documenti** — semplificato a 5 righe con dati fissi dell'associazione
-- **Numero ricevuta** — progressivo salvato su Firebase, parte da 1, formattato a 4 cifre (0001, 0002...)
+- **Numero ricevuta** — progressivo salvato su Firebase, parte da 1, formato 4 cifre (0001, 0002...)
+- **Comunicati FISR** — corretti URL stagioni 2013/14, 2014/15, 2015/16; filtro contenuti non pertinenti
 
 ---
 
 ## v3.3.0 · Maggio 2026
 
 ### Nuove funzionalità
-- **Genera documenti** — 5 modelli pre-compilati con dati atleta/staff:
-  - 📊 Certificazione pagamento quota (730) — detrazione fiscale art. 15 TUIR
-  - 🏫 Giustificazione assenza scolastica per gara/evento sportivo
-  - 🏥 Richiesta visita medica per idoneità sportiva agonistica
-  - 🤝 Dichiarazione volontariato / Co.Co.Co. (D.Lgs. 36/2021 Riforma Sport)
-  - 🧾 Ricevuta di pagamento
-- **Timbro digitale automatico** — generato con i dati di "La mia struttura" in formato SVG
-- **Sidebar scrollabile** — il menu scorre verticalmente, tutti i pulsanti sempre raggiungibili
+- **Genera documenti** — 5 modelli pre-compilati: Certificazione 730, Giustificazione scolastica, Richiesta visita medica, Dichiarazione volontariato/Co.Co.Co., Ricevuta pagamento
+- **Timbro digitale automatico** — generato con dati fissi dell'associazione in formato SVG
+- **Sidebar scrollabile** — menu scorre verticalmente, tutti i pulsanti sempre raggiungibili
 
-### File aggiunti al repository
-- `modulo_730.html`
-- `modulo_giustificazione.html`
-- `modulo_visita_medica.html`
-- `modulo_volontariato.html`
-- `modulo_ricevuta.html`
+### File aggiunti
+- `modulo_730.html`, `modulo_giustificazione.html`, `modulo_visita_medica.html`, `modulo_volontariato.html`, `modulo_ricevuta.html`
 
 ---
 
@@ -40,23 +42,19 @@
 - **Visita medica** — tipo, scadenza, medico/struttura, allegato; badge colorato in tabella
 - **Genitori strutturati** — due genitori/tutori con rapporto, CF, contatti
 - **Macrogruppi** — raggruppamenti trasversali (camp estivi, attività promozionali ecc.)
-- **Quote collegate all'atleta** — aggiunta quote direttamente dalla scheda
 - **Moduli pre-compilati** — link con dati atleta per modulo iscrizione e consenso privacy
-- **Link Google Form** — pulsante copia link nella toolbar Atleti
 - **Importazione Google Form** — riconosce tutte le 39 colonne; aggiorna campi vuoti se atleta esiste
 - **Colonna Azioni fissa** — sempre visibile con scroll orizzontale
-- **Sidebar scrollabile** — Impostazioni sempre raggiungibile
 
 ### File aggiunti
-- `modulo_iscrizione_spartans.html`
-- `modulo_consenso_privacy.html`
+- `modulo_iscrizione_spartans.html`, `modulo_consenso_privacy.html`
 
 ---
 
 ## v3.1.0 · Maggio 2026
 
 ### Nuove funzionalità
-- **Comunicati FISR** — tutte le stagioni dal 2013/14; badge nuovi CU; verifica giornaliera
+- **Comunicati FISR** — stagioni dal 2013/14; badge nuovi CU; verifica giornaliera
 - **Ordinamento amministrazione** — tutte le colonne ordinabili crescente/decrescente
 - **Fasi sensibili Martin 1982** — guida tecnico con priorità Alta/Media/Bassa
 

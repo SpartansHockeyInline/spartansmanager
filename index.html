@@ -760,6 +760,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tab active" onclick="showTab('amm','entrate')">💚 Entrate</div>
         <div class="tab" onclick="showTab('amm','uscite')">🔴 Uscite</div>
         <div class="tab" onclick="showTab('amm','riepilogo')">📊 Riepilogo</div>
+        <div class="tab" onclick="showTab('amm','prima-nota');renderPrimaNota()">📋 Prima nota</div>
+        <div class="tab" onclick="showTab('amm','rendiconto');renderRendiconto()">📈 Rendiconto</div>
+        <div class="tab" onclick="showTab('amm','solleciti');renderSolleciti()">🔔 Solleciti</div>
       </div>
       <div class="tab-panel active" id="amm-tab-entrate">
         <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-movimento','entrata')">+ Nuova entrata</button></div>
@@ -789,6 +792,34 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="stat-card sc-red"><div class="sl">Totale uscite</div><div class="sv" id="amm-tot-uscite">€0</div></div>
           <div class="stat-card sc-blue"><div class="sl">Saldo</div><div class="sv" id="amm-saldo">€0</div></div>
         </div>
+      </div>
+
+      <!-- TAB PRIMA NOTA -->
+      <div class="tab-panel" id="amm-tab-prima-nota">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+          <div class="field" style="flex-shrink:0;"><label>Dal</label><input class="fi" type="date" id="pn-dal" style="width:140px;"></div>
+          <div class="field" style="flex-shrink:0;"><label>Al</label><input class="fi" type="date" id="pn-al" style="width:140px;"></div>
+          <button class="btn btn-s btn-sm" onclick="renderPrimaNota()" style="margin-top:14px;">🔍 Filtra</button>
+          <button class="btn btn-s btn-sm" onclick="stampaPrimaNota()" style="margin-top:14px;">🖨️ Stampa</button>
+        </div>
+        <div id="prima-nota-content"></div>
+      </div>
+
+      <!-- TAB RENDICONTO -->
+      <div class="tab-panel" id="amm-tab-rendiconto">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+          <div class="field" style="flex-shrink:0;"><label>Dal</label><input class="fi" type="date" id="rd-dal" style="width:140px;"></div>
+          <div class="field" style="flex-shrink:0;"><label>Al</label><input class="fi" type="date" id="rd-al" style="width:140px;"></div>
+          <button class="btn btn-s btn-sm" onclick="renderRendiconto()" style="margin-top:14px;">🔍 Filtra</button>
+          <button class="btn btn-s btn-sm" onclick="stampaRendiconto()" style="margin-top:14px;">🖨️ Stampa</button>
+        </div>
+        <div id="rendiconto-content"></div>
+      </div>
+
+      <!-- TAB SOLLECITI -->
+      <div class="tab-panel" id="amm-tab-solleciti">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Quote scadute o in scadenza entro 30 giorni. Clicca su un atleta per preparare il sollecito.</div>
+        <div id="solleciti-content"></div>
       </div>
     </div>
 
@@ -961,7 +992,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.3.1 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.4.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1351,6 +1382,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v3.4.0 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Prima nota</strong> — elenco cronologico di tutti i movimenti con saldo progressivo, filtro per periodo e stampa</div>
+        <div class="cl-item"><strong>Rendiconto economico</strong> — totali entrate e uscite per causale con avanzo/disavanzo di gestione, stampabile</div>
+        <div class="cl-item"><strong>Solleciti di pagamento</strong> — elenco quote scadute o in scadenza entro 30 giorni con invio diretto del sollecito via email (Gmail) o WhatsApp</div>
+        <div class="cl-item"><strong>Comunicazioni</strong> — ora include anche genitori e staff nella lista destinatari; apertura Gmail diretta senza configurazione</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v3.3.1 · Maggio 2026</div>
@@ -3485,6 +3525,144 @@ function apriDocumento(tipo){
       generaRicevuta(Date.now().toString().slice(-4));
     }
   }
+}
+
+// ═══ PRIMA NOTA ═══════════════════════════════════════════
+function renderPrimaNota(){
+  const dal=document.getElementById('pn-dal')?.value||'';
+  const al=document.getElementById('pn-al')?.value||'';
+  const movimenti=[
+    ...(DB.entrate||[]).map(e=>({...e,segno:'+',col:'var(--green)'})),
+    ...(DB.uscite||[]).map(u=>({...u,segno:'-',col:'var(--red)'}))
+  ].filter(m=>(!dal||m.data>=dal)&&(!al||m.data<=al))
+   .sort((a,b)=>a.data.localeCompare(b.data));
+  const cont=document.getElementById('prima-nota-content');
+  if(!movimenti.length){cont.innerHTML='<div class="empty"><div class="ei">📋</div><p>Nessun movimento nel periodo</p></div>';return;}
+  let saldo=0;
+  const totE=movimenti.filter(m=>m.segno==='+').reduce((s,m)=>s+parseFloat(m.importo||0),0);
+  const totU=movimenti.filter(m=>m.segno==='-').reduce((s,m)=>s+parseFloat(m.importo||0),0);
+  const rows=movimenti.map(m=>{
+    const imp=parseFloat(m.importo||0);
+    saldo+=m.segno==='+'?imp:-imp;
+    return`<tr>
+      <td>${m.data?formatDate(m.data):'—'}</td>
+      <td>${m.descr||'—'}</td>
+      <td><span class="badge ${m.segno==='+'?'bb':'bo'}">${m.cat||'—'}</span></td>
+      <td style="color:${m.col};font-weight:600;text-align:right;">${m.segno}€${imp.toFixed(2)}</td>
+      <td style="font-weight:600;text-align:right;color:${saldo>=0?'var(--green)':'var(--red)'};">€${saldo.toFixed(2)}</td>
+      <td>${m.metodo||'—'}</td>
+    </tr>`;
+  }).join('');
+  cont.innerHTML=`
+    <div class="stats-grid" style="margin-bottom:12px;">
+      <div class="stat-card sc-green"><div class="sl">Entrate periodo</div><div class="sv">€${totE.toFixed(2)}</div></div>
+      <div class="stat-card sc-red"><div class="sl">Uscite periodo</div><div class="sv">€${totU.toFixed(2)}</div></div>
+      <div class="stat-card sc-blue"><div class="sl">Saldo periodo</div><div class="sv" style="color:${(totE-totU)>=0?'var(--green)':'var(--red)'};">€${(totE-totU).toFixed(2)}</div></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th style="text-align:right;">Importo</th><th style="text-align:right;">Saldo prog.</th><th>Metodo</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+function stampaPrimaNota(){
+  const contenuto=document.getElementById('prima-nota-content')?.innerHTML||'';
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Prima Nota</title>
+  <style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;}h1{font-size:16px;margin-bottom:4px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:6px;font-size:11px;}th{background:#f5f5f5;}.badge{padding:2px 6px;border-radius:3px;font-size:10px;}</style>
+  </head><body><h1>📋 Prima Nota — ASD Spartans Hockey Inline</h1>${contenuto}</body></html>`);
+  w.document.close();w.print();
+}
+
+// ═══ RENDICONTO ECONOMICO ══════════════════════════════════
+function renderRendiconto(){
+  const dal=document.getElementById('rd-dal')?.value||'';
+  const al=document.getElementById('rd-al')?.value||'';
+  const filtra=(arr)=>(arr||[]).filter(m=>(!dal||m.data>=dal)&&(!al||m.data<=al));
+  const entrate=filtra(DB.entrate),uscite=filtra(DB.uscite);
+  const bycat=(arr)=>arr.reduce((acc,m)=>{const k=m.cat||'Altro';if(!acc[k])acc[k]=0;acc[k]+=parseFloat(m.importo||0);return acc;},{});
+  const catE=bycat(entrate),catU=bycat(uscite);
+  const totE=entrate.reduce((s,e)=>s+parseFloat(e.importo||0),0);
+  const totU=uscite.reduce((s,u)=>s+parseFloat(u.importo||0),0);
+  const saldo=totE-totU;
+  const cont=document.getElementById('rendiconto-content');
+  cont.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--green);">ENTRATE</div>
+        ${Object.entries(catE).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;">${k}</span><span style="font-size:12px;font-weight:600;color:var(--green);">€${v.toFixed(2)}</span></div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;font-size:13px;margin-top:4px;"><span>TOTALE ENTRATE</span><span style="color:var(--green);">€${totE.toFixed(2)}</span></div>
+      </div>
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--red);margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--red);">USCITE</div>
+        ${Object.entries(catU).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;">${k}</span><span style="font-size:12px;font-weight:600;color:var(--red);">€${v.toFixed(2)}</span></div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;font-size:13px;margin-top:4px;"><span>TOTALE USCITE</span><span style="color:var(--red);">€${totU.toFixed(2)}</span></div>
+      </div>
+    </div>
+    <div style="background:${saldo>=0?'rgba(39,174,96,.1)':'rgba(192,57,43,.1)'};border:2px solid ${saldo>=0?'var(--green)':'var(--red)'};border-radius:8px;padding:16px;text-align:center;">
+      <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${saldo>=0?'AVANZO DI GESTIONE':'DISAVANZO DI GESTIONE'}</div>
+      <div style="font-size:28px;font-weight:700;font-family:'Oswald',sans-serif;color:${saldo>=0?'var(--green)':'var(--red)'};">€${Math.abs(saldo).toFixed(2)}</div>
+    </div>`;
+}
+
+function stampaRendiconto(){
+  const contenuto=document.getElementById('rendiconto-content')?.innerHTML||'';
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Rendiconto</title><style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;}h1{font-size:16px;margin-bottom:16px;}</style></head><body><h1>📈 Rendiconto Economico — ASD Spartans Hockey Inline</h1>${contenuto}</body></html>`);
+  w.document.close();w.print();
+}
+
+// ═══ SOLLECITI ════════════════════════════════════════════
+function renderSolleciti(){
+  const cont=document.getElementById('solleciti-content');
+  const now=new Date();
+  const oggi=now.toISOString().slice(0,10);
+  const tra30=(new Date(now.getTime()+30*86400000)).toISOString().slice(0,10);
+  const quoteAtleti=(DB.quoteAtleti||[]).filter(q=>!q.pagata&&q.scadenza&&q.scadenza<=tra30);
+  const byAtleta={};
+  quoteAtleti.forEach(q=>{if(!byAtleta[q.atletaId])byAtleta[q.atletaId]=[];byAtleta[q.atletaId].push(q);});
+  if(!Object.keys(byAtleta).length){cont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessuna quota scaduta o in scadenza entro 30 giorni</p></div>';return;}
+  cont.innerHTML=Object.entries(byAtleta).map(([atletaId,quote])=>{
+    const s=DB.soci.find(x=>x.id===atletaId);if(!s)return'';
+    const email=s.email||s.g1Email||'';
+    const tel=s.tel||s.g1Tel||'';
+    const totDovuto=quote.reduce((sum,q)=>sum+parseFloat(q.importo||0),0);
+    const scadute=quote.filter(q=>q.scadenza<oggi);
+    const statoLabel=scadute.length?`<span class="badge br">⚠️ ${scadute.length} scaduta/e</span>`:`<span class="badge by">⏳ In scadenza</span>`;
+    return`<div class="card" style="border:1px solid var(--border);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">${renderAvatar(s,36)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div><div style="font-size:11px;color:var(--text2);">${email||tel||'Nessun contatto'}</div></div></div>
+        <div style="text-align:right;">${statoLabel}<div style="font-size:15px;font-weight:700;color:var(--red);margin-top:4px;">€${totDovuto.toFixed(2)}</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">${quote.map(q=>`<span style="margin-right:8px;">${q.descr}: <strong>€${parseFloat(q.importo).toFixed(2)}</strong> (scad. ${formatDate(q.scadenza)})</span>`).join('')}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${email?`<button class="btn btn-p btn-sm" onclick="sollecitaEmail('${atletaId}')">📧 Sollecita via email</button>`:''}
+        ${tel?`<button class="btn btn-s btn-sm" onclick="sollecitaWhatsApp('${atletaId}')">💬 Sollecita via WhatsApp</button>`:''}
+        ${!email&&!tel?`<span style="font-size:11px;color:var(--text3);">Nessun contatto disponibile</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sollecitaEmail(atletaId){
+  const s=DB.soci.find(x=>x.id===atletaId);if(!s)return;
+  const quote=(DB.quoteAtleti||[]).filter(q=>q.atletaId===atletaId&&!q.pagata&&q.scadenza);
+  const totDovuto=quote.reduce((sum,q)=>sum+parseFloat(q.importo||0),0);
+  const email=s.email||s.g1Email||'';
+  const stagione=getStagioneCorrente()?.label||'';
+  const oggetto=`ASD Spartans Hockey Inline — Sollecito pagamento quote ${stagione}`;
+  const body=`Gentile ${s.nome} ${s.cognome},\n\nLa contattamo per ricordarLe che risultano ancora da saldare le seguenti quote:\n\n${quote.map(q=>`• ${q.descr}: €${parseFloat(q.importo).toFixed(2)} (scadenza ${formatDate(q.scadenza)})`).join('\n')}\n\nTotale dovuto: €${totDovuto.toFixed(2)}\n\nLa preghiamo di provvedere al pagamento al più presto.\n\nCordiali saluti,\nStaff ASD Spartans Hockey Inline`;
+  window.open(`https://mail.google.com/mail/?authuser=spartanshockeyinline@gmail.com&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(body)}`,'_blank');
+}
+
+function sollecitaWhatsApp(atletaId){
+  const s=DB.soci.find(x=>x.id===atletaId);if(!s)return;
+  const quote=(DB.quoteAtleti||[]).filter(q=>q.atletaId===atletaId&&!q.pagata&&q.scadenza);
+  const totDovuto=quote.reduce((sum,q)=>sum+parseFloat(q.importo||0),0);
+  const tel=(s.tel||s.g1Tel||'').replace(/\D/g,'');
+  const stagione=getStagioneCorrente()?.label||'';
+  const testo=`Gentile ${s.nome} ${s.cognome}, la contattamo per ricordarLe le seguenti quote ancora da saldare per la ${stagione}:\n${quote.map(q=>`• ${q.descr}: €${parseFloat(q.importo).toFixed(2)} (scad. ${formatDate(q.scadenza)})`).join('\n')}\nTotale: €${totDovuto.toFixed(2)}\nGrazie — Staff ASD Spartans Hockey Inline`;
+  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(testo)}`,'_blank');
 }
 
 // ═══ COMUNICATI FISR ══════════════════════════════════════
