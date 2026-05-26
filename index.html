@@ -424,6 +424,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ni-item" onclick="showPage('presenze')"><span class="ico">✅</span><span class="lbl">Registro presenze</span></div>
     <div class="ni-item" onclick="showPage('impianti')"><span class="ico">🏟️</span><span class="lbl">Impianti</span></div>
     <div class="ni-item" onclick="showPage('maestri')"><span class="ico">👨‍🎓</span><span class="lbl">Maestri/Tecnici</span></div>
+    <div class="ni-item" onclick="showPage('fornitori')"><span class="ico">🏭</span><span class="lbl">Fornitori</span></div>
     <div class="nav-sec-label">Gestione</div>
     <div class="ni-item" onclick="showPage('amministrazione')"><span class="ico">💰</span><span class="lbl">Amministrazione</span></div>
     <div class="ni-item" onclick="showPage('comunicazioni')"><span class="ico">📨</span><span class="lbl">Comunicazioni</span></div>
@@ -958,6 +959,27 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </div>
     </div>
 
+    <!-- ═══ FORNITORI ═══ -->
+    <div class="page" id="page-fornitori">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <input class="fi" id="filter-fornitori-search" placeholder="🔍 Cerca ragione sociale, categoria..." style="max-width:320px;" oninput="renderFornitori()">
+        <select class="fsel" id="filter-fornitori-cat" style="width:180px;" onchange="renderFornitori()">
+          <option value="">Tutte le categorie</option>
+          <option>Attrezzatura sportiva</option>
+          <option>Abbigliamento</option>
+          <option>Impianti e strutture</option>
+          <option>Assicurazioni</option>
+          <option>Servizi professionali</option>
+          <option>Informatica</option>
+          <option>Altro</option>
+        </select>
+        <button class="btn btn-p btn-sm" onclick="openModalFornitore()">+ Nuovo fornitore</button>
+      </div>
+      <div class="tw"><table><thead><tr>
+        <th>#</th><th>Ragione sociale</th><th>Categoria</th><th>Referente</th><th>Telefono</th><th>Email</th><th>Tot. speso</th><th>Stato</th><th>Azioni</th>
+      </tr></thead><tbody id="fornitori-tbody"></tbody></table></div>
+    </div>
+
     <div class="page" id="page-valutazione-atleta"></div>
 
     <!-- ═══ COMUNICATI FISR ═══ -->
@@ -987,7 +1009,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.4.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.5.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1263,6 +1285,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="fgroup"><label>Importo (€) *</label><input class="fi" id="m-mov-importo" type="number" step="0.01"></div>
         <div class="fgroup s2"><label>Descrizione *</label><input class="fi" id="m-mov-descr"></div>
         <div class="fgroup"><label>Categoria</label><select class="fsel" id="m-mov-cat"><option>Quota associativa</option><option>Abbonamento</option><option>Lezione privata</option><option>Affitto impianto</option><option>Gara/Evento</option><option>Attrezzatura</option><option>Utenze</option><option>Stipendio</option><option>Rimborso/compenso staff</option><option>Altro</option></select></div>
+        <div class="fgroup" id="m-mov-fornitore-wrap" style="display:none;"><label>Fornitore</label><select class="fsel" id="m-mov-fornitore"><option value="">— Nessuno —</option></select></div>
         <div class="fgroup"><label>Metodo</label><select class="fsel" id="m-mov-metodo"><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>POS</option><option>Altro</option></select></div>
         <div class="fgroup s2"><label>Note</label><textarea class="fta" id="m-mov-note"></textarea></div>
       </div>
@@ -1377,6 +1400,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v3.5.0 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Gestione fornitori</strong> — nuova sezione in Struttura: anagrafica fornitori con ragione sociale, CF/P.IVA, indirizzo, referente, categoria, note</div>
+        <div class="cl-item"><strong>Collegamento fornitori alle uscite</strong> — campo opzionale "Fornitore" nel modal Nuova uscita</div>
+        <div class="cl-item"><strong>Totale speso per fornitore</strong> — visibile nella colonna del riepilogo e nel Rendiconto economico</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v3.4.0 · Maggio 2026</div>
@@ -1606,6 +1637,43 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   </div>
 </div>
 
+<!-- MODAL FORNITORE -->
+<div class="mo" id="modal-fornitore">
+  <div class="modal wide">
+    <div class="mh"><div class="mt" id="modal-fornitore-title">Nuovo fornitore</div><button class="mc" onclick="closeModal('modal-fornitore')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fgroup s2"><label>Ragione sociale *</label><input class="fi" id="m-fo-nome"></div>
+        <div class="fgroup"><label>Categoria</label>
+          <select class="fsel" id="m-fo-cat">
+            <option value="">—</option>
+            <option>Attrezzatura sportiva</option>
+            <option>Abbigliamento</option>
+            <option>Impianti e strutture</option>
+            <option>Assicurazioni</option>
+            <option>Servizi professionali</option>
+            <option>Informatica</option>
+            <option>Altro</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Stato</label>
+          <select class="fsel" id="m-fo-stato"><option value="attivo">Attivo</option><option value="inattivo">Inattivo</option></select>
+        </div>
+        <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="m-fo-cf"></div>
+        <div class="fgroup"><label>Partita IVA</label><input class="fi" id="m-fo-piva"></div>
+        <div class="fgroup s2"><label>Indirizzo</label><input class="fi" id="m-fo-indirizzo"></div>
+        <div class="fgroup"><label>Telefono</label><input class="fi" id="m-fo-tel"></div>
+        <div class="fgroup"><label>Email</label><input class="fi" id="m-fo-email" type="email"></div>
+        <div class="fgroup"><label>Sito web</label><input class="fi" id="m-fo-web" placeholder="https://..."></div>
+        <div class="fgroup"><label>Referente</label><input class="fi" id="m-fo-referente"></div>
+        <div class="fgroup"><label>Tel. referente</label><input class="fi" id="m-fo-referente-tel"></div>
+      </div>
+      <div class="fgroup" style="margin-top:10px;"><label>Note</label><textarea class="fta" id="m-fo-note"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-fornitore')">Annulla</button><button class="btn btn-p" onclick="saveFornitore()">💾 Salva</button></div>
+  </div>
+</div>
+
 <!-- MODAL STAFF -->
 <div class="mo" id="modal-staff">
   <div class="modal wide">
@@ -1788,7 +1856,7 @@ function closeMobileMenu(){
 }
 
 // ═══ NAV ══════════════════════════════════════════════════
-const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta','comunicati-fisr':'Comunicati FISR','genera-documenti':'Genera documenti',impostazioni:'Impostazioni'};
+const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',fornitori:'Fornitori',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta','comunicati-fisr':'Comunicati FISR','genera-documenti':'Genera documenti',impostazioni:'Impostazioni'};
 const pagesAdd=['anagrafiche','abbonamenti','corsi','impianti','maestri','amministrazione','calendario','stagioni','comunicazioni','valutazioni'];
 
 function showPage(page){
@@ -1813,6 +1881,7 @@ function showPage(page){
   if(page==='amministrazione')renderAmministrazione();
   if(page==='comunicazioni')initComunicazioni();
   if(page==='valutazioni')renderValutazioni();
+  if(page==='fornitori')renderFornitori();
   if(page==='comunicati-fisr')initComunicatiFisr();
   if(page==='genera-documenti')initGeneraDocumenti();
   if(page==='impostazioni'){
@@ -1842,7 +1911,11 @@ function openModal(id,mode){
   if(id==='modal-abb-socio'){populateSociSel();populatePianiSel();}
   if(id==='modal-corso'){populateMaestriSel();populateImpiantiSel();resetGiorni();}
   if(id==='modal-evento'){eventoTipo=mode;document.getElementById('modal-evento-title').textContent=mode==='gara'?'Nuova gara':'Nuovo allenamento';document.getElementById('m-ev-data').value=new Date().toISOString().slice(0,10);populateSquadreSel();}
-  if(id==='modal-movimento'){movTipo=mode;document.getElementById('modal-mov-title').textContent=mode==='entrata'?'Nuova entrata':'Nuova uscita';document.getElementById('m-mov-data').value=new Date().toISOString().slice(0,10);}
+  if(id==='modal-movimento'){movTipo=mode;document.getElementById('modal-mov-title').textContent=mode==='entrata'?'Nuova entrata':'Nuova uscita';document.getElementById('m-mov-data').value=new Date().toISOString().slice(0,10);
+    const foWrap=document.getElementById('m-mov-fornitore-wrap');
+    if(foWrap)foWrap.style.display=mode==='uscita'?'':'none';
+    if(mode==='uscita')popolaSelectFornitori();
+  }
   if(id==='modal-impianto'){selectedImpiantoIcon='🏟️';document.querySelectorAll('.icon-opt').forEach(o=>o.classList.remove('sel'));const def=document.querySelector('.icon-opt[data-icon="🏟️"]');if(def)def.classList.add('sel');}
   ov.classList.add('open');
 }
@@ -2721,7 +2794,10 @@ function deleteMaestro(id){if(!confirm('Eliminare?'))return;DB.maestri=DB.maestr
 function saveMovimento(){
   const descr=document.getElementById('m-mov-descr').value.trim(),importo=parseFloat(document.getElementById('m-mov-importo').value)||0;
   if(!descr||!importo){toast('Dati mancanti','error');return;}
-  const obj={id:editingId||uid(),data:document.getElementById('m-mov-data').value,descr,importo,cat:document.getElementById('m-mov-cat').value,metodo:document.getElementById('m-mov-metodo').value,note:document.getElementById('m-mov-note').value};
+  const foSel=document.getElementById('m-mov-fornitore');
+  const fornitoreId=foSel?.value||'';
+  const fornitoreNome=fornitoreId?(DB.fornitori||[]).find(f=>f.id===fornitoreId)?.nome||'':'';
+  const obj={id:editingId||uid(),data:document.getElementById('m-mov-data').value,descr,importo,cat:document.getElementById('m-mov-cat').value,metodo:document.getElementById('m-mov-metodo').value,note:document.getElementById('m-mov-note').value,...(fornitoreId?{fornitoreId,fornitoreNome}:{})};
   if(editingId){
     const arr=movTipo==='entrata'?DB.entrate:DB.uscite;
     const i=arr.findIndex(x=>x.id===editingId);if(i>-1)arr[i]=obj;
@@ -2814,7 +2890,7 @@ function salvaConvocazioni(){saveDB();closeModal('modal-convocazioni');toast('Co
 function getStagioneCorrente(){return DB.stagioni?.find(s=>s.attiva)||null;}
 function initStagioneDefault(){
   if(!DB.stagioni)DB.stagioni=[];if(!DB.stagioniArchivio)DB.stagioniArchivio=[];
-  if(!DB.staff)DB.staff=[];if(!DB.macrogruppi)DB.macrogruppi=[];if(!DB.quoteAtleti)DB.quoteAtleti=[];
+  if(!DB.staff)DB.staff=[];if(!DB.macrogruppi)DB.macrogruppi=[];if(!DB.quoteAtleti)DB.quoteAtleti=[];if(!DB.fornitori)DB.fornitori=[];
   if(!DB.stagioni.find(s=>s.attiva)){const now=new Date(),anno=now.getMonth()>=8?now.getFullYear():now.getFullYear()-1;DB.stagioni.push({id:uid(),label:`Stagione ${anno}/${anno+1}`,inizio:`${anno}-09-01`,fine:`${anno+1}-06-30`,note:'',attiva:true,creata:new Date().toISOString()});}
   // Fix automatico slittamento dati vecchia importazione CSV
   // Il vecchio formato era: Nome,Cognome,Email,Tel,Nascita,CF,Tipologia,TesseraASD,TesseraFISR
@@ -3522,6 +3598,82 @@ function apriDocumento(tipo){
   }
 }
 
+// ═══ FORNITORI ════════════════════════════════════════════
+function renderFornitori(){
+  if(!DB.fornitori)DB.fornitori=[];
+  const tbody=document.getElementById('fornitori-tbody');if(!tbody)return;
+  const search=(document.getElementById('filter-fornitori-search')?.value||'').toLowerCase();
+  const cat=document.getElementById('filter-fornitori-cat')?.value||'';
+  let lista=DB.fornitori;
+  if(search)lista=lista.filter(f=>`${f.nome} ${f.cat||''} ${f.referente||''}`.toLowerCase().includes(search));
+  if(cat)lista=lista.filter(f=>f.cat===cat);
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">🏭</div><h3>Nessun fornitore</h3></div></td></tr>`;return;}
+  tbody.innerHTML=lista.map((f,idx)=>{
+    const totSpeso=(DB.uscite||[]).filter(u=>u.fornitoreId===f.id).reduce((s,u)=>s+parseFloat(u.importo||0),0);
+    return`<tr>
+      <td>${idx+1}</td>
+      <td><div style="font-weight:600;">${f.nome}</div>${f.web?`<div style="font-size:10px;"><a href="${f.web}" target="_blank" style="color:var(--accent);">${f.web}</a></div>`:''}</td>
+      <td><span class="badge bgy">${f.cat||'—'}</span></td>
+      <td>${f.referente||'—'}${f.referenteTel?`<div style="font-size:10px;color:var(--text2);">${f.referenteTel}</div>`:''}</td>
+      <td>${f.tel||'—'}</td>
+      <td>${f.email||'—'}</td>
+      <td style="font-weight:600;color:${totSpeso>0?'var(--red)':'var(--text2)'};">${totSpeso>0?`€${totSpeso.toFixed(2)}`:'—'}</td>
+      <td><span class="badge ${f.stato==='attivo'?'bg':'bgy'}">${f.stato||'attivo'}</span></td>
+      <td><div class="tda"><button class="bico" onclick="openModalFornitore('${f.id}')">✏️</button><button class="bico" onclick="deleteFornitore('${f.id}')">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openModalFornitore(id=null){
+  if(!DB.fornitori)DB.fornitori=[];
+  editingId=id;
+  document.getElementById('modal-fornitore-title').textContent=id?'Modifica fornitore':'Nuovo fornitore';
+  document.getElementById('modal-fornitore').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
+  if(id){
+    const f=DB.fornitori.find(x=>x.id===id);
+    if(f){
+      const map={nome:'m-fo-nome',cat:'m-fo-cat',stato:'m-fo-stato',cf:'m-fo-cf',piva:'m-fo-piva',
+        indirizzo:'m-fo-indirizzo',tel:'m-fo-tel',email:'m-fo-email',web:'m-fo-web',
+        referente:'m-fo-referente',referenteTel:'m-fo-referente-tel',note:'m-fo-note'};
+      Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&f[k]!==undefined)el.value=f[k];});
+    }
+  }
+  document.getElementById('modal-fornitore').classList.add('open');
+}
+
+function saveFornitore(){
+  if(!DB.fornitori)DB.fornitori=[];
+  const nome=document.getElementById('m-fo-nome').value.trim();
+  if(!nome){toast('Ragione sociale obbligatoria','error');return;}
+  const g=id=>document.getElementById(id)?.value||'';
+  const obj={
+    id:editingId||uid(),nome,cat:g('m-fo-cat'),stato:g('m-fo-stato')||'attivo',
+    cf:g('m-fo-cf'),piva:g('m-fo-piva'),indirizzo:g('m-fo-indirizzo'),
+    tel:g('m-fo-tel'),email:g('m-fo-email'),web:g('m-fo-web'),
+    referente:g('m-fo-referente'),referenteTel:g('m-fo-referente-tel'),
+    note:g('m-fo-note'),
+    creato:editingId?(DB.fornitori.find(x=>x.id===editingId)?.creato||new Date().toISOString()):new Date().toISOString()
+  };
+  if(editingId){const i=DB.fornitori.findIndex(x=>x.id===editingId);if(i>=0)DB.fornitori[i]=obj;}
+  else DB.fornitori.push(obj);
+  saveDB();closeModal('modal-fornitore');renderFornitori();
+  toast(editingId?'Fornitore aggiornato':'Fornitore aggiunto','success');
+}
+
+function deleteFornitore(id){
+  if(!confirm('Eliminare questo fornitore?'))return;
+  DB.fornitori=(DB.fornitori||[]).filter(f=>f.id!==id);
+  saveDB();renderFornitori();toast('Fornitore eliminato','success');
+}
+
+function popolaSelectFornitori(){
+  const sel=document.getElementById('m-mov-fornitore');if(!sel)return;
+  sel.innerHTML='<option value="">— Nessuno —</option>'+
+    (DB.fornitori||[]).filter(f=>f.stato==='attivo')
+    .sort((a,b)=>a.nome.localeCompare(b.nome,'it'))
+    .map(f=>`<option value="${f.id}">${f.nome}${f.cat?' ('+f.cat+')':''}</option>`).join('');
+}
+
 // ═══ PRIMA NOTA ═══════════════════════════════════════════
 function renderPrimaNota(){
   const dal=document.getElementById('pn-dal')?.value||'';
@@ -3581,6 +3733,18 @@ function renderRendiconto(){
   const totU=uscite.reduce((s,u)=>s+parseFloat(u.importo||0),0);
   const saldo=totE-totU;
   const cont=document.getElementById('rendiconto-content');
+  // Totale per fornitore
+  const byFornitore={};
+  uscite.filter(u=>u.fornitoreId).forEach(u=>{
+    const k=u.fornitoreNome||u.fornitoreId;
+    if(!byFornitore[k])byFornitore[k]=0;
+    byFornitore[k]+=parseFloat(u.importo||0);
+  });
+  const sezioneFornitore=Object.keys(byFornitore).length?`
+    <div style="margin-top:16px;">
+      <div style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--border);">SPESA PER FORNITORE</div>
+      ${Object.entries(byFornitore).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;">${k}</span><span style="font-size:12px;font-weight:600;color:var(--red);">€${v.toFixed(2)}</span></div>`).join('')}
+    </div>`:'';
   cont.innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
       <div>
@@ -3594,7 +3758,8 @@ function renderRendiconto(){
         <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;font-size:13px;margin-top:4px;"><span>TOTALE USCITE</span><span style="color:var(--red);">€${totU.toFixed(2)}</span></div>
       </div>
     </div>
-    <div style="background:${saldo>=0?'rgba(39,174,96,.1)':'rgba(192,57,43,.1)'};border:2px solid ${saldo>=0?'var(--green)':'var(--red)'};border-radius:8px;padding:16px;text-align:center;">
+    ${sezioneFornitore}
+    <div style="background:${saldo>=0?'rgba(39,174,96,.1)':'rgba(192,57,43,.1)'};border:2px solid ${saldo>=0?'var(--green)':'var(--red)'};border-radius:8px;padding:16px;text-align:center;margin-top:16px;">
       <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${saldo>=0?'AVANZO DI GESTIONE':'DISAVANZO DI GESTIONE'}</div>
       <div style="font-size:28px;font-weight:700;font-family:'Oswald',sans-serif;color:${saldo>=0?'var(--green)':'var(--red)'};">€${Math.abs(saldo).toFixed(2)}</div>
     </div>`;
