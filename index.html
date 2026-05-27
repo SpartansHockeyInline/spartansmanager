@@ -883,11 +883,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 
       <!-- TAB PRIMA NOTA -->
       <div class="tab-panel" id="amm-tab-prima-nota">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;">
           <div class="field" style="flex-shrink:0;"><label>Dal</label><input class="fi" type="date" id="pn-dal" style="width:140px;"></div>
           <div class="field" style="flex-shrink:0;"><label>Al</label><input class="fi" type="date" id="pn-al" style="width:140px;"></div>
-          <button class="btn btn-s btn-sm" onclick="renderPrimaNota()" style="margin-top:14px;">🔍 Filtra</button>
-          <button class="btn btn-s btn-sm" onclick="stampaPrimaNota()" style="margin-top:14px;">🖨️ Stampa</button>
+          <div class="field" style="flex-shrink:0;"><label>Atleta</label><select class="fsel" id="pn-socio" style="width:180px;"><option value="">Tutti</option></select></div>
+          <button class="btn btn-s btn-sm" onclick="renderPrimaNota()" style="margin-bottom:2px;">🔍 Filtra</button>
+          <button class="btn btn-s btn-sm" onclick="stampaPrimaNota()" style="margin-bottom:2px;">🖨️ Stampa</button>
         </div>
         <div id="prima-nota-content"></div>
       </div>
@@ -1209,10 +1210,11 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <!-- Alert abbonamento scaduto/in scadenza -->
         <div id="atleta-abb-alert" style="display:none;margin-bottom:10px;"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div style="font-size:13px;font-weight:600;">Quote collegate</div>
-          <button class="btn btn-p btn-sm" onclick="aggiungiQuotaAtleta()">+ Aggiungi quota</button>
+          <div style="font-size:13px;font-weight:600;">Storico pagamenti</div>
+          <button class="btn btn-s btn-sm" onclick="showPage('amministrazione')" style="font-size:11px;">📒 Vai ad Amministrazione</button>
         </div>
-        <div id="atleta-quote-list"><div class="empty" style="padding:16px;"><div class="ei">💰</div><p>Nessuna quota</p></div></div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">I pagamenti vengono registrati in <strong>Amministrazione → Entrate</strong>. Qui viene mostrato lo storico per questo atleta.</div>
+        <div id="atleta-quote-list"><div class="empty" style="padding:16px;"><div class="ei">💰</div><p>Nessun pagamento registrato</p></div></div>
       </div>
       <div class="tab-panel" id="socio-tab-documenti">
         <div id="m-s-docs-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:9px;"></div>
@@ -1378,6 +1380,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="fgroup"><label>Importo (€) *</label><input class="fi" id="m-mov-importo" type="number" step="0.01"></div>
         <div class="fgroup s2"><label>Descrizione *</label><input class="fi" id="m-mov-descr"></div>
         <div class="fgroup"><label>Categoria</label><select class="fsel" id="m-mov-cat"><option>Quota associativa</option><option>Abbonamento</option><option>Lezione privata</option><option>Affitto impianto</option><option>Gara/Evento</option><option>Attrezzatura</option><option>Utenze</option><option>Stipendio</option><option>Rimborso/compenso staff</option><option>Altro</option></select></div>
+        <div class="fgroup" id="m-mov-socio-wrap" style="display:none;"><label>Atleta collegato</label><select class="fsel" id="m-mov-socio"><option value="">— Nessuno —</option></select></div>
         <div class="fgroup" id="m-mov-fornitore-wrap" style="display:none;"><label>Fornitore</label><select class="fsel" id="m-mov-fornitore"><option value="">— Nessuno —</option></select></div>
         <div class="fgroup"><label>Metodo</label><select class="fsel" id="m-mov-metodo"><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>POS</option><option>Altro</option></select></div>
         <div class="fgroup s2"><label>Note</label><textarea class="fta" id="m-mov-note"></textarea></div>
@@ -2038,6 +2041,13 @@ function openModal(id,mode){
     const foWrap=document.getElementById('m-mov-fornitore-wrap');
     if(foWrap)foWrap.style.display=mode==='uscita'?'':'none';
     if(mode==='uscita')popolaSelectFornitori();
+    // Campo socio solo per entrate
+    const soWrap=document.getElementById('m-mov-socio-wrap');
+    if(soWrap)soWrap.style.display=mode==='entrata'?'':'none';
+    if(mode==='entrata'){
+      const sel=document.getElementById('m-mov-socio');
+      if(sel){sel.innerHTML='<option value="">— Nessuno —</option>'+DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it')).map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');}
+    }
   }
   if(id==='modal-impianto'){selectedImpiantoIcon='🏟️';document.querySelectorAll('.icon-opt').forEach(o=>o.classList.remove('sel'));const def=document.querySelector('.icon-opt[data-icon="🏟️"]');if(def)def.classList.add('sel');}
   ov.classList.add('open');
@@ -2469,46 +2479,40 @@ let currentEditId=null;
 
 function renderQuoteAtleta(){
   if(!currentEditId)return;
-  if(!DB.quoteAtleti)DB.quoteAtleti=[];
-  const quote=DB.quoteAtleti.filter(q=>q.atletaId===currentEditId);
+  const s=DB.soci.find(x=>x.id===currentEditId);
+  if(!s)return;
   const cont=document.getElementById('atleta-quote-list');
   if(!cont)return;
-  if(!quote.length){cont.innerHTML='<div class="empty" style="padding:14px;"><div class="ei">💰</div><p>Nessuna quota</p></div>';return;}
-  cont.innerHTML=`<div class="tw"><table><thead><tr><th>Descrizione</th><th>Importo</th><th>Scadenza</th><th>Stato</th><th>Azioni</th></tr></thead><tbody>
-    ${quote.map(q=>`<tr>
-      <td>${q.descr}</td>
-      <td style="color:var(--green);font-weight:600;">€${parseFloat(q.importo||0).toFixed(2)}</td>
-      <td style="color:${scadColor(q.scadenza)};">${q.scadenza?formatDate(q.scadenza):'—'}</td>
-      <td><span class="badge ${q.pagata?'bg':'br'}">${q.pagata?'✓ Pagata':'In attesa'}</span></td>
-      <td><div class="tda">
-        <button class="bico" onclick="toggleQuotaPagata('${q.id}')">${q.pagata?'↩️':'✅'}</button>
-        <button class="bico" onclick="deleteQuotaAtleta('${q.id}')">🗑️</button>
-      </div></td>
+  // Mostra entrate da Amministrazione collegate a questo atleta
+  // Match per socioId esplicito oppure per nome nel campo descr
+  const nomeAtleta=`${s.nome} ${s.cognome}`.toLowerCase();
+  const entrate=(DB.entrate||[]).filter(e=>
+    e.socioId===currentEditId ||
+    (e.descr||'').toLowerCase().includes(nomeAtleta) ||
+    (e.descr||'').toLowerCase().includes(s.cognome.toLowerCase())
+  ).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  if(!entrate.length){
+    cont.innerHTML='<div class="empty" style="padding:14px;"><div class="ei">💰</div><p>Nessun pagamento registrato in Amministrazione per questo atleta</p></div>';
+    return;
+  }
+  const tot=entrate.reduce((sum,e)=>sum+parseFloat(e.importo||0),0);
+  cont.innerHTML=`
+    <div style="text-align:right;font-size:13px;font-weight:600;color:var(--green);margin-bottom:8px;">Totale: €${tot.toFixed(2)}</div>
+    <div class="tw"><table><thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th style="text-align:right;">Importo</th><th>Metodo</th></tr></thead><tbody>
+    ${entrate.map(e=>`<tr>
+      <td>${e.data?formatDate(e.data):'—'}</td>
+      <td>${e.descr||'—'}</td>
+      <td><span class="badge bb" style="font-size:10px;">${e.cat||'—'}</span></td>
+      <td style="text-align:right;color:var(--green);font-weight:600;">€${parseFloat(e.importo||0).toFixed(2)}</td>
+      <td>${e.metodo||'—'}</td>
     </tr>`).join('')}
   </tbody></table></div>`;
 }
 
-function aggiungiQuotaAtleta(){
-  const descr=prompt('Descrizione quota (es. Quota associativa 2025/26):');
-  if(!descr)return;
-  const importo=prompt('Importo (€):');
-  if(!importo)return;
-  const scadenza=prompt('Scadenza (YYYY-MM-DD, opzionale):');
-  if(!DB.quoteAtleti)DB.quoteAtleti=[];
-  DB.quoteAtleti.push({id:uid(),atletaId:currentEditId,descr,importo:parseFloat(importo)||0,scadenza:scadenza||'',pagata:false,data:new Date().toISOString().slice(0,10)});
-  saveDB();renderQuoteAtleta();toast('Quota aggiunta','success');
-}
-
-function toggleQuotaPagata(id){
-  const q=DB.quoteAtleti?.find(x=>x.id===id);
-  if(q){q.pagata=!q.pagata;saveDB();renderQuoteAtleta();}
-}
-
-function deleteQuotaAtleta(id){
-  if(!confirm('Eliminare questa quota?'))return;
-  DB.quoteAtleti=DB.quoteAtleti.filter(x=>x.id!==id);
-  saveDB();renderQuoteAtleta();
-}
+// Funzioni legacy quoteAtleti — mantenute per compatibilità storica
+function aggiungiQuotaAtleta(){toast('Registra il pagamento in Amministrazione → Entrate','info');}
+function toggleQuotaPagata(id){}
+function deleteQuotaAtleta(id){}
 
 // ═══ GENERAZIONE LINK MODULI ══════════════════════════════
 const BASE_URL='https://spartanshockeyinline.github.io/spartansmanager/';
@@ -3251,7 +3255,10 @@ function saveMovimento(){
   const foSel=document.getElementById('m-mov-fornitore');
   const fornitoreId=foSel?.value||'';
   const fornitoreNome=fornitoreId?(DB.fornitori||[]).find(f=>f.id===fornitoreId)?.nome||'':'';
-  const obj={id:editingId||uid(),data:document.getElementById('m-mov-data').value,descr,importo,cat:document.getElementById('m-mov-cat').value,metodo:document.getElementById('m-mov-metodo').value,note:document.getElementById('m-mov-note').value,...(fornitoreId?{fornitoreId,fornitoreNome}:{})};
+  const soSel=document.getElementById('m-mov-socio');
+  const socioId=soSel?.value||'';
+  const socioNome=socioId?(()=>{const s=DB.soci.find(x=>x.id===socioId);return s?`${s.nome} ${s.cognome}`:''})():'';
+  const obj={id:editingId||uid(),data:document.getElementById('m-mov-data').value,descr,importo,cat:document.getElementById('m-mov-cat').value,metodo:document.getElementById('m-mov-metodo').value,note:document.getElementById('m-mov-note').value,...(fornitoreId?{fornitoreId,fornitoreNome}:{}),...(socioId?{socioId,socioNome}:{})};
   if(editingId){
     const arr=movTipo==='entrata'?DB.entrate:DB.uscite;
     const i=arr.findIndex(x=>x.id===editingId);if(i>-1)arr[i]=obj;
@@ -4376,15 +4383,24 @@ function popolaSelectFornitori(){
 
 // ═══ PRIMA NOTA ═══════════════════════════════════════════
 function renderPrimaNota(){
+  const selSocio=document.getElementById('pn-socio');
+  if(selSocio&&selSocio.options.length===1){
+    selSocio.innerHTML='<option value="">Tutti</option>'+DB.soci.slice().sort((a,b)=>(a.cognome+' '+a.nome).localeCompare(b.cognome+' '+b.nome,'it')).map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
+  }
   const dal=document.getElementById('pn-dal')?.value||'';
   const al=document.getElementById('pn-al')?.value||'';
+  const socioFiltro=selSocio?.value||'';
   const movimenti=[
     ...(DB.entrate||[]).map(e=>({...e,segno:'+',col:'var(--green)'})),
     ...(DB.uscite||[]).map(u=>({...u,segno:'-',col:'var(--red)'}))
-  ].filter(m=>(!dal||m.data>=dal)&&(!al||m.data<=al))
-   .sort((a,b)=>a.data.localeCompare(b.data));
+  ].filter(m=>{
+    if(dal&&m.data<dal)return false;
+    if(al&&m.data>al)return false;
+    if(socioFiltro&&m.socioId!==socioFiltro)return false;
+    return true;
+  }).sort((a,b)=>a.data.localeCompare(b.data));
   const cont=document.getElementById('prima-nota-content');
-  if(!movimenti.length){cont.innerHTML='<div class="empty"><div class="ei">📋</div><p>Nessun movimento nel periodo</p></div>';return;}
+  if(!movimenti.length){cont.innerHTML=`<div style="margin-bottom:8px;">${_labelPeriodo(dal,al)}</div><div class="empty"><div class="ei">📋</div><p>Nessun movimento nel periodo</p></div>`;return;}
   let saldo=0;
   const totE=movimenti.filter(m=>m.segno==='+').reduce((s,m)=>s+parseFloat(m.importo||0),0);
   const totU=movimenti.filter(m=>m.segno==='-').reduce((s,m)=>s+parseFloat(m.importo||0),0);
@@ -4393,14 +4409,16 @@ function renderPrimaNota(){
     saldo+=m.segno==='+'?imp:-imp;
     return`<tr>
       <td>${m.data?formatDate(m.data):'—'}</td>
-      <td>${m.descr||'—'}</td>
+      <td>${m.descr||'—'}${m.socioNome?`<div style="font-size:10px;color:var(--text2);">👤 ${m.socioNome}</div>`:''}</td>
       <td><span class="badge ${m.segno==='+'?'bb':'bo'}">${m.cat||'—'}</span></td>
       <td style="color:${m.col};font-weight:600;text-align:right;">${m.segno}€${imp.toFixed(2)}</td>
       <td style="font-weight:600;text-align:right;color:${saldo>=0?'var(--green)':'var(--red)'};">€${saldo.toFixed(2)}</td>
       <td>${m.metodo||'—'}</td>
     </tr>`;
   }).join('');
+  const socioLabel=socioFiltro?(()=>{const s=DB.soci.find(x=>x.id===socioFiltro);return s?` · <strong>👤 ${s.cognome} ${s.nome}</strong>`:''})():'';
   cont.innerHTML=`
+    <div style="margin-bottom:10px;">${_labelPeriodo(dal,al)}${socioLabel}</div>
     <div class="stats-grid" style="margin-bottom:12px;">
       <div class="stat-card sc-green"><div class="sl">Entrate periodo</div><div class="sv">€${totE.toFixed(2)}</div></div>
       <div class="stat-card sc-red"><div class="sl">Uscite periodo</div><div class="sv">€${totU.toFixed(2)}</div></div>
