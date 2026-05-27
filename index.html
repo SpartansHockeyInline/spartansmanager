@@ -3664,41 +3664,39 @@ function apriDocumento(tipo){
 
 // ═══ REPORT PRESENZE AVANZATO ══════════════════════════════
 function _getPresenzeStats(corsoIdFiltro, dal, al){
-  // Costruisce statistiche per ogni atleta
   const presenze=DB.presenze||{};
-  // Filtra le chiavi per corso e periodo
   const keys=Object.keys(presenze).filter(k=>{
-    const [cid, data]=k.split('_');
+    const[cid,data]=k.split('_');
     if(corsoIdFiltro&&cid!==corsoIdFiltro)return false;
     if(dal&&data<dal)return false;
     if(al&&data>al)return false;
     return true;
   });
-  // Sessioni totali per corso
+  // Sessioni totali per corso (base di calcolo corretta)
   const sessioniPerCorso={};
   keys.forEach(k=>{
     const cid=k.split('_')[0];
-    if(!sessioniPerCorso[cid])sessioniPerCorso[cid]=new Set();
-    sessioniPerCorso[cid].add(k);
+    if(!sessioniPerCorso[cid])sessioniPerCorso[cid]=0;
+    sessioniPerCorso[cid]++;
   });
-  // Presenze per atleta
+  // Presenze per atleta raggruppate per corso
   const stats={};
   keys.forEach(k=>{
     const cid=k.split('_')[0];
     const corso=DB.corsi.find(c=>c.id===cid);
-    const sessione=presenze[k];
-    Object.entries(sessione).forEach(([socioId, presente])=>{
-      if(!stats[socioId])stats[socioId]={presenti:0,assenti:0,sessioni:0,corsoNome:corso?.nome||'—'};
-      stats[socioId].sessioni++;
-      if(presente)stats[socioId].presenti++;else stats[socioId].assenti++;
+    Object.entries(presenze[k]).forEach(([socioId,presente])=>{
+      const key2=socioId+'_'+cid;
+      if(!stats[key2])stats[key2]={socioId,corsoId:cid,corsoNome:corso?.nome||'—',presenti:0};
+      if(presente)stats[key2].presenti++;
     });
   });
-  // Aggiungi info atleta e % 
-  return Object.entries(stats).map(([id,s])=>{
-    const atleta=DB.soci.find(x=>x.id===id);
-    return{id,nome:atleta?`${atleta.nome} ${atleta.cognome}`:'Sconosciuto',
-      corsoNome:s.corsoNome,presenti:s.presenti,assenti:s.assenti,
-      sessioni:s.sessioni,perc:s.sessioni>0?Math.round(s.presenti/s.sessioni*100):0};
+  // % calcolata su sessioni TOTALI del corso, non solo quelle dell'atleta
+  return Object.values(stats).map(s=>{
+    const tot=sessioniPerCorso[s.corsoId]||1;
+    const atleta=DB.soci.find(x=>x.id===s.socioId);
+    return{id:s.socioId,nome:atleta?`${atleta.nome} ${atleta.cognome}`:'Sconosciuto',
+      corsoNome:s.corsoNome,presenti:s.presenti,assenti:tot-s.presenti,
+      sessioni:tot,perc:Math.round(s.presenti/tot*100)};
   });
 }
 
