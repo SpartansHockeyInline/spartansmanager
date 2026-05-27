@@ -724,6 +724,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       <div class="tabs">
         <div class="tab active" onclick="showTab('abbonamenti','piani')">📋 Piani</div>
         <div class="tab" onclick="showTab('abbonamenti','attivi')">✅ Abbonamenti soci</div>
+        <div class="tab" onclick="showTab('abbonamenti','solleciti');renderSollecitiAbb()">🔔 Solleciti</div>
+        <div class="tab" onclick="showTab('abbonamenti','storico');renderStoricoAbb()">📜 Storico</div>
+        <div class="tab" onclick="showTab('abbonamenti','statistiche');renderStatisticheAbb()">📊 Statistiche</div>
       </div>
       <div class="tab-panel active" id="abbonamenti-tab-piani">
         <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-piano','')">+ Nuovo piano</button></div>
@@ -732,6 +735,20 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       <div class="tab-panel" id="abbonamenti-tab-attivi">
         <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-abb-socio','')">+ Assegna</button></div>
         <div class="tw"><table><thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Pagato</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="abbattivi-tbody"></tbody></table></div>
+      </div>
+      <div class="tab-panel" id="abbonamenti-tab-solleciti">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Abbonamenti scaduti o in scadenza entro 30 giorni.</div>
+        <div id="solleciti-abb-content"></div>
+      </div>
+      <div class="tab-panel" id="abbonamenti-tab-storico">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field"><label>Socio</label><select class="fsel" id="storico-abb-socio" style="width:200px;" onchange="renderStoricoAbb()"><option value="">Tutti i soci</option></select></div>
+          <div class="field"><label>Piano</label><select class="fsel" id="storico-abb-piano" style="width:180px;" onchange="renderStoricoAbb()"><option value="">Tutti i piani</option></select></div>
+        </div>
+        <div id="storico-abb-content"></div>
+      </div>
+      <div class="tab-panel" id="abbonamenti-tab-statistiche">
+        <div id="statistiche-abb-content"></div>
       </div>
     </div>
 
@@ -1083,7 +1100,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.7.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.8.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1189,6 +1206,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         </div>
       </div>
       <div class="tab-panel" id="socio-tab-pagamenti">
+        <!-- Alert abbonamento scaduto/in scadenza -->
+        <div id="atleta-abb-alert" style="display:none;margin-bottom:10px;"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <div style="font-size:13px;font-weight:600;">Quote collegate</div>
           <button class="btn btn-p btn-sm" onclick="aggiungiQuotaAtleta()">+ Aggiungi quota</button>
@@ -1476,23 +1495,24 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
-        <div class="cl-ver">v3.7.0 · Maggio 2026</div>
+        <div class="cl-ver">v3.8.0 · Maggio 2026</div>
         <div class="cl-section">Nuove funzionalità</div>
-        <div class="cl-item"><strong>Vista Agenda</strong> — nuovo tab nel calendario: lista eventi del mese raggruppati per giorno con icona, orario, luogo e squadra</div>
-        <div class="cl-item"><strong>Filtro per corso/squadra</strong> — filtra gli eventi del calendario per corso specifico</div>
-        <div class="cl-item"><strong>Esporta iCal</strong> — esporta il calendario in formato .ics compatibile con Google Calendar e Apple Calendar</div>
-        <div class="cl-item"><strong>Oggi evidenziato</strong> — il giorno corrente è evidenziato con sfondo colorato nel calendario mensile</div>
+        <div class="cl-item"><strong>Solleciti abbonamenti</strong> — lista abbonamenti scaduti o in scadenza entro 30gg con sollecito diretto via email o WhatsApp</div>
+        <div class="cl-item"><strong>Storico abbonamenti</strong> — elenco completo con filtro per socio e piano, stato colorato, metodo di pagamento</div>
+        <div class="cl-item"><strong>Statistiche abbonamenti</strong> — totali attivi/scaduti/incassati, breakdown per piano e grafico incassi per mese</div>
+        <div class="cl-item"><strong>Alert scadenza in scheda atleta</strong> — avviso nel tab Pagamenti se l'abbonamento è scaduto o in scadenza entro 30 giorni</div>
+        <div class="cl-item"><strong>Fix link fornitori</strong> — il link al sito web si apre correttamente in una nuova scheda</div>
       </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v3.7.0 · Maggio 2026</div>
         <div class="cl-section">Nuove funzionalità</div>
-        <div class="cl-item"><strong>Vista Agenda calendario</strong> — nuovo tab: lista eventi del mese raggruppati per giorno con icona, orario, luogo e squadra</div>
-        <div class="cl-item"><strong>Filtro corso/squadra calendario</strong> — filtra eventi per corso specifico in entrambe le viste</div>
+        <div class="cl-item"><strong>Vista Agenda calendario</strong> — lista eventi del mese per giorno con icona, orario, luogo e squadra</div>
+        <div class="cl-item"><strong>Filtro corso/squadra calendario</strong> — filtra eventi per corso in entrambe le viste</div>
         <div class="cl-item"><strong>Esporta iCal</strong> — esporta il calendario in formato .ics per Google Calendar e Apple Calendar</div>
         <div class="cl-item"><strong>Oggi evidenziato</strong> — il giorno corrente è evidenziato nella vista mensile</div>
-        <div class="cl-item"><strong>Lista iscritti per corso</strong> — click su 👥 in Corsi e Squadre per vedere tutti gli atleti iscritti con avatar e categoria FISR</div>
-        <div class="cl-item"><strong>Linee / Gruppi</strong> — crea sottogruppi (Prima linea, Seconda linea ecc.) dentro ogni corso, assegna/rimuovi atleti liberamente per testare combinazioni; salvato su Firebase senza toccare l'anagrafica</div>
+        <div class="cl-item"><strong>Lista iscritti per corso</strong> — click su 👥 per vedere tutti gli atleti iscritti con avatar e categoria FISR</div>
+        <div class="cl-item"><strong>Linee / Gruppi</strong> — crea sottogruppi dentro ogni corso, assegna/rimuovi atleti per testare combinazioni</div>
       </div>
 
       <div class="cl-entry">
@@ -2242,7 +2262,7 @@ function showSocioTab(tab){
   document.querySelectorAll('#modal-socio .tabs .tab').forEach((tb,i)=>{
     tb.classList.toggle('active',['anagrafica','sanitario','genitori','taglie','pagamenti','documenti'][i]===tab);
   });
-  if(tab==='pagamenti')renderQuoteAtleta();
+  if(tab==='pagamenti'){renderQuoteAtleta();renderAlertAbbAtleta(currentEditId);}
 }
 
 // ═══ STAFF ════════════════════════════════════════════════
@@ -2781,6 +2801,165 @@ function importFromCSV(){
 // ═══ PIANI ════════════════════════════════════════════════
 function savePiano(){const nome=document.getElementById('m-p-nome').value.trim();if(!nome){toast('Nome obbligatorio','error');return;}const obj={id:editingId||uid(),nome,durata:document.getElementById('m-p-durata').value,prezzo:parseFloat(document.getElementById('m-p-prezzo').value)||0,sport:document.getElementById('m-p-sport').value,ingressi:parseInt(document.getElementById('m-p-ingressi').value)||0,note:document.getElementById('m-p-note').value};if(editingId){const i=DB.piani.findIndex(x=>x.id===editingId);if(i>-1)DB.piani[i]=obj;}else DB.piani.push(obj);saveDB();closeModal('modal-piano');renderPiani();toast('Piano salvato','success');}
 function renderPiani(){const tb=document.getElementById('piani-tbody');if(!DB.piani.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">🎫</div><h3>Nessun piano</h3></div></td></tr>';return;}tb.innerHTML=DB.piani.map(p=>`<tr><td><strong>${p.nome}</strong></td><td>${p.durata}</td><td>€${p.prezzo.toFixed(2)}</td><td>${p.sport||'—'}</td><td>${p.note||'—'}</td><td><div class="tda"><button class="bico" onclick="editPiano('${p.id}')">✏️</button><button class="bico" onclick="deletePiano('${p.id}')">🗑️</button></div></td></tr>`).join('');}
+
+// ═══ SOLLECITI ABBONAMENTI ════════════════════════════════
+function renderSollecitiAbb(){
+  const cont=document.getElementById('solleciti-abb-content');
+  const now=new Date();
+  const oggi=now.toISOString().slice(0,10);
+  const tra30=new Date(now.getTime()+30*86400000).toISOString().slice(0,10);
+  const scaduti=DB.abbonamenti.filter(a=>a.scadenza&&a.scadenza<oggi);
+  const inScadenza=DB.abbonamenti.filter(a=>a.scadenza&&a.scadenza>=oggi&&a.scadenza<=tra30);
+  const tutti=[...scaduti,...inScadenza];
+  if(!tutti.length){cont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessun abbonamento scaduto o in scadenza entro 30 giorni</p></div>';return;}
+  cont.innerHTML=tutti.map(a=>{
+    const s=DB.soci.find(x=>x.id===a.socioId);
+    const email=s?.email||s?.g1Email||'';
+    const tel=s?.tel||s?.g1Tel||'';
+    const scaduto=a.scadenza<oggi;
+    const diff=Math.round((new Date(a.scadenza)-now)/86400000);
+    const badge=scaduto?`<span class="badge br">⚠️ Scaduto ${Math.abs(diff)}gg fa</span>`:`<span class="badge by">⏳ Scade in ${diff}gg</span>`;
+    const stagione=getStagioneCorrente()?.label||'';
+    const testoEmail=`Gentile ${a.socioNome},\n\nLa informiamo che il suo abbonamento "${a.pianoNome}" ${scaduto?'è scaduto il':'scade il'} ${formatDate(a.scadenza)}.\n\nLa preghiamo di provvedere al rinnovo.\n\nCordiali saluti,\nStaff ASD Spartans Hockey Inline`;
+    const testoWa=`Ciao ${a.socioNome}! Il tuo abbonamento "${a.pianoNome}" ${scaduto?'è scaduto il':'scade il'} ${formatDate(a.scadenza)}. Ti aspettiamo per il rinnovo! — Staff Spartans Hockey Inline`;
+    return`<div class="card" style="border:1px solid var(--border);margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">${s?renderAvatar(s,36):''}
+          <div><div style="font-weight:600;">${a.socioNome}</div>
+          <div style="font-size:11px;color:var(--text2);">${a.pianoNome} · scad. ${formatDate(a.scadenza)}</div></div>
+        </div>
+        <div>${badge}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${email?`<button class="btn btn-p btn-sm" onclick="window.open('https://mail.google.com/mail/?authuser=spartanshockeyinline@gmail.com&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent('Rinnovo abbonamento — ASD Spartans Hockey Inline')}&body=${encodeURIComponent(testoEmail)}','_blank')">📧 Sollecita email</button>`:''}
+        ${tel?`<button class="btn btn-s btn-sm" onclick="window.open('https://wa.me/${(tel).replace(/\D/g,'')}?text=${encodeURIComponent(testoWa)}','_blank')">💬 Sollecita WhatsApp</button>`:''}
+        ${!email&&!tel?'<span style="font-size:11px;color:var(--text3);">Nessun contatto disponibile</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ STORICO ABBONAMENTI ══════════════════════════════════
+function renderStoricoAbb(){
+  // Popola select soci e piani
+  const selS=document.getElementById('storico-abb-socio');
+  if(selS&&selS.options.length===1){
+    const soci=[...new Set(DB.abbonamenti.map(a=>a.socioId))];
+    soci.forEach(id=>{const s=DB.soci.find(x=>x.id===id);if(s)selS.innerHTML+=`<option value="${id}">${s.cognome} ${s.nome}</option>`;});
+  }
+  const selP=document.getElementById('storico-abb-piano');
+  if(selP&&selP.options.length===1){
+    const piani=[...new Set(DB.abbonamenti.map(a=>a.pianoId))];
+    piani.forEach(id=>{const p=DB.piani.find(x=>x.id===id);if(p)selP.innerHTML+=`<option value="${id}">${p.nome}</option>`;});
+  }
+  const socioF=selS?.value||'';
+  const pianoF=selP?.value||'';
+  let lista=DB.abbonamenti;
+  if(socioF)lista=lista.filter(a=>a.socioId===socioF);
+  if(pianoF)lista=lista.filter(a=>a.pianoId===pianoF);
+  lista=lista.slice().sort((a,b)=>(b.inizio||'').localeCompare(a.inizio||''));
+  const cont=document.getElementById('storico-abb-content');
+  if(!lista.length){cont.innerHTML='<div class="empty"><div class="ei">📜</div><p>Nessun abbonamento trovato</p></div>';return;}
+  const oggi=new Date().toISOString().slice(0,10);
+  cont.innerHTML=`<div class="tw"><table>
+    <thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Pagato</th><th>Metodo</th><th>Stato</th></tr></thead>
+    <tbody>${lista.map(a=>{
+      const stato=!a.scadenza?'attivo':a.scadenza<oggi?'scaduto':'attivo';
+      const diff=a.scadenza?Math.round((new Date(a.scadenza)-new Date())/86400000):null;
+      const statoLabel=stato==='scaduto'?`<span class="badge br">Scaduto</span>`:diff!==null&&diff<=30?`<span class="badge by">⏳ ${diff}gg</span>`:`<span class="badge bg">Attivo</span>`;
+      return`<tr>
+        <td style="font-weight:600;">${a.socioNome}</td>
+        <td>${a.pianoNome}</td>
+        <td>${a.inizio?formatDate(a.inizio):'—'}</td>
+        <td>${a.scadenza?formatDate(a.scadenza):'—'}</td>
+        <td style="font-weight:600;">€${(a.pagato||0).toFixed(2)}</td>
+        <td>${a.metodo||'—'}</td>
+        <td>${statoLabel}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ═══ STATISTICHE ABBONAMENTI ══════════════════════════════
+function renderStatisticheAbb(){
+  const cont=document.getElementById('statistiche-abb-content');
+  const oggi=new Date().toISOString().slice(0,10);
+  const attivi=DB.abbonamenti.filter(a=>!a.scadenza||a.scadenza>=oggi).length;
+  const scaduti=DB.abbonamenti.filter(a=>a.scadenza&&a.scadenza<oggi).length;
+  const totIncassato=DB.abbonamenti.reduce((s,a)=>s+parseFloat(a.pagato||0),0);
+  // Per piano
+  const byPiano={};
+  DB.abbonamenti.forEach(a=>{
+    if(!byPiano[a.pianoNome])byPiano[a.pianoNome]={count:0,incasso:0};
+    byPiano[a.pianoNome].count++;
+    byPiano[a.pianoNome].incasso+=parseFloat(a.pagato||0);
+  });
+  // Per mese (ultimi 12 mesi)
+  const byMese={};
+  DB.abbonamenti.filter(a=>a.inizio).forEach(a=>{
+    const mese=a.inizio.slice(0,7);
+    if(!byMese[mese])byMese[mese]={count:0,incasso:0};
+    byMese[mese].count++;
+    byMese[mese].incasso+=parseFloat(a.pagato||0);
+  });
+  const mesi=Object.keys(byMese).sort().slice(-12);
+  cont.innerHTML=`
+    <div class="stats-grid" style="margin-bottom:16px;">
+      <div class="stat-card sc-green"><div class="sl">Abbonamenti attivi</div><div class="sv">${attivi}</div></div>
+      <div class="stat-card sc-red"><div class="sl">Scaduti</div><div class="sv">${scaduti}</div></div>
+      <div class="stat-card sc-blue"><div class="sl">Totale incassato</div><div class="sv">€${totIncassato.toFixed(2)}</div></div>
+      <div class="stat-card sc-gold"><div class="sl">Totale abbonamenti</div><div class="sv">${DB.abbonamenti.length}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:8px;">Per piano</div>
+        ${Object.entries(byPiano).sort((a,b)=>b[1].count-a[1].count).map(([nome,d])=>`
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:12px;">${nome}</span>
+            <span style="font-size:12px;color:var(--text2);">${d.count} abb. · <strong style="color:var(--green);">€${d.incasso.toFixed(2)}</strong></span>
+          </div>`).join('')}
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:8px;">Incassi per mese</div>
+        ${mesi.map(m=>{
+          const d=byMese[m];
+          const maxInc=Math.max(...mesi.map(x=>byMese[x].incasso),1);
+          const perc=Math.round(d.incasso/maxInc*100);
+          const [anno,mese]=m.split('-');
+          return`<div style="margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span>${MESI[parseInt(mese)-1]} ${anno}</span>
+              <span>€${d.incasso.toFixed(2)}</span>
+            </div>
+            <div style="background:var(--border);border-radius:4px;height:6px;">
+              <div style="background:var(--green);width:${perc}%;height:100%;border-radius:4px;"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ═══ ALERT ABBONAMENTO IN SCHEDA ATLETA ═══════════════════
+function renderAlertAbbAtleta(atletaId){
+  const alertEl=document.getElementById('atleta-abb-alert');
+  if(!alertEl)return;
+  const oggi=new Date().toISOString().slice(0,10);
+  const tra30=new Date(new Date().getTime()+30*86400000).toISOString().slice(0,10);
+  const abb=DB.abbonamenti.filter(a=>a.socioId===atletaId&&a.scadenza);
+  const scaduto=abb.find(a=>a.scadenza<oggi);
+  const inScadenza=abb.find(a=>a.scadenza>=oggi&&a.scadenza<=tra30);
+  if(scaduto){
+    alertEl.style.display='';
+    alertEl.innerHTML=`<div style="background:rgba(192,57,43,.1);border:1px solid var(--red);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--red);">⚠️ Abbonamento <strong>${scaduto.pianoNome}</strong> scaduto il ${formatDate(scaduto.scadenza)}</div>`;
+  }else if(inScadenza){
+    const diff=Math.round((new Date(inScadenza.scadenza)-new Date())/86400000);
+    alertEl.style.display='';
+    alertEl.innerHTML=`<div style="background:rgba(212,160,23,.1);border:1px solid var(--gold);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--gold);">⏳ Abbonamento <strong>${inScadenza.pianoNome}</strong> in scadenza tra ${diff} giorni (${formatDate(inScadenza.scadenza)})</div>`;
+  }else{
+    alertEl.style.display='none';
+  }
+}
 function editPiano(id){editingId=id;const p=DB.piani.find(x=>x.id===id);if(!p)return;['nome','durata','prezzo','sport','ingressi','note'].forEach(k=>{const el=document.getElementById('m-p-'+k);if(el)el.value=p[k]||'';});document.getElementById('modal-piano').classList.add('open');}
 function deletePiano(id){if(!confirm('Eliminare?'))return;DB.piani=DB.piani.filter(x=>x.id!==id);saveDB();renderPiani();}
 function populateSociSel(){document.getElementById('m-as-socio').innerHTML='<option value="">Seleziona...</option>'+DB.soci.map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');}
@@ -4133,7 +4312,7 @@ function renderFornitori(){
     const totSpeso=(DB.uscite||[]).filter(u=>u.fornitoreId===f.id).reduce((s,u)=>s+parseFloat(u.importo||0),0);
     return`<tr>
       <td>${idx+1}</td>
-      <td><div style="font-weight:600;">${f.nome}</div>${f.web?`<div style="font-size:10px;"><a href="${f.web}" target="_blank" style="color:var(--accent);">${f.web}</a></div>`:''}</td>
+      <td><div style="font-weight:600;">${f.nome}</div>${f.web?`<div style="font-size:10px;"><a href="${f.web.startsWith('http')?f.web:'https://'+f.web}" target="_blank" rel="noopener" style="color:var(--accent);">${f.web}</a></div>`:''}</td>
       <td><span class="badge bgy">${f.cat||'—'}</span></td>
       <td>${f.referente||'—'}${f.referenteTel?`<div style="font-size:10px;color:var(--text2);">${f.referenteTel}</div>`:''}</td>
       <td>${f.tel||'—'}</td>
@@ -4620,7 +4799,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='3.7.0';
+    const CURRENT_VER='3.8.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
