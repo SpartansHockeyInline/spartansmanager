@@ -2800,7 +2800,19 @@ function loadPresenze(){
   }).join('');
 }
 function togglePresenza(socioId,el,key){el.classList.toggle('present');const present=el.classList.contains('present');if(!DB.presenze[key])DB.presenze[key]={};DB.presenze[key][socioId]=present;const lbl=el.nextElementSibling?.nextElementSibling?.nextElementSibling;if(lbl){lbl.textContent=present?'Presente':'Assente';lbl.style.color=present?'var(--green)':'var(--text3)';}}
-function salvaPresenze(){saveDB();toast('Presenze salvate','success');initPresenze();renderStoricoPresenze();}
+function salvaPresenze(){
+  const corsoId=document.getElementById('pres-corso').value;
+  const data=document.getElementById('pres-data').value;
+  if(!corsoId||!data){toast('Seleziona corso e data','error');return;}
+  const key=`${corsoId}_${data}`;
+  if(!DB.presenze[key])DB.presenze[key]={};
+  // Assicura che tutti gli atleti del corso abbiano un valore (true o false)
+  const atleti=DB.soci.filter(s=>s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId));
+  atleti.forEach(a=>{
+    if(DB.presenze[key][a.id]===undefined)DB.presenze[key][a.id]=false;
+  });
+  saveDB();toast('Presenze salvate','success');initPresenze();renderStoricoPresenze();
+}
 function renderStoricoPresenze(){
   const corsoId=document.getElementById('storico-corso').value;
   const meseFilter=document.getElementById('storico-mese')?.value||'';
@@ -3686,11 +3698,12 @@ function _getPresenzeStats(corsoIdFiltro, dal, al){
     const corso=DB.corsi.find(c=>c.id===cid);
     Object.entries(presenze[k]).forEach(([socioId,presente])=>{
       const key2=socioId+'_'+cid;
-      if(!stats[key2])stats[key2]={socioId,corsoId:cid,corsoNome:corso?.nome||'—',presenti:0};
+      if(!stats[key2])stats[key2]={socioId,corsoId:cid,corsoNome:corso?.nome||'—',presenti:0,registrati:0};
+      stats[key2].registrati++; // quante volte l'atleta era nella lista
       if(presente)stats[key2].presenti++;
     });
   });
-  // % calcolata su sessioni TOTALI del corso, non solo quelle dell'atleta
+  // % calcolata su sessioni TOTALI del corso (base corretta)
   return Object.values(stats).map(s=>{
     const tot=sessioniPerCorso[s.corsoId]||1;
     const atleta=DB.soci.find(x=>x.id===s.socioId);
