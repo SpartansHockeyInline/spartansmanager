@@ -362,6 +362,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   .card{padding:13px;}
   .card-title{font-size:13px;}
   #drive-bar .dacts button:nth-child(n+3){display:none;}
+  /* Card view per tabelle su mobile */
+  .tw table{display:block;}
+  .tw table thead{display:none;}
+  .tw table tbody{display:block;}
+  .tw table tr{display:block;margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);}
+  .tw table td{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px;gap:8px;}
+  .tw table td:last-child{border-bottom:none;}
+  /* Ricerca globale mobile */
+  #global-search{font-size:13px;padding:6px 10px;}
+  #topbar .pt{font-size:13px;}
 }
 @media(hover:none){
   .ni-item:hover{background:transparent;}
@@ -447,6 +457,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ni-item" onclick="showPage('comunicati-fisr')"><span class="ico">📋</span><span class="lbl">Comunicati FISR</span><span id="badge-fisr" class="nbadge" style="display:none;"></span></div>
     <div class="ni-item" onclick="showPage('genera-documenti')"><span class="ico">📄</span><span class="lbl">Genera documenti</span></div>
     <div class="nav-sec-label">Sistema</div>
+    <div class="ni-item" onclick="showPage('guida')"><span class="ico">📖</span><span class="lbl">Guida</span></div>
     <div class="ni-item" onclick="showPage('impostazioni')"><span class="ico">⚙️</span><span class="lbl">Impostazioni</span></div>
     <div class="ni-item" onclick="fbSignOut()" style="color:var(--red);"><span class="ico">🚪</span><span class="lbl">Logout</span></div>
   </nav>
@@ -457,9 +468,19 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div id="topbar">
     <button id="mobile-menu-btn" onclick="toggleMobileMenu()" style="display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px;margin-right:4px;">☰</button>
     <div class="pt" id="topbar-title">Dashboard</div>
+    <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:400px;margin:0 12px;">
+      <div style="position:relative;flex:1;">
+        <input class="fi" id="global-search" placeholder="🔍 Cerca atleti, staff, movimenti..." style="width:100%;padding-right:32px;" oninput="globalSearch(this.value)" onfocus="showSearchResults()" autocomplete="off">
+        <button onclick="clearSearch()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;" id="search-clear-btn" style="display:none;">✕</button>
+      </div>
+    </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <button class="tbtn primary" id="topbar-add-btn" onclick="topbarAdd()" style="display:none;">+ Aggiungi</button>
     </div>
+  </div>
+  <!-- PANNELLO RISULTATI RICERCA -->
+  <div id="search-results-panel" style="display:none;position:fixed;top:52px;left:50%;transform:translateX(-50%);width:min(600px,90vw);background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:999;max-height:400px;overflow-y:auto;">
+    <div id="search-results-content" style="padding:8px;"></div>
   </div>
   <div id="content">
 
@@ -1072,6 +1093,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </tr></thead><tbody id="fornitori-tbody"></tbody></table></div>
     </div>
 
+    <!-- ═══ GUIDA ═══ -->
+    <div class="page" id="page-guida">
+      <div style="margin-bottom:14px;">
+        <input class="fi" id="guida-search" placeholder="🔍 Cerca nella guida..." oninput="filtraGuida(this.value)" style="max-width:380px;">
+      </div>
+      <div id="guida-content"></div>
+    </div>
+
     <div class="page" id="page-valutazione-atleta"></div>
 
     <!-- ═══ COMUNICATI FISR ═══ -->
@@ -1101,7 +1130,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.8.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.0.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1496,6 +1525,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v4.0.0 · Maggio 2026</div>
+        <div class="cl-section">Cambiamento architetturale</div>
+        <div class="cl-item"><strong>Ricerca globale</strong> — barra di ricerca nella topbar: cerca trasversalmente su atleti, staff, fornitori, entrate, uscite ed eventi; risultati con click diretto alla sezione</div>
+        <div class="cl-item"><strong>Guida integrata</strong> — nuova sezione nel menu Sistema: 20 guide pratiche organizzate per argomento (Anagrafiche, Amministrazione, Presenze, Calendario, Documenti, Comunicazioni, Fornitori, Impostazioni) con ricerca interna</div>
+        <div class="cl-item"><strong>UX mobile migliorata</strong> — le tabelle su schermi piccoli (≤640px) si trasformano automaticamente in card stacked per una navigazione più comoda da smartphone</div>
+        <div class="cl-item"><strong>Pagamenti atleta unificati</strong> — il tab Pagamenti nella scheda atleta mostra ora lo storico delle entrate registrate in Amministrazione (fonte unica); il campo "Atleta collegato" nelle entrate collega il pagamento all\'atleta; filtro per atleta nella Prima Nota</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v3.8.0 · Maggio 2026</div>
@@ -1982,7 +2020,7 @@ function closeMobileMenu(){
 }
 
 // ═══ NAV ══════════════════════════════════════════════════
-const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',fornitori:'Fornitori',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta','comunicati-fisr':'Comunicati FISR','genera-documenti':'Genera documenti',impostazioni:'Impostazioni'};
+const pageTitles={dashboard:'Dashboard',calendario:'Calendario',stagioni:'Stagioni sportive','stagione-detail':'Dettaglio stagione',struttura:'La mia struttura',anagrafiche:'Anagrafiche soci',abbonamenti:'Abbonamenti',corsi:'Corsi e squadre',presenze:'Registro presenze',impianti:'Impianti',maestri:'Tecnici / Maestri',fornitori:'Fornitori',amministrazione:'Amministrazione',comunicazioni:'Comunicazioni',valutazioni:'Valutazione atleti','valutazione-atleta':'Scheda atleta','comunicati-fisr':'Comunicati FISR','genera-documenti':'Genera documenti',guida:'Guida',impostazioni:'Impostazioni'};
 const pagesAdd=['anagrafiche','abbonamenti','corsi','impianti','maestri','amministrazione','calendario','stagioni','comunicazioni','valutazioni'];
 
 function showPage(page){
@@ -2008,6 +2046,7 @@ function showPage(page){
   if(page==='comunicazioni')initComunicazioni();
   if(page==='valutazioni')renderValutazioni();
   if(page==='fornitori')renderFornitori();
+  if(page==='guida')initGuida();
   if(page==='comunicati-fisr')initComunicatiFisr();
   if(page==='genera-documenti')initGeneraDocumenti();
   if(page==='impostazioni'){
@@ -4543,6 +4582,115 @@ function sollecitaWhatsApp(atletaId){
   window.open(`https://wa.me/${tel}?text=${encodeURIComponent(testo)}`,'_blank');
 }
 
+// ═══ RICERCA GLOBALE ══════════════════════════════════════
+function globalSearch(q){
+  const panel=document.getElementById('search-results-panel');
+  const cont=document.getElementById('search-results-content');
+  const clrBtn=document.getElementById('search-clear-btn');
+  if(clrBtn)clrBtn.style.display=q?'':'none';
+  if(!q||q.length<2){panel.style.display='none';return;}
+  panel.style.display='';
+  const ql=q.toLowerCase();
+  const results=[];
+  // Atleti
+  DB.soci.filter(s=>`${s.nome} ${s.cognome} ${s.cf||''} ${s.email||''}`.toLowerCase().includes(ql))
+    .slice(0,5).forEach(s=>results.push({tipo:'👤 Atleta',label:`${s.nome} ${s.cognome}`,sub:s.corsoNome||s.tipologia||'',action:`editSocio('${s.id}')`}));
+  // Staff
+  (DB.staff||[]).filter(s=>`${s.nome} ${s.cognome} ${s.ruolo||''}`.toLowerCase().includes(ql))
+    .slice(0,3).forEach(s=>results.push({tipo:'👔 Staff',label:`${s.nome} ${s.cognome}`,sub:s.ruolo||'',action:`openModalStaff('${s.id}')`}));
+  // Fornitori
+  (DB.fornitori||[]).filter(f=>`${f.nome} ${f.cat||''}`.toLowerCase().includes(ql))
+    .slice(0,3).forEach(f=>results.push({tipo:'🏭 Fornitore',label:f.nome,sub:f.cat||'',action:`showPage('fornitori')`}));
+  // Entrate
+  (DB.entrate||[]).filter(e=>`${e.descr||''} ${e.cat||''} ${e.socioNome||''}`.toLowerCase().includes(ql))
+    .slice(0,3).forEach(e=>results.push({tipo:'💚 Entrata',label:e.descr||'—',sub:`€${parseFloat(e.importo||0).toFixed(2)} · ${e.data?formatDate(e.data):''}`,action:`showPage('amministrazione')`}));
+  // Uscite
+  (DB.uscite||[]).filter(u=>`${u.descr||''} ${u.cat||''} ${u.fornitoreNome||''}`.toLowerCase().includes(ql))
+    .slice(0,3).forEach(u=>results.push({tipo:'🔴 Uscita',label:u.descr||'—',sub:`€${parseFloat(u.importo||0).toFixed(2)} · ${u.data?formatDate(u.data):''}`,action:`showPage('amministrazione')`}));
+  // Eventi
+  DB.eventi.filter(e=>`${e.titolo||''} ${e.luogo||''}`.toLowerCase().includes(ql))
+    .slice(0,3).forEach(e=>results.push({tipo:'📅 Evento',label:e.titolo||'—',sub:e.data?formatDate(e.data):'',action:`showPage('calendario')`}));
+  if(!results.length){cont.innerHTML='<div style="padding:12px;color:var(--text2);font-size:13px;">Nessun risultato per "'+q+'"</div>';return;}
+  cont.innerHTML=results.map(r=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''" onclick="${r.action};clearSearch();">
+      <div style="font-size:11px;color:var(--text2);min-width:70px;">${r.tipo}</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${r.label}</div>${r.sub?`<div style="font-size:11px;color:var(--text2);">${r.sub}</div>`:''}</div>
+    </div>`).join('');
+}
+
+function showSearchResults(){
+  const q=document.getElementById('global-search')?.value||'';
+  if(q.length>=2)document.getElementById('search-results-panel').style.display='';
+}
+
+function clearSearch(){
+  const inp=document.getElementById('global-search');
+  if(inp)inp.value='';
+  document.getElementById('search-results-panel').style.display='none';
+  const clrBtn=document.getElementById('search-clear-btn');
+  if(clrBtn)clrBtn.style.display='none';
+}
+
+// Chiudi pannello se si clicca fuori
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('search-results-panel');
+  const inp=document.getElementById('global-search');
+  if(panel&&inp&&!panel.contains(e.target)&&e.target!==inp){panel.style.display='none';}
+});
+
+// ═══ GUIDA ════════════════════════════════════════════════
+const GUIDA_VOCI=[
+  {cat:'👤 Anagrafiche',titolo:'Aggiungere un nuovo atleta',testo:'Vai su Anagrafiche → Atleti → "+ Nuovo atleta". Compila i dati nei 6 tab: Anagrafica, Sanitario, Genitori, Taglie, Pagamenti, Documenti. Il campo "Tipologia" distingue tra Atleta e Amatore.',tag:'atleta aggiungere nuovo socio'},
+  {cat:'👤 Anagrafiche',titolo:'Importare atleti dal Google Form',testo:'Vai su Anagrafiche → Atleti → "📊 Sheets". Incolla il CSV esportato dal Google Form. L\'app riconosce tutte le 39 colonne e aggiorna i campi vuoti se l\'atleta esiste già.',tag:'importare csv google form sheets'},
+  {cat:'👤 Anagrafiche',titolo:'Migrare lo staff dagli atleti',testo:'Se hai inserito dirigenti/presidenti come atleti, vai su Anagrafiche → Staff → "⚡ Migra staff da atleti". L\'app sposta automaticamente chi ha tipologia dirigenziale nella sezione Staff.',tag:'staff migrazione dirigente presidente'},
+  {cat:'👤 Anagrafiche',titolo:'Linee e gruppi per corso',testo:'Vai su Corsi e Squadre → clicca 👥 sul corso → sezione "Linee/Gruppi". Crea Prima linea, Seconda linea ecc. e assegna gli atleti. I gruppi sono salvati sul corso senza modificare l\'anagrafica.',tag:'linee gruppi corso squadra'},
+  {cat:'💰 Amministrazione',titolo:'Registrare un pagamento di un atleta',testo:'Vai su Amministrazione → Entrate → "+ Nuova entrata". Seleziona la categoria "Quota associativa" e nel campo "Atleta collegato" scegli l\'atleta. Il pagamento apparirà automaticamente nel tab Pagamenti della scheda atleta.',tag:'pagamento entrata quota atleta'},
+  {cat:'💰 Amministrazione',titolo:'Vedere i pagamenti di un singolo atleta',testo:'Due modi: 1) Apri la scheda atleta → tab Pagamenti. 2) Vai su Amministrazione → Prima Nota → seleziona l\'atleta nel filtro "Atleta".',tag:'storico pagamenti atleta prima nota'},
+  {cat:'💰 Amministrazione',titolo:'Sollecitare un pagamento scaduto',testo:'Vai su Amministrazione → Solleciti. Trovi tutti gli atleti con quote scadute o in scadenza entro 30 giorni. Clicca "📧 Sollecita email" o "💬 Sollecita WhatsApp" per inviare un messaggio precompilato.',tag:'sollecito pagamento scaduto whatsapp email'},
+  {cat:'💰 Amministrazione',titolo:'Collegare un\'uscita a un fornitore',testo:'Quando crei una nuova uscita, appare il campo "Fornitore" con i fornitori attivi. Seleziona il fornitore per tracciare la spesa. Il totale speso per fornitore è visibile nel Rendiconto.',tag:'uscita fornitore spesa rendiconto'},
+  {cat:'📋 Presenze',titolo:'Registrare le presenze giornaliere',testo:'Vai su Registro presenze → Registro. Seleziona corso e data, poi spunta gli atleti presenti. Clicca "💾 Salva presenze". Gli atleti non spuntati vengono salvati come assenti.',tag:'presenze registro allenamento'},
+  {cat:'📋 Presenze',titolo:'Vedere le percentuali di presenza',testo:'Vai su Registro presenze → Report %. Il periodo di default è la stagione corrente. Puoi cambiare il periodo con i filtri Dal/Al. La percentuale è calcolata su tutte le sessioni del corso.',tag:'percentuale presenze report statistiche'},
+  {cat:'📋 Presenze',titolo:'Atleti con bassa frequenza',testo:'Vai su Registro presenze → Alert. Imposta la soglia (default 50%). Vengono mostrati tutti gli atleti con più di 3 sessioni registrate che sono sotto soglia. Da qui puoi contattarli direttamente.',tag:'alert bassa frequenza presenze'},
+  {cat:'📅 Calendario',titolo:'Aggiungere una gara o un evento',testo:'Vai su Calendario → clicca su un giorno oppure usa i pulsanti "⚔️ + Gara" o "🏒 + Allenamento" in alto. Compila titolo, data, orario e luogo.',tag:'gara evento calendario aggiungere'},
+  {cat:'📅 Calendario',titolo:'Esportare il calendario su Google Calendar',testo:'Vai su Calendario → clicca "📆 iCal". Viene scaricato un file .ics. Aprilo su Google Calendar (o Apple Calendar) per importare tutti gli eventi.',tag:'ical google calendar apple esportare'},
+  {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa.',tag:'ricevuta pagamento documento generare'},
+  {cat:'📄 Documenti',titolo:'Generare la certificazione per il 730',testo:'Vai su Genera Documenti → Certificazione quota (730). Seleziona l\'atleta e il documento si pre-compila con i dati anagrafici, la tessera ASD e i dati del genitore. Stampalo e firmalo.',tag:'730 certificazione fiscale documento'},
+  {cat:'📄 Documenti',titolo:'Generare la giustificazione scolastica',testo:'Vai su Genera Documenti → Giustificazione scolastica. Seleziona l\'atleta, inserisci il nome dell\'evento e le date di assenza. Il documento viene pre-compilato con i dati dell\'atleta e del genitore.',tag:'giustificazione scuola assenza documento'},
+  {cat:'✉️ Comunicazioni',titolo:'Inviare una email a tutti gli atleti',testo:'Vai su Comunicazioni → seleziona i destinatari (o clicca "Seleziona tutti") → scrivi oggetto e messaggio → clicca "📧 Apri Gmail (BCC)". Si apre Gmail con tutti i destinatari in copia nascosta dall\'account spartanshockeyinline@gmail.com.',tag:'email comunicazione atleti gmail inviare'},
+  {cat:'✉️ Comunicazioni',titolo:'Inviare un messaggio WhatsApp',testo:'Vai su Comunicazioni → seleziona un destinatario con numero di telefono → clicca "💬 WhatsApp". Si apre WhatsApp Web con il testo precompilato.',tag:'whatsapp messaggio comunicazione'},
+  {cat:'🏭 Fornitori',titolo:'Aggiungere un fornitore',testo:'Vai su Fornitori → "+ Nuovo fornitore". Compila ragione sociale, CF/P.IVA, indirizzo, referente, categoria. Una volta salvato, appare nel campo "Fornitore" quando crei una nuova uscita in Amministrazione.',tag:'fornitore aggiungere nuovo'},
+  {cat:'⚙️ Impostazioni',titolo:'Fare un backup dei dati',testo:'Vai su Impostazioni → Backup dati → clicca l\'icona di esportazione. Viene scaricato un file JSON con tutti i dati. Conservalo in un posto sicuro. Puoi reimportarlo in caso di necessità.',tag:'backup dati esportare json impostazioni'},
+  {cat:'⚙️ Impostazioni',titolo:'Cambiare il tema (chiaro/scuro)',testo:'Vai su Impostazioni → Aspetto. Scegli tra Tema scuro (sfondo nero con accenti oro/rosso) e Tema chiaro (sfondo bianco). La scelta viene salvata nel browser.',tag:'tema scuro chiaro aspetto impostazioni'},
+];
+
+function initGuida(){
+  filtraGuida('');
+}
+
+function filtraGuida(q){
+  const ql=(q||'').toLowerCase();
+  const cont=document.getElementById('guida-content');
+  const voci=ql.length<2?GUIDA_VOCI:GUIDA_VOCI.filter(v=>`${v.titolo} ${v.testo} ${v.tag} ${v.cat}`.toLowerCase().includes(ql));
+  // Raggruppa per categoria
+  const cats={};
+  voci.forEach(v=>{if(!cats[v.cat])cats[v.cat]=[];cats[v.cat].push(v);});
+  if(!Object.keys(cats).length){cont.innerHTML='<div class="empty"><div class="ei">🔍</div><p>Nessun risultato per "'+q+'"</p></div>';return;}
+  cont.innerHTML=Object.entries(cats).map(([cat,voci])=>`
+    <div style="margin-bottom:20px;">
+      <div style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--accent);">${cat}</div>
+      <div style="display:grid;gap:8px;">
+        ${voci.map(v=>`
+          <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;cursor:pointer;border:1px solid transparent;transition:border-color .15s;" onclick="this.querySelector('.guida-body').style.display=this.querySelector('.guida-body').style.display==='none'?'':'none';this.style.borderColor=this.querySelector('.guida-body').style.display===''?'var(--accent)':'transparent'">
+            <div style="font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center;">
+              ${v.titolo}
+              <span style="font-size:10px;color:var(--text3);">▼</span>
+            </div>
+            <div class="guida-body" style="display:none;margin-top:8px;font-size:12px;color:var(--text2);line-height:1.7;">${v.testo}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
 // ═══ COMUNICATI FISR ══════════════════════════════════════
 // URL delle categorie per stagione
 const FISR_STAGIONI = {
@@ -4817,7 +4965,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='3.8.0';
+    const CURRENT_VER='4.0.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
