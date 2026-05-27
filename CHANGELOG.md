@@ -2,22 +2,35 @@
 
 ---
 
+## v3.7.0 · Maggio 2026
+
+### Nuove funzionalità
+- **Vista Agenda calendario** — nuovo tab: lista eventi del mese raggruppati per giorno con icona, orario, luogo e squadra
+- **Filtro corso/squadra calendario** — filtra eventi per corso specifico in entrambe le viste
+- **Esporta iCal** — esporta il calendario in formato .ics per Google Calendar e Apple Calendar
+- **Oggi evidenziato** — il giorno corrente è evidenziato nella vista mensile
+- **Lista iscritti per corso** — click su 👥 in Corsi e Squadre per vedere tutti gli atleti iscritti con avatar e categoria FISR
+- **Linee / Gruppi** — crea sottogruppi (Prima linea, Seconda linea ecc.) dentro ogni corso, assegna/rimuovi atleti liberamente per testare combinazioni; salvato su Firebase senza toccare l'anagrafica
+
+---
+
 ## v3.6.0 · Maggio 2026
 
 ### Nuove funzionalità
-- **Report % presenze** — percentuale presenze per atleta nel periodo selezionato, con barra visiva colorata (verde ≥75%, giallo ≥50%, rosso <50%)
-- **Classifica frequenza** — ranking atleti per frequenza con medaglie per i primi tre
-- **Alert bassa frequenza** — lista atleti sotto soglia configurabile (default 50%); sollecito diretto via email o WhatsApp
-- **Esporta presenze CSV** — storico esportabile filtrabile per corso, mese, anno
+- **Report % presenze** — percentuale per atleta con barra visiva colorata, periodo default = stagione corrente
+- **Classifica frequenza** — ranking con medaglie 🥇🥈🥉
+- **Alert bassa frequenza** — soglia configurabile, sollecito diretto via email o WhatsApp
+- **Esporta presenze CSV** — filtro per corso, mese, anno
+- **Calcolo corretto** — base = sessioni totali del corso, non solo quelle dell'atleta
 
 ---
 
 ## v3.5.0 · Maggio 2026
 
 ### Nuove funzionalità
-- **Gestione fornitori** — anagrafica fornitori con ragione sociale, CF/P.IVA, indirizzo, referente, categoria, sito web
+- **Gestione fornitori** — anagrafica con ragione sociale, CF/P.IVA, referente, categoria, sito web
 - **Collegamento fornitori alle uscite** — campo opzionale nel modal Nuova uscita
-- **Totale speso per fornitore** — nel riepilogo e nel Rendiconto economico
+- **Totale speso per fornitore** — nel riepilogo e nel Rendiconto
 
 ---
 
@@ -34,44 +47,24 @@
 ## v3.3.1 · Maggio 2026
 
 ### Fix
-- **Scadenze dashboard** — visita medica, assicurazione, tessere staff, eventi non-allenamento entro 60gg
-- **Timbro documenti** — 5 righe con dati fissi dell'associazione
-- **Numero ricevuta** — progressivo Firebase, parte da 1, formato 4 cifre
-- **Comunicati FISR** — URL corretti stagioni 2013/14, 2014/15, 2015/16
+- Scadenze dashboard: visita medica, assicurazione, tessere staff, eventi entro 60gg
+- Timbro documenti semplificato; numero ricevuta progressivo Firebase
+- Comunicati FISR: URL corretti stagioni 2013-2016
 
 ---
 
 ## v3.3.0 · Maggio 2026
-
-### Nuove funzionalità
-- **Genera documenti** — 5 modelli pre-compilati: 730, Giustificazione scolastica, Visita medica, Volontariato/Co.Co.Co., Ricevuta pagamento
-- **Timbro digitale automatico** — SVG con dati fissi dell'associazione
-- **Sidebar scrollabile**
-
-### File aggiunti
-- `modulo_730.html`, `modulo_giustificazione.html`, `modulo_visita_medica.html`, `modulo_volontariato.html`, `modulo_ricevuta.html`
-
----
+- Genera documenti (5 modelli pre-compilati con timbro digitale)
+- Sidebar scrollabile
 
 ## v3.2.0 · Maggio 2026
-
-### Nuove funzionalità
-- **Separazione Atleti / Staff** — 3 tab: Atleti, Staff, Macrogruppi
-- **Scheda atleta a 6 tab** — Anagrafica, Sanitario, Genitori (2), Taglie, Pagamenti, Documenti
-- **Visita medica, genitori strutturati, macrogruppi**
-- **Importazione Google Form** — 39 colonne, aggiorna campi vuoti
-- **Colonna Azioni fissa**
-
-### File aggiunti
-- `modulo_iscrizione_spartans.html`, `modulo_consenso_privacy.html`
-
----
+- Separazione Atleti/Staff, scheda atleta a 6 tab, importazione Google Form
 
 ## v3.1.0 · Maggio 2026
-- Comunicati FISR, ordinamento amministrazione, fasi sensibili Martin 1982
+- Comunicati FISR, ordinamento amministrazione, fasi sensibili Martin
 
 ## v3.0.0 · Maggio 2026
 - Migrazione Firebase, login email/password, sync realtime
 
 ## v2.x · Aprile–Maggio 2026
-- v2.5: PWA + Drive; v2.4: comunicazioni, valutazioni; v2.3: presenze, categorie FISR; v2.2: filtri, ordinamento; v2.1: sync live; v2.0: riscrittura completa; v1.x: base
+- v2.5: PWA; v2.4: comunicazioni, valutazioni; v2.3: presenze, categorie FISR; v2.0: riscrittura completa

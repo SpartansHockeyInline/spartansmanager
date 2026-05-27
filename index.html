@@ -495,22 +495,48 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 
     <!-- ═══ CALENDARIO ═══ -->
     <div class="page" id="page-calendario">
-      <div class="cal-nav">
-        <button class="btn btn-s btn-sm" onclick="calPrev()">◀ Prec.</button>
-        <h3 id="cal-title"></h3>
-        <button class="btn btn-s btn-sm" onclick="calNext()">Succ. ▶</button>
-      </div>
-      <div style="display:flex;gap:9px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
-        <button class="btn btn-p btn-sm" onclick="openModal('modal-evento','gara')">+ Gara</button>
-        <button class="btn btn-s btn-sm" onclick="openModal('modal-evento','allenamento')">+ Allenamento</button>
-        <div style="display:flex;align-items:center;gap:12px;margin-left:auto;font-size:11px;flex-wrap:wrap;">
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-right:3px;"></span>Gare</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--blue);margin-right:3px;"></span>Allenamenti auto</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:3px;"></span>Allenamenti manuali</span>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+        <div class="tabs" style="margin-bottom:0;">
+          <div class="tab active" id="cal-tab-mensile" onclick="calSetVista('mensile')">📅 Mensile</div>
+          <div class="tab" id="cal-tab-agenda" onclick="calSetVista('agenda')">📋 Agenda</div>
+        </div>
+        <select class="fsel" id="cal-filter-corso" style="width:180px;" onchange="renderCalendar()"><option value="">Tutti i corsi</option></select>
+        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-s btn-sm" onclick="openModal('modal-evento','gara')">⚔️ + Gara</button>
+          <button class="btn btn-s btn-sm" onclick="openModal('modal-evento','allenamento')">🏒 + Allenamento</button>
+          <button class="btn btn-s btn-sm" onclick="esportaIcal()" title="Esporta calendario per Google Calendar / Apple Calendar">📆 iCal</button>
         </div>
       </div>
-      <div class="cal-grid" id="cal-headers"></div>
-      <div class="cal-grid" id="cal-body" style="margin-top:3px;"></div>
+
+      <!-- NAVIGAZIONE MESE -->
+      <div class="cal-nav" id="cal-nav-mensile">
+        <button class="btn btn-s btn-sm" onclick="calPrev()">◀</button>
+        <h3 id="cal-title" style="margin:0;"></h3>
+        <button class="btn btn-s btn-sm" onclick="calNext()">▶</button>
+      </div>
+
+      <!-- LEGENDA -->
+      <div id="cal-legenda-mensile" style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;flex-wrap:wrap;">
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-right:3px;"></span>Gare</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--blue);margin-right:3px;"></span>Allenamenti auto</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:3px;"></span>Allenamenti manuali</span>
+      </div>
+
+      <!-- VISTA MENSILE -->
+      <div id="cal-vista-mensile">
+        <div class="cal-grid" id="cal-headers"></div>
+        <div class="cal-grid" id="cal-body" style="margin-top:3px;"></div>
+      </div>
+
+      <!-- VISTA AGENDA -->
+      <div id="cal-vista-agenda" style="display:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <button class="btn btn-s btn-sm" onclick="calPrev()">◀</button>
+          <h3 id="cal-title-agenda" style="margin:0;"></h3>
+          <button class="btn btn-s btn-sm" onclick="calNext()">▶</button>
+        </div>
+        <div id="cal-agenda-content"></div>
+      </div>
     </div>
 
     <!-- ═══ STAGIONI ═══ -->
@@ -712,7 +738,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <!-- ═══ CORSI E SQUADRE ═══ -->
     <div class="page" id="page-corsi">
       <div style="display:flex;justify-content:flex-end;margin-bottom:12px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-corso','')">+ Nuovo corso/squadra</button></div>
-      <div class="tw"><table><thead><tr><th>Nome</th><th>Tipo</th><th>Sport</th><th>Tecnico</th><th>Iscritti</th><th>Giorni/Orari</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="corsi-tbody"></tbody></table></div>
+      <div class="tw"><table><thead><tr><th>Nome</th><th>Tipo</th><th>Tecnico</th><th>Iscritti</th><th>Giorni/Orari</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="corsi-tbody"></tbody></table></div>
+      <!-- Pannello iscritti + linee (espanso sotto il corso selezionato) -->
+      <div id="corso-detail-panel" style="display:none;margin-top:16px;"></div>
     </div>
 
     <!-- ═══ PRESENZE ═══ -->
@@ -1055,7 +1083,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.6.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.7.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1446,6 +1474,26 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v3.7.0 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Vista Agenda</strong> — nuovo tab nel calendario: lista eventi del mese raggruppati per giorno con icona, orario, luogo e squadra</div>
+        <div class="cl-item"><strong>Filtro per corso/squadra</strong> — filtra gli eventi del calendario per corso specifico</div>
+        <div class="cl-item"><strong>Esporta iCal</strong> — esporta il calendario in formato .ics compatibile con Google Calendar e Apple Calendar</div>
+        <div class="cl-item"><strong>Oggi evidenziato</strong> — il giorno corrente è evidenziato con sfondo colorato nel calendario mensile</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v3.7.0 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Vista Agenda calendario</strong> — nuovo tab: lista eventi del mese raggruppati per giorno con icona, orario, luogo e squadra</div>
+        <div class="cl-item"><strong>Filtro corso/squadra calendario</strong> — filtra eventi per corso specifico in entrambe le viste</div>
+        <div class="cl-item"><strong>Esporta iCal</strong> — esporta il calendario in formato .ics per Google Calendar e Apple Calendar</div>
+        <div class="cl-item"><strong>Oggi evidenziato</strong> — il giorno corrente è evidenziato nella vista mensile</div>
+        <div class="cl-item"><strong>Lista iscritti per corso</strong> — click su 👥 in Corsi e Squadre per vedere tutti gli atleti iscritti con avatar e categoria FISR</div>
+        <div class="cl-item"><strong>Linee / Gruppi</strong> — crea sottogruppi (Prima linea, Seconda linea ecc.) dentro ogni corso, assegna/rimuovi atleti liberamente per testare combinazioni; salvato su Firebase senza toccare l'anagrafica</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v3.6.0 · Maggio 2026</div>
@@ -2761,7 +2809,158 @@ function saveCorso(){
   generateAllenamentiCorso(obj);
   saveDB();closeModal('modal-corso');renderCorsi();renderDashboard();initPresenze();toast('Salvato','success');
 }
-function renderCorsi(){const tb=document.getElementById('corsi-tbody');if(!DB.corsi.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">🏒</div><h3>Nessun corso</h3></div></td></tr>';return;}tb.innerHTML=DB.corsi.map(c=>`<tr><td><strong>${c.nome}</strong></td><td><span class="badge bb">${c.tipo}</span></td><td>${c.sport||'—'}</td><td>${c.maestroNome||'—'}</td><td>${c.iscritti||0}${c.max?'/'+c.max:''}</td><td style="font-size:11px;max-width:150px;">${c.orariStr||'—'}</td><td><span class="badge ${c.stato==='attivo'?'bg':'bo'}">${c.stato}</span></td><td><div class="tda"><button class="bico" onclick="editCorso('${c.id}')">✏️</button><button class="bico" onclick="deleteCorso('${c.id}')">🗑️</button></div></td></tr>`).join('');}
+function renderCorsi(){
+  const tb=document.getElementById('corsi-tbody');
+  if(!DB.corsi.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🏒</div><h3>Nessun corso</h3></div></td></tr>';return;}
+  tb.innerHTML=DB.corsi.map(c=>{
+    const iscritti=DB.soci.filter(s=>s.corsoId===c.id).length;
+    return`<tr id="corso-row-${c.id}">
+      <td><strong>${c.nome}</strong></td>
+      <td><span class="badge bb">${c.tipo}</span></td>
+      <td>${c.maestroNome||'—'}</td>
+      <td>${iscritti}${c.max?'/'+c.max:''}</td>
+      <td style="font-size:11px;max-width:150px;">${c.orariStr||'—'}</td>
+      <td><span class="badge ${c.stato==='attivo'?'bg':'bo'}">${c.stato}</span></td>
+      <td><div class="tda">
+        <button class="bico" title="Iscritti e linee" onclick="toggleCorsoDetail('${c.id}')">👥</button>
+        <button class="bico" onclick="editCorso('${c.id}')">✏️</button>
+        <button class="bico" onclick="deleteCorso('${c.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+let currentCorsoDetail=null;
+
+function toggleCorsoDetail(corsoId){
+  const panel=document.getElementById('corso-detail-panel');
+  if(currentCorsoDetail===corsoId){
+    panel.style.display='none';currentCorsoDetail=null;return;
+  }
+  currentCorsoDetail=corsoId;
+  panel.style.display='';
+  renderCorsoDetail(corsoId);
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderCorsoDetail(corsoId){
+  const panel=document.getElementById('corso-detail-panel');
+  const corso=DB.corsi.find(c=>c.id===corsoId);if(!corso)return;
+  const atleti=DB.soci.filter(s=>s.corsoId===corsoId&&(s.tipologia==='atleta'||s.tipologia==='amatore'));
+  // Linee salvate nel corso
+  if(!corso.linee)corso.linee=[];
+
+  panel.innerHTML=`
+    <div class="card" style="border:2px solid var(--accent);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;">🏒 ${corso.nome}</div>
+        <button class="btn btn-s btn-sm" onclick="toggleCorsoDetail('${corsoId}')">✕ Chiudi</button>
+      </div>
+
+      <!-- ISCRITTI -->
+      <div style="margin-bottom:18px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:8px;">👥 Iscritti (${atleti.length})</div>
+        ${atleti.length?`<div style="display:flex;flex-wrap:wrap;gap:8px;">${atleti.map(a=>`
+          <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface2);border-radius:20px;font-size:12px;">
+            ${renderAvatar(a,24)}<span>${a.nome} ${a.cognome}</span>
+            ${getCategoriaFisr(a.nascita?parseInt(a.nascita.slice(0,4)):0)?`<span style="font-size:10px;color:var(--text3);">${getCategoriaFisr(a.nascita?parseInt(a.nascita.slice(0,4)):0)}</span>`:''}
+          </div>`).join('')}</div>`:'<div style="color:var(--text3);font-size:12px;">Nessun atleta iscritto</div>'}
+      </div>
+
+      <!-- LINEE -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);">📋 Linee / Gruppi</div>
+          <button class="btn btn-p btn-sm" onclick="aggiungiLinea('${corsoId}')">+ Nuova linea</button>
+        </div>
+        <div id="linee-container-${corsoId}">
+          ${renderLinee(corsoId)}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderLinee(corsoId){
+  const corso=DB.corsi.find(c=>c.id===corsoId);if(!corso)return'';
+  const atleti=DB.soci.filter(s=>s.corsoId===corsoId&&(s.tipologia==='atleta'||s.tipologia==='amatore'));
+  if(!corso.linee||!corso.linee.length)return'<div style="color:var(--text3);font-size:12px;">Nessuna linea configurata. Clicca "+ Nuova linea" per iniziare.</div>';
+
+  // Atleti già assegnati
+  const assegnati=new Set(corso.linee.flatMap(l=>l.atleti||[]));
+  const nonAssegnati=atleti.filter(a=>!assegnati.has(a.id));
+
+  return`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:12px;">
+      ${corso.linee.map((linea,li)=>`
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-weight:700;font-size:13px;">${linea.nome}</div>
+            <div style="display:flex;gap:4px;">
+              <button class="bico" onclick="rinominaLinea('${corsoId}',${li})" title="Rinomina">✏️</button>
+              <button class="bico" onclick="eliminaLinea('${corsoId}',${li})" title="Elimina">🗑️</button>
+            </div>
+          </div>
+          <div style="min-height:40px;margin-bottom:8px;">
+            ${(linea.atleti||[]).map(aid=>{
+              const a=atleti.find(x=>x.id===aid);
+              return a?`<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:3px 6px;background:var(--surface2);border-radius:4px;margin-bottom:3px;font-size:12px;">
+                <div style="display:flex;align-items:center;gap:6px;">${renderAvatar(a,20)}<span>${a.nome} ${a.cognome}</span></div>
+                <button style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);" onclick="rimuoviDaLinea('${corsoId}',${li},'${aid}')">✕</button>
+              </div>`:'';
+            }).join('')}
+            ${!(linea.atleti||[]).length?'<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0;">Nessun atleta</div>':''}
+          </div>
+          <select class="fsel" style="font-size:11px;" onchange="aggiungiAdLinea('${corsoId}',${li},this.value);this.selectedIndex=0;">
+            <option value="">+ Aggiungi atleta</option>
+            ${atleti.filter(a=>!(linea.atleti||[]).includes(a.id)).map(a=>`<option value="${a.id}">${a.nome} ${a.cognome}</option>`).join('')}
+          </select>
+        </div>`).join('')}
+    </div>
+    ${nonAssegnati.length?`<div style="font-size:11px;color:var(--text2);padding:6px 0;">⚠️ ${nonAssegnati.length} atleti non assegnati: ${nonAssegnati.map(a=>a.nome+' '+a.cognome).join(', ')}</div>`:'<div style="font-size:11px;color:var(--green);">✅ Tutti gli atleti sono assegnati a una linea</div>'}`;
+}
+
+function aggiungiLinea(corsoId){
+  const nome=prompt('Nome della linea (es. Prima linea, Seconda linea...):');
+  if(!nome)return;
+  const corso=DB.corsi.find(c=>c.id===corsoId);if(!corso)return;
+  if(!corso.linee)corso.linee=[];
+  corso.linee.push({id:uid(),nome,atleti:[]});
+  saveDB();
+  document.getElementById(`linee-container-${corsoId}`).innerHTML=renderLinee(corsoId);
+}
+
+function rinominaLinea(corsoId,li){
+  const corso=DB.corsi.find(c=>c.id===corsoId);if(!corso)return;
+  const nuovoNome=prompt('Nuovo nome:',corso.linee[li].nome);
+  if(!nuovoNome)return;
+  corso.linee[li].nome=nuovoNome;
+  saveDB();
+  document.getElementById(`linee-container-${corsoId}`).innerHTML=renderLinee(corsoId);
+}
+
+function eliminaLinea(corsoId,li){
+  const corso=DB.corsi.find(c=>c.id===corsoId);if(!corso)return;
+  if(!confirm(`Eliminare la linea "${corso.linee[li].nome}"?`))return;
+  corso.linee.splice(li,1);
+  saveDB();
+  document.getElementById(`linee-container-${corsoId}`).innerHTML=renderLinee(corsoId);
+}
+
+function aggiungiAdLinea(corsoId,li,atletaId){
+  if(!atletaId)return;
+  const corso=DB.corsi.find(c=>c.id===corsoId);if(!corso)return;
+  if(!corso.linee[li].atleti)corso.linee[li].atleti=[];
+  if(!corso.linee[li].atleti.includes(atletaId))corso.linee[li].atleti.push(atletaId);
+  saveDB();
+  document.getElementById(`linee-container-${corsoId}`).innerHTML=renderLinee(corsoId);
+}
+
+function rimuoviDaLinea(corsoId,li,atletaId){
+  const corso=DB.corsi.find(c=>c.id===corsoId);if(!corso)return;
+  corso.linee[li].atleti=(corso.linee[li].atleti||[]).filter(id=>id!==atletaId);
+  saveDB();
+  document.getElementById(`linee-container-${corsoId}`).innerHTML=renderLinee(corsoId);
+}
 function editCorso(id){editingId=id;const c=DB.corsi.find(x=>x.id===id);if(!c)return;populateMaestriSel();populateImpiantiSel();resetGiorni();['nome','tipo','sport','max','stato','note'].forEach(k=>{const el=document.getElementById('m-c-'+k);if(el)el.value=c[k]||'';});document.getElementById('m-c-maestro').value=c.maestroId||'';document.getElementById('m-c-impianto').value=c.impiantoId||'';if(c.giorni){selectedGiorni=JSON.parse(JSON.stringify(c.giorni));document.querySelectorAll('.giorno-btn').forEach(b=>{if(selectedGiorni[b.dataset.g])b.classList.add('sel');});renderOrariList();}document.getElementById('modal-corso').classList.add('open');}
 function deleteCorso(id){if(!confirm('Eliminare?'))return;DB.corsi=DB.corsi.filter(x=>x.id!==id);DB.eventi=DB.eventi.filter(e=>e.autoCorsoId!==id);saveDB();renderCorsi();renderDashboard();}
 
@@ -2937,18 +3136,104 @@ function deleteMovimento(tipo,id){if(!confirm('Eliminare?'))return;if(tipo==='en
 // ═══ CALENDARIO ═══════════════════════════════════════════
 const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 const GGCORTE=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+let calVista='mensile';
+
+function calSetVista(v){
+  calVista=v;
+  document.getElementById('cal-tab-mensile').classList.toggle('active',v==='mensile');
+  document.getElementById('cal-tab-agenda').classList.toggle('active',v==='agenda');
+  document.getElementById('cal-vista-mensile').style.display=v==='mensile'?'':'none';
+  document.getElementById('cal-vista-agenda').style.display=v==='agenda'?'':'none';
+  document.getElementById('cal-legenda-mensile').style.display=v==='mensile'?'flex':'none';
+  document.getElementById('cal-nav-mensile').style.display=v==='mensile'?'':'none';
+  renderCalendar();
+}
+
+function _evFiltrati(){
+  const corsoF=document.getElementById('cal-filter-corso')?.value||'';
+  return DB.eventi.filter(e=>!corsoF||e.squadraId===corsoF||e.autoCorsoId===corsoF);
+}
+
 function renderCalendar(){
+  // Popola select corsi
+  const sel=document.getElementById('cal-filter-corso');
+  if(sel&&sel.options.length===1){
+    sel.innerHTML='<option value="">Tutti i corsi</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  }
+  if(calVista==='agenda'){renderAgenda();return;}
+  // Vista mensile
   document.getElementById('cal-title').textContent=`${MESI[calMonth]} ${calYear}`;
   document.getElementById('cal-headers').innerHTML=GGCORTE.map(g=>`<div class="cal-header">${g}</div>`).join('');
-  const first=new Date(calYear,calMonth,1).getDay(),days=new Date(calYear,calMonth+1,0).getDate(),today=new Date().toISOString().slice(0,10);
+  const first=(new Date(calYear,calMonth,1).getDay()+6)%7; // Lun=0
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date().toISOString().slice(0,10);
+  const eventi=_evFiltrati();
   let cells=[];
   for(let i=0;i<first;i++)cells.push(`<div class="cal-day other-month"></div>`);
   for(let d=1;d<=days;d++){
     const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const evs=DB.eventi.filter(e=>e.data===ds);
-    cells.push(`<div class="cal-day${ds===today?' today':''}" onclick="calDayClick('${ds}')"><div class="day-num">${d}</div>${evs.map(e=>`<div class="cal-event ${e.tipo==='gara'?'ce-match':e.autoCorsoId?'ce-train ce-auto':'ce-train'}" onclick="event.stopPropagation();showEventDetail('${e.id}')">${e.titolo}</div>`).join('')}</div>`);
+    const evs=eventi.filter(e=>e.data===ds);
+    const isToday=ds===today;
+    cells.push(`<div class="cal-day${isToday?' today':''}" onclick="calDayClick('${ds}')">
+      <div class="day-num"${isToday?' style="background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;"':''}>${d}</div>
+      ${evs.map(e=>`<div class="cal-event ${e.tipo==='gara'?'ce-match':e.autoCorsoId?'ce-train ce-auto':'ce-train'}" onclick="event.stopPropagation();showEventDetail('${e.id}')" title="${e.titolo}">${e.titolo}</div>`).join('')}
+    </div>`);
   }
   document.getElementById('cal-body').innerHTML=cells.join('');
+}
+
+function renderAgenda(){
+  document.getElementById('cal-title-agenda').textContent=`${MESI[calMonth]} ${calYear}`;
+  const eventi=_evFiltrati().filter(e=>{
+    const d=e.data||'';
+    return d.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`);
+  }).sort((a,b)=>a.data.localeCompare(b.data)||(a.ora||'').localeCompare(b.ora||''));
+  const cont=document.getElementById('cal-agenda-content');
+  if(!eventi.length){cont.innerHTML='<div class="empty"><div class="ei">📋</div><p>Nessun evento in questo mese</p></div>';return;}
+  // Raggruppa per giorno
+  const byDay={};
+  eventi.forEach(e=>{if(!byDay[e.data])byDay[e.data]=[];byDay[e.data].push(e);});
+  cont.innerHTML=Object.entries(byDay).map(([data,evs])=>`
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);">
+        ${new Date(data+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}
+      </div>
+      ${evs.map(e=>{
+        const col=e.tipo==='gara'?'var(--accent)':e.autoCorsoId?'var(--blue)':'var(--green)';
+        const icona=e.tipo==='gara'?'⚔️':e.autoCorsoId?'⚡':'🏒';
+        return`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border-radius:8px;border-left:4px solid ${col};margin-bottom:6px;cursor:pointer;" onclick="showEventDetail('${e.id}')">
+          <div style="font-size:18px;">${icona}</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:13px;">${e.titolo}</div>
+            <div style="font-size:11px;color:var(--text2);">${e.ora||''}${e.ora&&e.luogo?' · ':''}${e.luogo||''}${e.squadraNome?' · '+e.squadraNome:''}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function esportaIcal(){
+  const eventi=_evFiltrati().filter(e=>e.data);
+  if(!eventi.length){toast('Nessun evento da esportare','error');return;}
+  let ical='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//ASD Spartans Hockey Inline//Spartans Manager//IT\r\nCALSCALE:GREGORIAN\r\n';
+  eventi.forEach(e=>{
+    const dt=e.data.replace(/-/g,'');
+    const dtStart=e.ora?`${dt}T${e.ora.replace(':','')}00`:`${dt}`;
+    const allDay=!e.ora;
+    ical+=`BEGIN:VEVENT\r\n`;
+    ical+=`UID:${e.id}@spartansmanager\r\n`;
+    ical+=`SUMMARY:${e.titolo}\r\n`;
+    ical+=allDay?`DTSTART;VALUE=DATE:${dt}\r\nDTEND;VALUE=DATE:${dt}\r\n`:`DTSTART:${dtStart}\r\n`;
+    if(e.luogo)ical+=`LOCATION:${e.luogo}\r\n`;
+    if(e.note)ical+=`DESCRIPTION:${e.note.replace(/\n/g,'\\n')}\r\n`;
+    ical+=`END:VEVENT\r\n`;
+  });
+  ical+='END:VCALENDAR';
+  const blob=new Blob([ical],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='spartans_calendar.ics';a.click();
+  URL.revokeObjectURL(url);
+  toast('Calendario esportato — importalo in Google Calendar o Apple Calendar','success');
 }
 function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
@@ -4335,7 +4620,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='3.6.0';
+    const CURRENT_VER='3.7.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
