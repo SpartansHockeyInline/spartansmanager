@@ -717,39 +717,70 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 
     <!-- ═══ PRESENZE ═══ -->
     <div class="page" id="page-presenze">
-      <div class="card">
-        <div class="card-title">✅ Registro presenze</div>
-        <div style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;">
-          <select class="fsel" id="pres-corso" onchange="loadPresenze()" style="max-width:210px;"><option value="">Seleziona corso...</option></select>
-          <input type="date" class="fi" id="pres-data" onchange="loadPresenze()" style="max-width:160px;">
-          <button class="btn btn-p btn-sm" onclick="salvaPresenze()">💾 Salva presenze</button>
-        </div>
-        <div id="presenze-list"><div class="empty"><div class="ei">✅</div><h3>Seleziona corso e data</h3></div></div>
+      <div class="tabs">
+        <div class="tab active" onclick="showTab('pres','registro')">✅ Registro</div>
+        <div class="tab" onclick="showTab('pres','storico')">📅 Storico</div>
+        <div class="tab" onclick="showTab('pres','report');renderReportPresenze()">📊 Report %</div>
+        <div class="tab" onclick="showTab('pres','classifica');renderClassificaPresenze()">🏆 Classifica</div>
+        <div class="tab" onclick="showTab('pres','alert');renderAlertPresenze()">🔔 Alert</div>
       </div>
-      <div class="card">
-        <div class="card-title">📊 Storico presenze</div>
-        <div style="display:flex;gap:9px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
-          <select class="fsel" id="storico-corso" onchange="renderStoricoPresenze()" style="max-width:210px;"><option value="">Seleziona corso...</option></select>
-          <select class="fsel" id="storico-mese" onchange="renderStoricoPresenze()" style="max-width:160px;">
-            <option value="">Tutti i mesi</option>
-            <option value="01">Gennaio</option>
-            <option value="02">Febbraio</option>
-            <option value="03">Marzo</option>
-            <option value="04">Aprile</option>
-            <option value="05">Maggio</option>
-            <option value="06">Giugno</option>
-            <option value="07">Luglio</option>
-            <option value="08">Agosto</option>
-            <option value="09">Settembre</option>
-            <option value="10">Ottobre</option>
-            <option value="11">Novembre</option>
-            <option value="12">Dicembre</option>
-          </select>
-          <select class="fsel" id="storico-anno" onchange="renderStoricoPresenze()" style="max-width:120px;">
-            <option value="">Tutti gli anni</option>
-          </select>
+
+      <!-- TAB REGISTRO -->
+      <div class="tab-panel active" id="pres-tab-registro">
+        <div class="card">
+          <div style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;">
+            <select class="fsel" id="pres-corso" onchange="loadPresenze()" style="max-width:210px;"><option value="">Seleziona corso...</option></select>
+            <input type="date" class="fi" id="pres-data" onchange="loadPresenze()" style="max-width:160px;">
+            <button class="btn btn-p btn-sm" onclick="salvaPresenze()">💾 Salva presenze</button>
+          </div>
+          <div id="presenze-list"><div class="empty"><div class="ei">✅</div><h3>Seleziona corso e data</h3></div></div>
         </div>
-        <div id="storico-presenze-list"></div>
+      </div>
+
+      <!-- TAB STORICO -->
+      <div class="tab-panel" id="pres-tab-storico">
+        <div class="card">
+          <div style="display:flex;gap:9px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+            <select class="fsel" id="storico-corso" onchange="renderStoricoPresenze()" style="max-width:210px;"><option value="">Seleziona corso...</option></select>
+            <select class="fsel" id="storico-mese" onchange="renderStoricoPresenze()" style="max-width:160px;">
+              <option value="">Tutti i mesi</option>
+              <option value="01">Gennaio</option><option value="02">Febbraio</option><option value="03">Marzo</option>
+              <option value="04">Aprile</option><option value="05">Maggio</option><option value="06">Giugno</option>
+              <option value="07">Luglio</option><option value="08">Agosto</option><option value="09">Settembre</option>
+              <option value="10">Ottobre</option><option value="11">Novembre</option><option value="12">Dicembre</option>
+            </select>
+            <select class="fsel" id="storico-anno" onchange="renderStoricoPresenze()" style="max-width:120px;"><option value="">Tutti gli anni</option></select>
+            <button class="btn btn-s btn-sm" onclick="esportaPresenze()">📥 Esporta CSV</button>
+          </div>
+          <div id="storico-presenze-list"></div>
+        </div>
+      </div>
+
+      <!-- TAB REPORT % -->
+      <div class="tab-panel" id="pres-tab-report">
+        <div style="display:flex;gap:9px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field"><label>Corso</label><select class="fsel" id="report-pres-corso" style="width:200px;" onchange="renderReportPresenze()"><option value="">Tutti i corsi</option></select></div>
+          <div class="field"><label>Periodo dal</label><input class="fi" type="date" id="report-pres-dal" style="width:150px;" onchange="renderReportPresenze()"></div>
+          <div class="field"><label>al</label><input class="fi" type="date" id="report-pres-al" style="width:150px;" onchange="renderReportPresenze()"></div>
+        </div>
+        <div id="report-presenze-content"></div>
+      </div>
+
+      <!-- TAB CLASSIFICA -->
+      <div class="tab-panel" id="pres-tab-classifica">
+        <div style="display:flex;gap:9px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field"><label>Corso</label><select class="fsel" id="class-pres-corso" style="width:200px;" onchange="renderClassificaPresenze()"><option value="">Tutti i corsi</option></select></div>
+        </div>
+        <div id="classifica-presenze-content"></div>
+      </div>
+
+      <!-- TAB ALERT -->
+      <div class="tab-panel" id="pres-tab-alert">
+        <div style="display:flex;gap:9px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field"><label>Soglia alert (%)</label><input class="fi" type="number" id="alert-pres-soglia" value="50" min="1" max="100" style="width:100px;" onchange="renderAlertPresenze()"></div>
+          <div class="field"><label>Corso</label><select class="fsel" id="alert-pres-corso" style="width:200px;" onchange="renderAlertPresenze()"><option value="">Tutti i corsi</option></select></div>
+        </div>
+        <div id="alert-presenze-content"></div>
       </div>
     </div>
 
@@ -1024,7 +1055,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.5.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v3.6.0 · Maggio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1415,6 +1446,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v3.6.0 · Maggio 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Report % presenze</strong> — percentuale di presenza per ogni atleta nel periodo selezionato, con barra visiva colorata (verde/giallo/rosso)</div>
+        <div class="cl-item"><strong>Classifica frequenza</strong> — classifica atleti per frequenza con medaglie per i primi tre</div>
+        <div class="cl-item"><strong>Alert bassa frequenza</strong> — lista atleti sotto la soglia configurabile (default 50%), con invio diretto sollecito via email o WhatsApp</div>
+        <div class="cl-item"><strong>Esporta presenze CSV</strong> — esportazione storico presenze filtrabile per corso, mese, anno</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v3.5.0 · Maggio 2026</div>
@@ -2727,12 +2767,13 @@ function deleteCorso(id){if(!confirm('Eliminare?'))return;DB.corsi=DB.corsi.filt
 
 // ═══ PRESENZE ═════════════════════════════════════════════
 function initPresenze(){
-  const s=document.getElementById('pres-corso'),ss=document.getElementById('storico-corso');
-  const opts='<option value="">Seleziona corso...</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-  s.innerHTML=opts;ss.innerHTML=opts;
+  const corsi=DB.corsi||[];
+  const optsReg='<option value="">Seleziona corso...</option>'+corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  const optsAll='<option value="">Tutti i corsi</option>'+corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  ['pres-corso','storico-corso'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsReg;});
+  ['report-pres-corso','class-pres-corso','alert-pres-corso'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsAll;});
   if(!document.getElementById('pres-data').value)document.getElementById('pres-data').value=new Date().toISOString().slice(0,10);
-  // Popola select anni dal DB presenze
-  const anni=[...new Set(Object.keys(DB.presenze).map(k=>k.split('_')[1]?.slice(0,4)).filter(Boolean))].sort();
+  const anni=[...new Set(Object.keys(DB.presenze||{}).map(k=>k.split('_')[1]?.slice(0,4)).filter(Boolean))].sort().reverse();
   const selAnno=document.getElementById('storico-anno');
   if(selAnno){selAnno.innerHTML='<option value="">Tutti gli anni</option>'+anni.map(a=>`<option value="${a}">${a}</option>`).join('');}
 }
@@ -3611,6 +3652,151 @@ function apriDocumento(tipo){
       generaRicevuta(Date.now().toString().slice(-4));
     }
   }
+}
+
+// ═══ REPORT PRESENZE AVANZATO ══════════════════════════════
+function _getPresenzeStats(corsoIdFiltro, dal, al){
+  // Costruisce statistiche per ogni atleta
+  const presenze=DB.presenze||{};
+  // Filtra le chiavi per corso e periodo
+  const keys=Object.keys(presenze).filter(k=>{
+    const [cid, data]=k.split('_');
+    if(corsoIdFiltro&&cid!==corsoIdFiltro)return false;
+    if(dal&&data<dal)return false;
+    if(al&&data>al)return false;
+    return true;
+  });
+  // Sessioni totali per corso
+  const sessioniPerCorso={};
+  keys.forEach(k=>{
+    const cid=k.split('_')[0];
+    if(!sessioniPerCorso[cid])sessioniPerCorso[cid]=new Set();
+    sessioniPerCorso[cid].add(k);
+  });
+  // Presenze per atleta
+  const stats={};
+  keys.forEach(k=>{
+    const cid=k.split('_')[0];
+    const corso=DB.corsi.find(c=>c.id===cid);
+    const sessione=presenze[k];
+    Object.entries(sessione).forEach(([socioId, presente])=>{
+      if(!stats[socioId])stats[socioId]={presenti:0,assenti:0,sessioni:0,corsoNome:corso?.nome||'—'};
+      stats[socioId].sessioni++;
+      if(presente)stats[socioId].presenti++;else stats[socioId].assenti++;
+    });
+  });
+  // Aggiungi info atleta e % 
+  return Object.entries(stats).map(([id,s])=>{
+    const atleta=DB.soci.find(x=>x.id===id);
+    return{id,nome:atleta?`${atleta.nome} ${atleta.cognome}`:'Sconosciuto',
+      corsoNome:s.corsoNome,presenti:s.presenti,assenti:s.assenti,
+      sessioni:s.sessioni,perc:s.sessioni>0?Math.round(s.presenti/s.sessioni*100):0};
+  });
+}
+
+function renderReportPresenze(){
+  const corso=document.getElementById('report-pres-corso')?.value||'';
+  const dal=document.getElementById('report-pres-dal')?.value||'';
+  const al=document.getElementById('report-pres-al')?.value||'';
+  const stats=_getPresenzeStats(corso,dal,al);
+  const cont=document.getElementById('report-presenze-content');
+  if(!stats.length){cont.innerHTML='<div class="empty"><div class="ei">📊</div><p>Nessun dato disponibile per il periodo selezionato</p></div>';return;}
+  const sorted=stats.sort((a,b)=>b.perc-a.perc);
+  const mediaPerc=Math.round(sorted.reduce((s,x)=>s+x.perc,0)/sorted.length);
+  cont.innerHTML=`
+    <div class="stats-grid" style="margin-bottom:12px;">
+      <div class="stat-card sc-blue"><div class="sl">Atleti analizzati</div><div class="sv">${sorted.length}</div></div>
+      <div class="stat-card sc-green"><div class="sl">Media presenze</div><div class="sv">${mediaPerc}%</div></div>
+      <div class="stat-card sc-gold"><div class="sl">Sessioni totali</div><div class="sv">${Math.max(...sorted.map(s=>s.sessioni),0)}</div></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Atleta</th><th>Corso</th><th style="text-align:center;">Presenze</th><th style="text-align:center;">Assenze</th><th style="text-align:center;">Sessioni</th><th style="text-align:center;">% Presenze</th></tr></thead>
+      <tbody>${sorted.map((s,i)=>{
+        const col=s.perc>=75?'var(--green)':s.perc>=50?'var(--yellow)':'var(--red)';
+        const bar=`<div style="background:var(--border);border-radius:4px;height:6px;margin-top:3px;"><div style="background:${col};width:${s.perc}%;height:100%;border-radius:4px;"></div></div>`;
+        return`<tr><td>${i+1}</td><td style="font-weight:600;">${s.nome}</td><td>${s.corsoNome}</td>
+          <td style="text-align:center;color:var(--green);">${s.presenti}</td>
+          <td style="text-align:center;color:var(--red);">${s.assenti}</td>
+          <td style="text-align:center;">${s.sessioni}</td>
+          <td style="text-align:center;"><span style="font-weight:700;color:${col};">${s.perc}%</span>${bar}</td></tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+function renderClassificaPresenze(){
+  const corso=document.getElementById('class-pres-corso')?.value||'';
+  const stats=_getPresenzeStats(corso,'','').sort((a,b)=>b.perc-a.perc||b.presenti-a.presenti);
+  const cont=document.getElementById('classifica-presenze-content');
+  if(!stats.length){cont.innerHTML='<div class="empty"><div class="ei">🏆</div><p>Nessun dato disponibile</p></div>';return;}
+  const medaglie=['🥇','🥈','🥉'];
+  cont.innerHTML=`<div style="display:grid;gap:8px;">${stats.map((s,i)=>{
+    const col=s.perc>=75?'var(--green)':s.perc>=50?'var(--yellow)':'var(--red)';
+    const atleta=DB.soci.find(x=>x.id===s.id);
+    return`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:4px solid ${col};">
+      <div style="font-size:${i<3?'22px':'16px'};font-weight:700;min-width:32px;text-align:center;">${i<3?medaglie[i]:i+1}</div>
+      ${atleta?renderAvatar(atleta,36):''}
+      <div style="flex:1;">
+        <div style="font-weight:600;">${s.nome}</div>
+        <div style="font-size:11px;color:var(--text2);">${s.corsoNome} · ${s.presenti} presenze su ${s.sessioni} sessioni</div>
+      </div>
+      <div style="font-size:20px;font-weight:700;color:${col};">${s.perc}%</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderAlertPresenze(){
+  const soglia=parseInt(document.getElementById('alert-pres-soglia')?.value||'50');
+  const corso=document.getElementById('alert-pres-corso')?.value||'';
+  const stats=_getPresenzeStats(corso,'','').filter(s=>s.sessioni>=3&&s.perc<soglia).sort((a,b)=>a.perc-b.perc);
+  const cont=document.getElementById('alert-presenze-content');
+  if(!stats.length){cont.innerHTML=`<div class="empty"><div class="ei">✅</div><p>Nessun atleta sotto la soglia del ${soglia}%</p></div>`;return;}
+  cont.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">⚠️ ${stats.length} atleti con frequenza inferiore al ${soglia}% (min. 3 sessioni)</div>
+    <div style="display:grid;gap:8px;">${stats.map(s=>{
+      const atleta=DB.soci.find(x=>x.id===s.id);
+      const email=atleta?.email||atleta?.g1Email||'';
+      const tel=atleta?.tel||atleta?.g1Tel||'';
+      return`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(240,80,70,.07);border-radius:8px;border-left:4px solid var(--red);">
+        ${atleta?renderAvatar(atleta,36):''}
+        <div style="flex:1;">
+          <div style="font-weight:600;">${s.nome}</div>
+          <div style="font-size:11px;color:var(--text2);">${s.corsoNome} · ${s.presenti}/${s.sessioni} sessioni</div>
+        </div>
+        <div style="font-size:20px;font-weight:700;color:var(--red);margin-right:12px;">${s.perc}%</div>
+        <div style="display:flex;gap:6px;">
+          ${email?`<button class="btn btn-p btn-sm" onclick="window.open('https://mail.google.com/mail/?authuser=spartanshockeyinline@gmail.com&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent('Presenze: ti aspettiamo!')}&body=${encodeURIComponent('Caro '+s.nome+',\n\nAbbiamo notato che la tua frequenza agli allenamenti è bassa ('+s.perc+'%).\nTi aspettiamo!\n\nStaff ASD Spartans Hockey Inline')}','_blank')">📧</button>`:''}
+          ${tel?`<button class="btn btn-s btn-sm" onclick="window.open('https://wa.me/${(tel).replace(/\D/g,'')}?text=${encodeURIComponent('Ciao '+s.nome+'! Notiamo che manchi spesso agli allenamenti ('+s.perc+'% di presenze). Ti aspettiamo! — Staff Spartans Hockey Inline')}','_blank')">💬</button>`:''}
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+}
+
+function esportaPresenze(){
+  const corsoId=document.getElementById('storico-corso')?.value||'';
+  const mese=document.getElementById('storico-mese')?.value||'';
+  const anno=document.getElementById('storico-anno')?.value||'';
+  const presenze=DB.presenze||{};
+  const keys=Object.keys(presenze).filter(k=>{
+    const[cid,data]=k.split('_');
+    if(corsoId&&cid!==corsoId)return false;
+    if(mese&&!data?.slice(5,7).includes(mese))return false;
+    if(anno&&!data?.startsWith(anno))return false;
+    return true;
+  }).sort();
+  if(!keys.length){toast('Nessun dato da esportare','error');return;}
+  let csv='Data,Corso,Atleta,Presente\n';
+  keys.forEach(k=>{
+    const[cid,data]=k.split('_');
+    const corso=DB.corsi.find(c=>c.id===cid)?.nome||cid;
+    Object.entries(presenze[k]).forEach(([socioId,presente])=>{
+      const atleta=DB.soci.find(s=>s.id===socioId);
+      const nome=atleta?`${atleta.nome} ${atleta.cognome}`:'Sconosciuto';
+      csv+=`${data},${corso},"${nome}",${presente?'Sì':'No'}\n`;
+    });
+  });
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`presenze_spartans_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  URL.revokeObjectURL(url);toast('Esportazione completata','success');
 }
 
 // ═══ FORNITORI ════════════════════════════════════════════
