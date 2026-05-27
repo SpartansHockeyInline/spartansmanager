@@ -4334,6 +4334,14 @@ async function fbLoadData(){
       loadDB();loadTheme();saveBackup();renderAll();
       await fbSaveNow();
     }
+    // Mostra changelog se versione aggiornata
+    const CURRENT_VER='3.6.0';
+    if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
+      setTimeout(()=>{
+        document.getElementById('modal-changelog')?.classList.add('open');
+        localStorage.setItem('sm_last_version',CURRENT_VER);
+      },1500);
+    }
   }catch(e){
     console.error('Firebase load error:',e);
     toast('Errore lettura Firebase — uso dati locali','warning');
