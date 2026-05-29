@@ -2064,7 +2064,11 @@ function showTab(section,tab){
   const pfx=section==='amm'?'amm':section;
   document.querySelectorAll(`[id^="${pfx}-tab-"]`).forEach(p=>p.classList.remove('active'));
   const t=document.getElementById(`${pfx}-tab-${tab}`);if(t)t.classList.add('active');
-  document.querySelectorAll(`#page-${section==='amm'?'amministrazione':section} .tab`).forEach(tb=>{tb.classList.toggle('active',tb.getAttribute('onclick')===`showTab('${section}','${tab}')`);});
+  const pageId=`page-${section==='amm'?'amministrazione':section}`;
+  document.querySelectorAll(`#${pageId} .tab`).forEach(tb=>{
+    const oc=tb.getAttribute('onclick')||'';
+    tb.classList.toggle('active',oc.includes(`'${section}','${tab}'`));
+  });
   if(section==='amm')renderAmministrazione();
 }
 
@@ -4194,32 +4198,52 @@ function _getPresenzeStats(corsoIdFiltro, dal, al){
     if(al&&data>al)return false;
     return true;
   });
-  // Sessioni totali per corso (base di calcolo corretta)
-  const sessioniPerCorso={};
+  // Sessioni per corso con data (per calcolo individuale)
+  const sessioniPerCorso={};// corsoId -> [{data}]
   keys.forEach(k=>{
-    const cid=k.split('_')[0];
-    if(!sessioniPerCorso[cid])sessioniPerCorso[cid]=0;
-    sessioniPerCorso[cid]++;
+    const[cid,data]=k.split('_');
+    if(!sessioniPerCorso[cid])sessioniPerCorso[cid]=[];
+    sessioniPerCorso[cid].push(data);
   });
-  // Presenze per atleta raggruppate per corso
+  // Data di iscrizione atleta per corso (primo giorno in cui compare nelle presenze)
+  const primaPresenzaAtleta={};// socioId_corsoId -> data prima comparsa
+  keys.forEach(k=>{
+    const[cid,data]=k.split('_');
+    Object.keys(presenze[k]).forEach(socioId=>{
+      const key2=socioId+'_'+cid;
+      if(!primaPresenzaAtleta[key2]||data<primaPresenzaAtleta[key2])
+        primaPresenzaAtleta[key2]=data;
+    });
+  });
+  // Usa anche la data di iscrizione dall'anagrafica se disponibile
+  DB.soci.forEach(s=>{
+    if(s.corsoId&&s.creato){
+      const dataIscr=s.creato.slice(0,10);
+      const key2=s.id+'_'+s.corsoId;
+      if(!primaPresenzaAtleta[key2]||dataIscr<primaPresenzaAtleta[key2])
+        primaPresenzaAtleta[key2]=dataIscr;
+    }
+  });
+  // Presenze per atleta
   const stats={};
   keys.forEach(k=>{
-    const cid=k.split('_')[0];
+    const[cid,data]=k.split('_');
     const corso=DB.corsi.find(c=>c.id===cid);
     Object.entries(presenze[k]).forEach(([socioId,presente])=>{
       const key2=socioId+'_'+cid;
-      if(!stats[key2])stats[key2]={socioId,corsoId:cid,corsoNome:corso?.nome||'—',presenti:0,registrati:0};
-      stats[key2].registrati++; // quante volte l'atleta era nella lista
+      if(!stats[key2])stats[key2]={socioId,corsoId:cid,corsoNome:corso?.nome||'—',presenti:0};
       if(presente)stats[key2].presenti++;
     });
   });
-  // % calcolata su sessioni TOTALI del corso (base corretta)
+  // % calcolata su sessioni DALLA data di iscrizione dell'atleta
   return Object.values(stats).map(s=>{
-    const tot=sessioniPerCorso[s.corsoId]||1;
+    const dataIngresso=primaPresenzaAtleta[s.socioId+'_'+s.corsoId]||dal||'';
+    // Sessioni valide = solo quelle successive all'ingresso dell'atleta
+    const sessioniValide=(sessioniPerCorso[s.corsoId]||[]).filter(d=>!dataIngresso||d>=dataIngresso).length||1;
     const atleta=DB.soci.find(x=>x.id===s.socioId);
     return{id:s.socioId,nome:atleta?`${atleta.nome} ${atleta.cognome}`:'Sconosciuto',
-      corsoNome:s.corsoNome,presenti:s.presenti,assenti:tot-s.presenti,
-      sessioni:tot,perc:Math.round(s.presenti/tot*100)};
+      corsoNome:s.corsoNome,presenti:s.presenti,assenti:sessioniValide-s.presenti,
+      sessioni:sessioniValide,perc:Math.round(s.presenti/sessioniValide*100)};
   });
 }
 
