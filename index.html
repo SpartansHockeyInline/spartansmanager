@@ -2064,7 +2064,9 @@ function showTab(section,tab){
   const pfx=section==='amm'?'amm':section;
   document.querySelectorAll(`[id^="${pfx}-tab-"]`).forEach(p=>p.classList.remove('active'));
   const t=document.getElementById(`${pfx}-tab-${tab}`);if(t)t.classList.add('active');
-  const pageId=`page-${section==='amm'?'amministrazione':section}`;
+  // Mappa sezione -> id pagina
+  const pageMap={amm:'amministrazione',pres:'presenze',abbonamenti:'abbonamenti',corsi:'corsi'};
+  const pageId=`page-${pageMap[section]||section}`;
   document.querySelectorAll(`#${pageId} .tab`).forEach(tb=>{
     const oc=tb.getAttribute('onclick')||'';
     tb.classList.toggle('active',oc.includes(`'${section}','${tab}'`));
