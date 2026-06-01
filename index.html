@@ -2360,12 +2360,12 @@ function showAnaTab(tab){
 
 // ═══ TAB MODAL SOCIO ══════════════════════════════════════
 function showSocioTab(tab){
-  ['anagrafica','sanitario','genitori','taglie','pagamenti','documenti'].forEach(t=>{
+  ['anagrafica','sanitario','genitori','taglie','pagamenti','documenti','checklist'].forEach(t=>{
     const el=document.getElementById('socio-tab-'+t);
     if(el)el.classList.toggle('active',t===tab);
   });
   document.querySelectorAll('#modal-socio .tabs .tab').forEach((tb,i)=>{
-    tb.classList.toggle('active',['anagrafica','sanitario','genitori','taglie','pagamenti','documenti'][i]===tab);
+    tb.classList.toggle('active',['anagrafica','sanitario','genitori','taglie','pagamenti','documenti','checklist'][i]===tab);
   });
   if(tab==='pagamenti'){renderQuoteAtleta();renderAlertAbbAtleta(currentEditId);}
 }
