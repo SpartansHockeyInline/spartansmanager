@@ -2,6 +2,24 @@
 
 ---
 
+## v4.1.0 · Giugno 2026
+
+### Nuove funzionalità
+- **Certificato di iscrizione** — nuovo documento in Genera documenti: certifica l'iscrizione dell'atleta all'ASD per la stagione sportiva in corso, con testo legale formale, dati tessera ASD/FISR e firma presidente
+- **Attestato di frequenza** — nuovo documento in Genera documenti: attesta la partecipazione dell'atleta alle attività sportive in un periodo personalizzabile (data inizio / data fine), con testo legale formale e firma presidente
+- **Checklist nuovo iscritto** — nuovo tab "✅ Checklist" nella scheda atleta: mostra i 7 passi del processo di iscrizione (anagrafica completa, corso assegnato, modulo iscrizione firmato, modulo privacy firmato, primo pagamento, tessera FISR, certificato medico) con stato FATTO/DA FARE, barra di avanzamento % e link diretto al tab da completare
+- **Badge Moduli in tabella anagrafica** — nuova colonna che indica a colpo d'occhio se i moduli iscrizione e privacy firmati sono stati caricati (✓ verde / ⚠ parziale / ✗ mancante)
+
+### Fix
+- **Presenze strutturale** — aggiunta funzione `riparaPresenzeOrphane()` che corregge automaticamente le voci di presenza quando un atleta viene spostato da un corso all'altro; il fix scatta ad ogni salvataggio, importazione, caricamento app e ripristino backup
+- **Colonna # duplicata nello staff** — rimossa la seconda intestazione `#` nella tabella staff che causava lo spostamento di tutte le colonne
+- **Età senza suffisso "a"** — rimosso il suffisso "a" (anni) dall'indicazione dell'età nelle tabelle anagrafica e staff
+
+### File aggiunti
+- `modulo_certificato_iscrizione.html`, `modulo_attestato_frequenza.html`
+
+---
+
 ## v4.0.0 · Maggio 2026
 
 ### Cambiamento architetturale

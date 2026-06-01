@@ -1146,7 +1146,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.0.0 · Maggio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.1.0 · Giugno 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1545,6 +1545,18 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v4.1.0 · Giugno 2026</div>
+        <div class="cl-section">Presenze, Documenti, Anagrafica, UX</div>
+        <div class="cl-item"><strong>Fix strutturale presenze</strong> — aggiunta funzione <em>riparaPresenzeOrphane()</em> che corregge automaticamente le presenze quando un atleta viene spostato da un corso all'altro; il fix scatta ad ogni salvataggio, importazione, caricamento app e ripristino backup</div>
+        <div class="cl-item"><strong>Certificato di iscrizione</strong> — nuovo documento in Genera documenti: certifica l'iscrizione dell'atleta all'ASD per la stagione sportiva in corso, con testo legale formale, dati tessera ASD/FISR e firma presidente</div>
+        <div class="cl-item"><strong>Attestato di frequenza</strong> — nuovo documento in Genera documenti: attesta la partecipazione dell'atleta alle attività sportive in un periodo personalizzabile (data inizio / data fine), con testo legale formale e firma presidente</div>
+        <div class="cl-item"><strong>Checklist nuovo iscritto</strong> — nuovo tab "✅ Checklist" nella scheda atleta: mostra i 7 passi del processo di iscrizione (anagrafica, corso, moduli firmati, pagamento, tessera FISR, certificato medico) con stato FATTO/DA FARE, barra di avanzamento % e link diretto al tab da completare</div>
+        <div class="cl-item"><strong>Badge Moduli in tabella anagrafica</strong> — nuova colonna che indica a colpo d'occhio se i moduli iscrizione e privacy firmati sono stati caricati (✓ verde / ⚠ parziale / ✗ mancante)</div>
+        <div class="cl-item"><strong>Fix colonna # duplicata nello staff</strong> — rimossa la seconda intestazione # nella tabella staff che causava lo spostamento di tutte le colonne</div>
+        <div class="cl-item"><strong>Età senza suffisso "a"</strong> — rimosso il suffisso "a" (anni) dall'indicazione dell'età nelle tabelle anagrafica e staff</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v4.0.0 · Maggio 2026</div>
