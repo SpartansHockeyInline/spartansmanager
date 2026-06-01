@@ -1069,6 +1069,22 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <input class="fi" id="doc-ric-causale" placeholder="Causale (es. Quota associativa)" style="margin-bottom:8px;">
           <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('ricevuta')">📄 Genera documento</button>
         </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">📋</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Certificato di iscrizione</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Certifica l'iscrizione dell'atleta all'ASD per l'anno sportivo in corso.</div>
+          <select class="fsel" id="doc-certiscr-atleta" style="margin-bottom:8px;"><option value="">— Seleziona atleta —</option></select>
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('certIscrizione')">📄 Genera documento</button>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">🎓</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Attestato di frequenza</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Attesta la partecipazione dell'atleta alle attività sportive nel periodo indicato.</div>
+          <select class="fsel" id="doc-attestato-atleta" style="margin-bottom:8px;"><option value="">— Seleziona atleta —</option></select>
+          <input class="fi" id="doc-attestato-dal" type="date" style="margin-bottom:6px;" placeholder="Data inizio periodo">
+          <input class="fi" id="doc-attestato-al" type="date" style="margin-bottom:8px;" placeholder="Data fine periodo">
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('attestatoFrequenza')">📄 Genera documento</button>
+        </div>
       </div>
     </div>
 
@@ -1991,11 +2007,41 @@ let selectedGiorni={}, selectedImpiantoIcon='🏟️', tempDocs=[], tempFoto='';
 let restoreTargetIdx=null;
 
 // ═══ STORAGE ══════════════════════════════════════════════
-function saveDB(){try{localStorage.setItem('spartans_db',JSON.stringify(DB));}catch(e){}driveScheduleSave();}
-function loadDB(){try{const s=localStorage.getItem('spartans_db');if(s)DB=Object.assign(DB,JSON.parse(s));}catch(e){}}
+// ═══ RIPARAZIONE PRESENZE ORPHANE ═════════════════════════
+// Garantisce che ogni voce nelle presenze sia sotto la chiave
+// del corso ATTUALE del socio. Se un socio viene spostato da
+// un corso all'altro, le sue presenze vengono migrate automaticamente
+// alla nuova chiave {nuovoCorsoId}_{data}.
+function riparaPresenzeOrphane(){
+  if(!DB.presenze||!DB.soci)return;
+  const socioCorso={};
+  DB.soci.forEach(s=>{if(s.id&&s.corsoId)socioCorso[s.id]=s.corsoId;});
+  const nuovePres={};
+  Object.entries(DB.presenze).forEach(([chiave,voci])=>{
+    const parti=chiave.split('_');
+    if(parti.length<2){nuovePres[chiave]=nuovePres[chiave]||{};Object.assign(nuovePres[chiave],voci);return;}
+    const corsoChiave=parti[0],data=parti.slice(1).join('_');
+    Object.entries(voci).forEach(([socioId,presente])=>{
+      const corsoAttuale=socioCorso[socioId];
+      // Se il socio è sconosciuto (eliminato) lascia la voce dov'è
+      const corsoTarget=corsoAttuale||corsoChiave;
+      const nuovaChiave=corsoTarget+'_'+data;
+      if(!nuovePres[nuovaChiave])nuovePres[nuovaChiave]={};
+      // In caso di chiave di destinazione già esistente, non sovrascrivere
+      // una presenza esplicita (true) con un'assenza (false)
+      if(nuovePres[nuovaChiave][socioId]===undefined||presente===true)
+        nuovePres[nuovaChiave][socioId]=presente;
+    });
+  });
+  DB.presenze=nuovePres;
+}
+// ══════════════════════════════════════════════════════════
+
+function saveDB(){riparaPresenzeOrphane();try{localStorage.setItem('spartans_db',JSON.stringify(DB));}catch(e){}driveScheduleSave();}
+function loadDB(){try{const s=localStorage.getItem('spartans_db');if(s){DB=Object.assign(DB,JSON.parse(s));riparaPresenzeOrphane();}}catch(e){}}
 function exportData(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`spartans_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Dati esportati','success');}
 function importData(){document.getElementById('import-input').click();}
-function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{DB=Object.assign(DB,JSON.parse(ev.target.result));saveDB();renderAll();toast('Importato','success');}catch{toast('File non valido','error');}};r.readAsText(f);e.target.value='';}
+function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{DB=Object.assign(DB,JSON.parse(ev.target.result));riparaPresenzeOrphane();saveDB();renderAll();toast('Importato','success');}catch{toast('File non valido','error');}};r.readAsText(f);e.target.value='';}
 
 // ═══ UTILS ════════════════════════════════════════════════
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
@@ -4070,7 +4116,7 @@ async function driveBackupLoad(){
 }
 function renderBackupList(){const c=document.getElementById('backup-list'),bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]');if(!bk.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun backup disponibile</span>';return;}c.innerHTML=bk.map((b,i)=>`<div style="display:flex;align-items:center;gap:9px;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;"><span style="font-size:16px;">💾</span><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${b.label}</div><div style="font-size:11px;color:var(--text2);">${b.soci} soci · ${i===0?'Più recente':'Precedente'}</div></div><button class="btn btn-s btn-sm" onclick="openRestoreModal(${i})">♻️</button><button class="btn btn-s btn-sm" onclick="exportBackup(${i})">📤</button></div>`).join('');}
 function openRestoreModal(idx){restoreTargetIdx=idx;const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];document.getElementById('modal-backup-info').innerHTML=`<strong>Backup del:</strong> ${b.label}<br><strong>Soci:</strong> ${b.soci}`;document.getElementById('modal-backup').classList.add('open');}
-function confirmRestore(){if(restoreTargetIdx===null)return;const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[restoreTargetIdx];saveBackup();try{DB=Object.assign(DB,JSON.parse(b.data));saveDB();renderAll();closeModal('modal-backup');toast('Dati ripristinati','success');renderBackupList();}catch(e){toast('Errore ripristino','error');}}
+function confirmRestore(){if(restoreTargetIdx===null)return;const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[restoreTargetIdx];saveBackup();try{DB=Object.assign(DB,JSON.parse(b.data));riparaPresenzeOrphane();saveDB();renderAll();closeModal('modal-backup');toast('Dati ripristinati','success');renderBackupList();}catch(e){toast('Errore ripristino','error');}}
 function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b.data],{type:'application/json'}));a.download=`spartans_backup_${b.ts.slice(0,10)}.json`;a.click();}
 
 // ═══ RENDER ALL ═══════════════════════════════════════════
@@ -4102,7 +4148,7 @@ function generaTimbro(){
 }
 
 function initGeneraDocumenti(){
-  ['doc-730-atleta','doc-giust-atleta','doc-visita-atleta','doc-ric-atleta'].forEach(id=>{
+  ['doc-730-atleta','doc-giust-atleta','doc-visita-atleta','doc-ric-atleta','doc-certiscr-atleta','doc-attestato-atleta'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     sel.innerHTML='<option value="">— Seleziona atleta —</option>'+
       DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
@@ -4165,6 +4211,27 @@ function apriDocumento(tipo){
       ore:document.getElementById('doc-volont-ore').value||'',
       compenso:document.getElementById('doc-volont-compenso').value||'',dataDoc:oggi,...ps});
     window.open(`${BASE_URL}modulo_volontariato.html?${p}`,'_blank');
+  }
+  else if(tipo==='certIscrizione'){
+    const id=document.getElementById('doc-certiscr-atleta').value;
+    if(!id){toast('Seleziona un atleta','error');return;}
+    const s=DB.soci.find(x=>x.id===id);if(!s)return;
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,nascita:s.nascita?formatDate(s.nascita):'',
+      luogo:s.luogo||'',cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',tesseraFisr:s.tesseraFisr||'',
+      corsoNome:s.corsoNome||'',stagione,dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_certificato_iscrizione.html?${p}`,'_blank');
+  }
+  else if(tipo==='attestatoFrequenza'){
+    const id=document.getElementById('doc-attestato-atleta').value;
+    if(!id){toast('Seleziona un atleta','error');return;}
+    const s=DB.soci.find(x=>x.id===id);if(!s)return;
+    const dal=document.getElementById('doc-attestato-dal').value;
+    const al=document.getElementById('doc-attestato-al').value;
+    if(!dal||!al){toast('Inserisci il periodo di frequenza','error');return;}
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,nascita:s.nascita?formatDate(s.nascita):'',
+      luogo:s.luogo||'',cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
+      corsoNome:s.corsoNome||'',stagione,dal,al,dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_attestato_frequenza.html?${p}`,'_blank');
   }
   else if(tipo==='ricevuta'){
     const id=document.getElementById('doc-ric-atleta').value;
