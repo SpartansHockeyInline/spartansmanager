@@ -3064,7 +3064,8 @@ function renderAlertAbbAtleta(atletaId){
 function renderChecklistIscritto(){
   const cont=document.getElementById('checklist-iscritto-content');
   if(!cont)return;
-  const s=DB.soci.find(x=>x.id===editingId);
+  const sid=currentEditId||editingId;
+  const s=DB.soci.find(x=>x.id===sid);
   if(!s){cont.innerHTML='<div class="empty"><p>Salva prima i dati dell\'atleta</p></div>';return;}
   const oggi=new Date().toISOString().slice(0,10);
   // Calcola stato di ciascun passo
