@@ -2453,7 +2453,7 @@ function renderStaff(search=''){
     return`<tr>
       <td>${idx+1}</td>
       <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div></div></div></td>
-      <td style="font-weight:600;">${eta!==null&&eta!==undefined?eta+' a':'—'}</td>
+      <td style="font-weight:600;">${eta!==null&&eta!==undefined?eta:'—'}</td>
       <td><span class="badge bgy">${ruoliLabel[s.ruolo]||s.ruolo||'—'}</span></td>
       <td>${s.tel||'—'}</td>
       <td>${s.email||'—'}</td>
@@ -2766,7 +2766,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     return`<tr>
       <td class="row-num">${idx+1}</td>
       <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
-      <td style="font-weight:600;">${s.eta!==null&&s.eta!==undefined?s.eta+' a':'—'}</td>
+      <td style="font-weight:600;">${s.eta!==null&&s.eta!==undefined?s.eta:'—'}</td>
       <td><span class="badge bgold" style="font-size:10px;">${s.categoriaFisr}</span></td>
       <td><span class="badge bgy" style="font-size:10px;">${s.tipologia||'atleta'}</span></td>
       <td>${s.corsoNome||'—'}</td>
