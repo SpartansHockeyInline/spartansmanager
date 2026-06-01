@@ -2,6 +2,16 @@
 
 ---
 
+## v4.2.0 · Giugno 2026
+
+### Nuove funzionalità
+- **Snapshot completo alla chiusura stagione** — alla chiusura vengono salvati integralmente: atleti, staff, corsi, presenze, eventi, abbonamenti, piani e valutazioni atleti; i dati sono navigabili in futuro senza limiti
+- **Archivio stagione a 5 tab** — il dettaglio di ogni stagione archiviata mostra: Riepilogo (statistiche chiave + risultato sportivo), Atleti (tabella completa con tessere), Presenze (classifica % per atleta con barra visiva), Valutazioni (punteggi fisico/tecnico/tattico per ogni atleta al momento della chiusura), Eventi (calendario gare e allenamenti)
+- **Badge snapshot** — indicatore visivo "✓ Snapshot completo" vs "⚠ Snapshot parziale" per distinguere le stagioni archiviate con la nuova logica da quelle precedenti
+- **Separazione stagione sportiva / anno fiscale** — i dati finanziari (entrate/uscite) sono esclusi dallo snapshot di stagione; la chiusura fiscale sarà gestita separatamente in Amministrazione
+
+---
+
 ## v4.1.0 · Giugno 2026
 
 ### Nuove funzionalità

@@ -1547,14 +1547,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+      <div class="cl-entry">
         <div class="cl-ver">v4.2.0 · Giugno 2026</div>
         <div class="cl-section">Archivio stagioni</div>
         <div class="cl-item"><strong>Snapshot completo alla chiusura stagione</strong> — alla chiusura vengono salvati integralmente: atleti, staff, corsi, presenze, eventi, abbonamenti, piani e valutazioni atleti; i dati sono navigabili in futuro senza limiti</div>
-        <div class="cl-item"><strong>Archivio stagione a 5 tab</strong> — il dettaglio di ogni stagione archiviata mostra: Riepilogo (statistiche chiave + risultato sportivo), Atleti (tabella completa con tessere), Presenze (classifica % per atleta), Valutazioni (punteggi fisico/tecnico/tattico al momento della chiusura), Eventi (gare e allenamenti)</div>
+        <div class="cl-item"><strong>Archivio stagione a 5 tab</strong> — il dettaglio di ogni stagione archiviata mostra: Riepilogo (statistiche chiave + risultato sportivo), Atleti (tabella completa con tessere), Presenze (classifica % per atleta con barra visiva), Valutazioni (punteggi fisico/tecnico/tattico al momento della chiusura), Eventi (calendario gare e allenamenti)</div>
+        <div class="cl-item"><strong>Badge snapshot</strong> — indicatore visivo "✓ Snapshot completo" vs "⚠ Snapshot parziale" per le stagioni archiviate con la vecchia logica</div>
         <div class="cl-item"><strong>Separazione stagione sportiva / anno fiscale</strong> — i dati finanziari sono esclusi dallo snapshot di stagione; la chiusura fiscale sarà gestita separatamente in Amministrazione</div>
       </div>
 
-      <div class="cl-entry">
         <div class="cl-ver">v4.1.0 · Giugno 2026</div>
         <div class="cl-section">Presenze, Documenti, Anagrafica, UX</div>
         <div class="cl-item"><strong>Fix strutturale presenze</strong> — aggiunta funzione <em>riparaPresenzeOrphane()</em> che corregge automaticamente le presenze quando un atleta viene spostato da un corso all'altro; il fix scatta ad ogni salvataggio, importazione, caricamento app e ripristino backup</div>
@@ -3659,7 +3660,6 @@ function saveStagione(){const label=document.getElementById('st-label').value.tr
 function resetStagioneForm(){['st-label','st-inizio','st-fine','st-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('nuova-stagione-title').textContent='➕ Nuova stagione';const now=new Date(),anno=now.getMonth()>=8?now.getFullYear():now.getFullYear()-1,next=anno+1;const l=document.getElementById('st-label');if(l)l.value=`Stagione ${next}/${next+1}`;const si=document.getElementById('st-inizio');if(si)si.value=`${next}-09-01`;const sf=document.getElementById('st-fine');if(sf)sf.value=`${next+1}-06-30`;}
 function editStagioneCorrente(){const c=getStagioneCorrente();if(!c)return;document.getElementById('st-label').value=c.label;document.getElementById('st-inizio').value=c.inizio;document.getElementById('st-fine').value=c.fine;document.getElementById('st-note').value=c.note||'';document.getElementById('nuova-stagione-title').textContent='✏️ Modifica stagione corrente';}
 function renderStagioni(){initStagioneDefault();const curr=getStagioneCorrente(),card=document.getElementById('stagione-corrente-card');if(card)card.innerHTML=curr?`<div style="display:flex;flex-direction:column;gap:9px;"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--gold);">${curr.label}</div><div style="font-size:12px;color:var(--text2);">📅 ${formatDate(curr.inizio)} → ${formatDate(curr.fine)}</div>${curr.note?`<div style="font-size:12px;color:var(--text2);font-style:italic;">${curr.note}</div>`:''}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:5px;"><button class="btn btn-s btn-sm" onclick="editStagioneCorrente()">✏️ Modifica</button><button class="btn btn-d btn-sm" onclick="document.getElementById('modal-chiudi-stagione').classList.add('open')">🔒 Chiudi</button></div><div style="font-size:10px;color:var(--text3);">Gli allenamenti vengono generati automaticamente per tutti i corsi attivi.</div></div>`:'<div class="empty"><div class="ei">🏆</div><p>Nessuna stagione attiva</p></div>';const stor=document.getElementById('storico-stagioni');if(stor){const arch=DB.stagioniArchivio||[];if(!arch.length){stor.innerHTML='<div class="empty"><div class="ei">📚</div><p>Nessuna stagione archiviata</p></div>';return;}stor.innerHTML=arch.slice().reverse().map(s=>`<div style="display:flex;align-items:center;gap:11px;padding:11px;background:var(--surface2);border-radius:8px;margin-bottom:7px;"><div style="flex:1;"><div style="font-weight:600;font-size:13px;">${s.label}</div><div style="font-size:11px;color:var(--text2);">${formatDate(s.inizio)} → ${formatDate(s.fine)}</div>${s.risultato?`<div style="font-size:11px;color:var(--gold);">🏆 ${s.risultato}</div>`:''}</div><button class="btn btn-s btn-sm" onclick="showStagioneDetail('${s.id}')">📋 Dettaglio</button><button class="btn btn-d btn-sm" onclick="deleteStagioneArchivio('${s.id}')">🗑️</button></div>`).join('');}}
-function chiudiStagione(){const curr=getStagioneCorrente();if(!curr)return;if(!DB.stagioniArchivio)DB.stagioniArchivio=[];const arch={...curr,attiva:false,chiusa:new Date().toISOString(),risultato:document.getElementById('cs-risultato').value,gare:parseInt(document.getElementById('cs-gare').value)||0,vittorie:parseInt(document.getElementById('cs-vittorie').value)||0,pareggi:parseInt(document.getElementById('cs-pareggi').value)||0,sconfitte:parseInt(document.getElementById('cs-sconfitte').value)||0,noteChiusura:document.getElementById('cs-note').value,snapshot:{soci:DB.soci.length,eventi:DB.eventi.length,entrate:DB.entrate.reduce((s,e)=>s+e.importo,0),uscite:DB.uscite.reduce((s,u)=>s+u.importo,0)}};DB.stagioniArchivio.push(arch);DB.stagioni=DB.stagioni.filter(s=>!s.attiva);DB.eventi=[];DB.abbonamenti=[];DB.presenze={};DB.entrate=[];DB.uscite=[];closeModal('modal-chiudi-stagione');saveDB();renderStagioni();renderDashboard();renderCalendar();toast(`Stagione "${arch.label}" archiviata`,'success');}
 function chiudiStagione(){
   const curr=getStagioneCorrente();if(!curr)return;
   if(!DB.stagioniArchivio)DB.stagioniArchivio=[];
@@ -3682,7 +3682,8 @@ function chiudiStagione(){
       valutazioni:JSON.parse(JSON.stringify(DB.valutazioni||{})),
     },
     snapshot:{
-      soci:(DB.soci||[]).length,eventi:(DB.eventi||[]).length,
+      soci:(DB.soci||[]).length,
+      eventi:(DB.eventi||[]).length,
       presenze:Object.values(DB.presenze||{}).reduce((s,v)=>s+Object.values(v).filter(Boolean).length,0),
       valutazioni:Object.keys(DB.valutazioni||{}).length,
     }
@@ -3697,11 +3698,7 @@ function showStagioneDetail(id){
   const s=(DB.stagioniArchivio||[]).find(x=>x.id===id);if(!s)return;
   const d=s.dati||{};
   const snap=s.snapshot||{};
-  const oggi=new Date().toISOString().slice(0,10);
-
   function tabBtn(key,label,active){return`<div class="tab${active?' active':''}" onclick="showArchivioTab('${id}','${key}')">${label}</div>`;}
-
-  // ── RIEPILOGO ─────────────────────────────────────────
   function htmlRiepilogo(){
     return`<div class="stats-grid" style="margin-bottom:16px;">
       <div class="stat-card sc-blue"><div class="sl">Atleti</div><div class="sv">${snap.soci||0}</div></div>
@@ -3716,8 +3713,6 @@ function showStagioneDetail(id){
     </div>`:''}
     ${s.noteChiusura?`<div style="font-size:12px;color:var(--text2);font-style:italic;padding:10px;background:var(--surface2);border-radius:8px;">${s.noteChiusura}</div>`:''}`;
   }
-
-  // ── ATLETI ────────────────────────────────────────────
   function htmlAtleti(){
     const soci=d.soci||[];
     if(!soci.length)return'<div class="empty"><div class="ei">👥</div><p>Nessun atleta archiviato</p></div>';
@@ -3733,29 +3728,20 @@ function showStagioneDetail(id){
       </tr>`).join('')}</tbody>
     </table></div>`;
   }
-
-  // ── PRESENZE ──────────────────────────────────────────
   function htmlPresenze(){
     const presenze=d.presenze||{};
     const soci=d.soci||[];
-    const sociMap={};soci.forEach(s=>{sociMap[s.id]=s;});
-    const corsi=d.corsi||[];
     if(!Object.keys(presenze).length)return'<div class="empty"><div class="ei">📋</div><p>Nessuna presenza archiviata</p></div>';
-    // Calcola % per atleta
     const totSessioni={};
     const totPresenti={};
     Object.entries(presenze).forEach(([k,voci])=>{
       const corsoId=k.split('_')[0];
       if(!totSessioni[corsoId])totSessioni[corsoId]=new Set();
       totSessioni[corsoId].add(k);
-      Object.entries(voci).forEach(([sid,p])=>{
-        if(!totPresenti[sid])totPresenti[sid]=0;
-        if(p)totPresenti[sid]++;
-      });
+      Object.entries(voci).forEach(([sid,p])=>{if(!totPresenti[sid])totPresenti[sid]=0;if(p)totPresenti[sid]++;});
     });
     const rows=soci.map(s=>{
-      const corsoId=s.corsoId;
-      const sess=totSessioni[corsoId]?totSessioni[corsoId].size:0;
+      const sess=totSessioni[s.corsoId]?totSessioni[s.corsoId].size:0;
       const pres=totPresenti[s.id]||0;
       const perc=sess?Math.round(pres/sess*100):0;
       const col=perc>=75?'var(--green)':perc>=50?'var(--gold)':'var(--red)';
@@ -3777,46 +3763,38 @@ function showStagioneDetail(id){
       </tr>`).join('')}</tbody>
     </table></div>`;
   }
-
-  // ── FINANZIARIO ───────────────────────────────────────
-  // ── VALUTAZIONI ───────────────────────────────────────
   function htmlValutazioni(){
     const valutazioni=d.valutazioni||{};
-    const soci=d.soci||[];
-    const atleti=soci.filter(s=>s.tipologia==='atleta'||!s.tipologia);
+    const atleti=(d.soci||[]).filter(s=>s.tipologia==='atleta'||!s.tipologia);
     if(!atleti.length)return'<div class="empty"><div class="ei">📊</div><p>Nessun atleta archiviato</p></div>';
-    const rows=atleti.map(a=>{
-      const val=valutazioni[a.id];
-      if(!val)return{a,fisico:null,tecnico:null,tattico:null,data:null};
-      // Calcola medie usando le stesse chiavi dell'app
-      const numVals=(obj,keys)=>{const v=keys.map(k=>parseFloat(obj[k])||0).filter(x=>x>0);return v.length?Math.round(v.reduce((s,n)=>s+n)/v.length*10)/10:null;};
-      // Usa tutte le chiavi numeriche disponibili nella valutazione per semplificare
-      const allKeys=Object.keys(val).filter(k=>k!=='data'&&typeof val[k]==='number');
-      const fKeys=allKeys.filter(k=>k.startsWith('f_')||k.startsWith('p_'));
-      const tKeys=allKeys.filter(k=>k.startsWith('t_'));
-      const ttKeys=allKeys.filter(k=>k.startsWith('tt_'));
-      return{a,fisico:numVals(val,fKeys),tecnico:numVals(val,tKeys),tattico:numVals(val,ttKeys),data:val.data};
-    }).sort((a,b)=>`${a.a.cognome} ${a.a.nome}`.localeCompare(`${b.a.cognome} ${b.a.nome}`,'it'));
+    const numVals=(val,keys)=>{const v=keys.map(k=>parseFloat(val[k])||0).filter(x=>x>0);return v.length?Math.round(v.reduce((s,n)=>s+n)/v.length*10)/10:null;};
     function score(v){
       if(v===null)return'<span style="color:var(--text3);">—</span>';
       const col=v>=4?'var(--green)':v>=2.5?'var(--gold)':'var(--red)';
       return`<span style="font-weight:700;color:${col};">${v.toFixed(1)}</span><span style="font-size:10px;color:var(--text3);">/5</span>`;
     }
-    return`<div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Punteggi medi per area (scala 1–5). I valori sono lo snapshot al momento della chiusura stagione.</div>
+    const rows=atleti.map(a=>{
+      const val=valutazioni[a.id];
+      if(!val)return{a,fisico:null,tecnico:null,tattico:null,data:null};
+      const allKeys=Object.keys(val).filter(k=>k!=='data'&&typeof val[k]==='number');
+      return{a,
+        fisico:numVals(val,allKeys.filter(k=>k.startsWith('f_')||k.startsWith('p_'))),
+        tecnico:numVals(val,allKeys.filter(k=>k.startsWith('t_'))),
+        tattico:numVals(val,allKeys.filter(k=>k.startsWith('tt_'))),
+        data:val.data};
+    }).sort((a,b)=>`${a.a.cognome} ${a.a.nome}`.localeCompare(`${b.a.cognome} ${b.a.nome}`,'it'));
+    return`<div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Punteggi medi per area (scala 1–5) al momento della chiusura stagione.</div>
     <div class="tw"><table>
       <thead><tr><th>#</th><th>Atleta</th><th>Corso</th><th>⚡ Fisico/Psico</th><th>🏒 Tecnico</th><th>♟️ Tattico</th><th>Aggiornato</th></tr></thead>
       <tbody>${rows.map((r,i)=>`<tr>
         <td class="row-num">${i+1}</td>
         <td><div style="display:flex;align-items:center;gap:8px;">${renderAvatar(r.a,28)}<span style="font-weight:600;">${r.a.cognome} ${r.a.nome}</span></div></td>
         <td>${r.a.corsoNome||'—'}</td>
-        <td>${score(r.fisico)}</td>
-        <td>${score(r.tecnico)}</td>
-        <td>${score(r.tattico)}</td>
+        <td>${score(r.fisico)}</td><td>${score(r.tecnico)}</td><td>${score(r.tattico)}</td>
         <td style="font-size:11px;color:var(--text3);">${r.data?formatDate(r.data):'—'}</td>
       </tr>`).join('')}</tbody>
     </table></div>`;
-
-  // ── EVENTI ────────────────────────────────────────────
+  }
   function htmlEventi(){
     const eventi=(d.eventi||[]).sort((a,b)=>(a.data||'').localeCompare(b.data||''));
     if(!eventi.length)return'<div class="empty"><div class="ei">📅</div><p>Nessun evento archiviato</p></div>';
@@ -3831,8 +3809,6 @@ function showStagioneDetail(id){
       </tr>`).join('')}</tbody>
     </table></div>`;
   }
-
-  // ── RENDER PAGINA ─────────────────────────────────────
   const page=document.getElementById('page-stagione-detail');
   page.innerHTML=`
     <button class="btn btn-s btn-sm" onclick="showPage('stagioni')" style="margin-bottom:14px;">← Stagioni</button>
@@ -3842,7 +3818,7 @@ function showStagioneDetail(id){
           <div class="card-title" style="margin-bottom:2px;">📋 ${s.label}</div>
           <div style="font-size:11px;color:var(--text2);">📅 ${formatDate(s.inizio)} → ${formatDate(s.fine)} · Archiviata il ${formatDate(s.chiusa?.slice(0,10))} · 🔒 Read-only</div>
         </div>
-        ${d.soci?`<span class="badge bg">✓ Snapshot completo</span>`:`<span class="badge by">⚠ Snapshot parziale</span>`}
+        ${d.soci?'<span class="badge bg">✓ Snapshot completo</span>':'<span class="badge by">⚠ Snapshot parziale</span>'}
       </div>
       <div class="tabs" style="margin-bottom:14px;" id="archivio-tabs-${id}">
         ${tabBtn('riepilogo','📊 Riepilogo',true)}
@@ -3853,7 +3829,6 @@ function showStagioneDetail(id){
       </div>
       <div id="archivio-content-${id}">${htmlRiepilogo()}</div>
     </div>`;
-
   window[`_archivio_${id}`]={riepilogo:htmlRiepilogo,atleti:htmlAtleti,presenze:htmlPresenze,valutazioni:htmlValutazioni,eventi:htmlEventi};
   showPage('stagione-detail');
 }
