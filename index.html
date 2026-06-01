@@ -687,6 +687,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <th>Vis. Medica</th>
             <th>Assicurazione</th>
             <th>Abbonamento</th>
+            <th>Moduli</th>
             <th class="sortable" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
             <th>Azioni</th>
           </tr></thead>
@@ -1161,6 +1162,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tab" onclick="showSocioTab('taglie')">👕 Taglie</div>
         <div class="tab" onclick="showSocioTab('pagamenti')">💰 Pagamenti</div>
         <div class="tab" onclick="showSocioTab('documenti')">📎 Documenti</div>
+        <div class="tab" onclick="showSocioTab('checklist');renderChecklistIscritto()">✅ Checklist</div>
       </div>
       <div class="tab-panel active" id="socio-tab-anagrafica">
         <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;">
@@ -1286,6 +1288,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="fgroup" style="margin-top:10px;"><label>Modulo iscrizione firmato (URL o nome file)</label><input class="fi" id="m-s-iscrizione-allegato" placeholder="Link o nome del file firmato..."></div>
           <div class="fgroup" style="margin-top:6px;"><label>Modulo privacy firmato (URL o nome file)</label><input class="fi" id="m-s-privacy-allegato" placeholder="Link o nome del file firmato..."></div>
         </div>
+      </div>
+      <div class="tab-panel" id="socio-tab-checklist">
+        <div id="checklist-iscritto-content"></div>
       </div>
     </div>
     <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-socio')">Annulla</button><button class="btn btn-p" onclick="saveSocio()">💾 Salva atleta</button></div>
@@ -2744,7 +2749,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
   const cnt=document.getElementById('soci-count');
   if(cnt)cnt.textContent=listaArricchita.length;
 
-  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="12"><div class="empty"><div class="ei">👥</div><h3>Nessun atleta trovato</h3></div></td></tr>`;return;}
+  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty"><div class="ei">👥</div><h3>Nessun atleta trovato</h3></div></td></tr>`;return;}
 
   tb.innerHTML=listaArricchita.map((s,idx)=>{
     const abb=getAbbStatoSocio(s.id);
@@ -2775,6 +2780,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
       <td>${visitaBadge}</td>
       <td>${assicBadge}</td>
       <td>${abbBadge}</td>
+      <td>${(()=>{const hi=!!s.iscrizioneAllegato,hp=!!s.privacyAllegato;if(hi&&hp)return'<span class="badge bg" title="Iscrizione ✓ · Privacy ✓">✓ Moduli</span>';if(hi||hp)return`<span class="badge by" title="Iscrizione ${hi?'✓':'✗'} · Privacy ${hp?'✓':'✗'}">⚠ Parziale</span>`;return'<span class="badge br" title="Nessun modulo firmato">✗</span>';})()}</td>
       <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}">${s.stato||'attivo'}</span></td>
       <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button><button class="bico" onclick="deleteSocio('${s.id}')">🗑️</button></div></td>
     </tr>`;
@@ -3054,7 +3060,81 @@ function renderAlertAbbAtleta(atletaId){
     alertEl.style.display='none';
   }
 }
-function editPiano(id){editingId=id;const p=DB.piani.find(x=>x.id===id);if(!p)return;['nome','durata','prezzo','sport','ingressi','note'].forEach(k=>{const el=document.getElementById('m-p-'+k);if(el)el.value=p[k]||'';});document.getElementById('modal-piano').classList.add('open');}
+// ═══ CHECKLIST NUOVO ISCRITTO ═════════════════════════════
+function renderChecklistIscritto(){
+  const cont=document.getElementById('checklist-iscritto-content');
+  if(!cont)return;
+  const s=DB.soci.find(x=>x.id===editingId);
+  if(!s){cont.innerHTML='<div class="empty"><p>Salva prima i dati dell\'atleta</p></div>';return;}
+  const oggi=new Date().toISOString().slice(0,10);
+  // Calcola stato di ciascun passo
+  const anagraficaOk=!!(s.nome&&s.cognome&&s.nascita&&s.cf&&s.tel);
+  const iscrizioneInviata=!!(s.iscrizioneAllegato||s.privacyAllegato);
+  const iscrizioneFirmata=!!s.iscrizioneAllegato;
+  const privacyFirmata=!!s.privacyAllegato;
+  const pagamenti=DB.entrate?.filter(e=>e.atletaId===s.id)||[];
+  const hasPagamento=pagamenti.length>0;
+  const fisrOk=!!s.tesseraFisr;
+  const visitaOk=s.visitaScad&&(new Date(s.visitaScad)-new Date())>0;
+  const corsoOk=!!s.corsoId;
+
+  function step(num,fase,titolo,ok,dettaglio,action){
+    const ico=ok?'✅':'⭕';
+    const col=ok?'var(--green)':'var(--text3)';
+    return`<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <div style="font-size:18px;flex-shrink:0;margin-top:1px;">${ico}</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+          <span style="font-size:10px;background:var(--surface2);border-radius:10px;padding:1px 7px;color:var(--text2);">${fase}</span>
+          <span style="font-weight:600;font-size:13px;color:${ok?'var(--dark)':'var(--text2)'};">${titolo}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);">${dettaglio}</div>
+        ${action?`<div style="margin-top:6px;">${action}</div>`:''}
+      </div>
+      <div style="font-size:11px;font-weight:700;color:${col};flex-shrink:0;">${ok?'FATTO':'DA FARE'}</div>
+    </div>`;
+  }
+
+  const completati=[anagraficaOk,iscrizioneFirmata,privacyFirmata,hasPagamento,fisrOk,!!visitaOk,corsoOk].filter(Boolean).length;
+  const tot=7;
+  const perc=Math.round(completati/tot*100);
+  const barCol=perc===100?'var(--green)':perc>=50?'var(--gold)':'var(--red)';
+
+  cont.innerHTML=`
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span style="font-weight:600;">Completamento iscrizione</span>
+        <span style="font-weight:700;color:${barCol};">${completati}/${tot} passi · ${perc}%</span>
+      </div>
+      <div style="background:var(--border);border-radius:6px;height:8px;">
+        <div style="background:${barCol};width:${perc}%;height:100%;border-radius:6px;transition:width .3s;"></div>
+      </div>
+    </div>
+    ${step(1,'Fase 1','Anagrafica completa',anagraficaOk,
+      anagraficaOk?'Nome, cognome, data nascita, CF e telefono presenti.':'Compila almeno: nome, cognome, data di nascita, CF e telefono.',
+      !anagraficaOk?`<button class="btn btn-s btn-sm" onclick="showSocioTab('anagrafica')">👤 Vai ad Anagrafica</button>`:'')}
+    ${step(2,'Fase 1','Assegnazione al corso',corsoOk,
+      corsoOk?`Corso: <strong>${s.corsoNome}</strong>`:'Assegna l\'atleta a un corso.',
+      !corsoOk?`<button class="btn btn-s btn-sm" onclick="showSocioTab('anagrafica')">👤 Vai ad Anagrafica</button>`:'')}
+    ${step(3,'Fase 2','Modulo iscrizione firmato',iscrizioneFirmata,
+      iscrizioneFirmata?`File: <a href="${s.iscrizioneAllegato}" target="_blank" style="color:var(--accent);">apri documento</a>`:'Genera il link, invialo all\'atleta/genitore e carica il link del file firmato nel tab Documenti.',
+      !iscrizioneFirmata?`<button class="btn btn-s btn-sm" onclick="showSocioTab('documenti')">📎 Vai a Documenti</button>`:'')}
+    ${step(4,'Fase 2','Modulo privacy firmato',privacyFirmata,
+      privacyFirmata?`File: <a href="${s.privacyAllegato}" target="_blank" style="color:var(--accent);">apri documento</a>`:'Genera il link, invialo all\'atleta/genitore e carica il link del file firmato nel tab Documenti.',
+      !privacyFirmata?`<button class="btn btn-s btn-sm" onclick="showSocioTab('documenti')">📎 Vai a Documenti</button>`:'')}
+    ${step(5,'Fase 3','Primo pagamento registrato',hasPagamento,
+      hasPagamento?`${pagamenti.length} pagamento/i registrato/i. Ricevuta generata?`:'Registra il pagamento in Amministrazione → Entrate e genera la ricevuta.',
+      !hasPagamento?`<button class="btn btn-s btn-sm" onclick="closeModal('modal-socio');showPage('amministrazione')">💰 Vai ad Amministrazione</button>`:'')}
+    ${step(6,'Fase 4','Tessera FISR inserita',fisrOk,
+      fisrOk?`N° ${s.tesseraFisr}${s.tesseraFisrScad?' · scad. '+formatDate(s.tesseraFisrScad):''}`:' Completa il tesseramento sul portale FISR e inserisci numero e scadenza in Anagrafica.',
+      !fisrOk?`<button class="btn btn-s btn-sm" onclick="showSocioTab('sanitario')">🏥 Vai a Sanitario</button>`:'')}
+    ${step(7,'Fase 5','Certificato medico',!!visitaOk,
+      visitaOk?`Scadenza: ${formatDate(s.visitaScad)}`:'Raccogli il certificato medico, digitalizzalo, salvalo su Drive e inserisci i dati nel tab Sanitario.',
+      !visitaOk?`<button class="btn btn-s btn-sm" onclick="showSocioTab('sanitario')">🏥 Vai a Sanitario</button>`:'')}
+    ${perc===100?'<div style="margin-top:12px;padding:10px;background:rgba(46,204,113,.1);border:1px solid var(--green);border-radius:6px;text-align:center;font-weight:600;color:var(--green);">🎉 Iscrizione completa! Tutti i passi sono stati completati.</div>':''}
+  `;
+}
+// ══════════════════════════════════════════════════════════const p=DB.piani.find(x=>x.id===id);if(!p)return;['nome','durata','prezzo','sport','ingressi','note'].forEach(k=>{const el=document.getElementById('m-p-'+k);if(el)el.value=p[k]||'';});document.getElementById('modal-piano').classList.add('open');}
 function deletePiano(id){if(!confirm('Eliminare?'))return;DB.piani=DB.piani.filter(x=>x.id!==id);saveDB();renderPiani();}
 function populateSociSel(){document.getElementById('m-as-socio').innerHTML='<option value="">Seleziona...</option>'+DB.soci.map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');}
 function populatePianiSel(){document.getElementById('m-as-piano').innerHTML='<option value="">Seleziona...</option>'+DB.piani.map(p=>`<option value="${p.id}">${p.nome} — €${p.prezzo}</option>`).join('');}
