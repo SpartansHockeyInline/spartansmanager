@@ -1554,7 +1554,6 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Archivio stagione a 5 tab</strong> — il dettaglio di ogni stagione archiviata mostra: Riepilogo (statistiche chiave + risultato sportivo), Atleti (tabella completa con tessere), Presenze (classifica % per atleta con barra visiva), Valutazioni (punteggi fisico/tecnico/tattico al momento della chiusura), Eventi (calendario gare e allenamenti)</div>
         <div class="cl-item"><strong>Badge snapshot</strong> — indicatore visivo "✓ Snapshot completo" vs "⚠ Snapshot parziale" per le stagioni archiviate con la vecchia logica</div>
         <div class="cl-item"><strong>Separazione stagione sportiva / anno fiscale</strong> — i dati finanziari sono esclusi dallo snapshot di stagione; la chiusura fiscale sarà gestita separatamente in Amministrazione</div>
-        <div class="cl-item"><strong>Avvisi compleanno in Prossimi eventi</strong> — soci e staff con compleanno entro 14 giorni appaiono in dashboard con sfondo azzurro, età che compiono e label Oggi! 🎉 / Domani / fra Ngg</div>
       </div>
 
         <div class="cl-ver">v4.1.0 · Giugno 2026</div>
@@ -2067,7 +2066,7 @@ function saveDB(){riparaPresenzeOrphane();try{localStorage.setItem('spartans_db'
 function loadDB(){try{const s=localStorage.getItem('spartans_db');if(s){DB=Object.assign(DB,JSON.parse(s));riparaPresenzeOrphane();}}catch(e){}}
 function exportData(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`spartans_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Dati esportati','success');}
 function importData(){document.getElementById('import-input').click();}
-function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{DB=Object.assign(DB,JSON.parse(ev.target.result));riparaPresenzeOrphane();saveDB();renderAll();toast('Importato','success');}catch{toast('File non valido','error');}};r.readAsText(f);e.target.value='';}
+function handleImport(e){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{DB=Object.assign(DB,JSON.parse(ev.target.result));riparaPresenzeOrphane();saveDB();renderAll();toast('Importato','success');}catch{toast('File non valido','error');}};r.readAsText(f);e.target.value='';}
 
 // ═══ UTILS ════════════════════════════════════════════════
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
@@ -2207,7 +2206,7 @@ function loadStrutturaForm(){
   pw.innerHTML=s.logo?`<img src="${s.logo}" style="width:100%;height:100%;object-fit:cover;">`:'⚔️';
   renderSportTags();renderDocumentiList();
 }
-function saveStruttura(){['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr'].forEach(k=>{const el=document.getElementById('s-'+k);if(el)DB.struttura[k]=el.value;});document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
+function saveStruttura(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr'].forEach(k=>{const el=document.getElementById('s-'+k);if(el)DB.struttura[k]=el.value;});document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
 function loadLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{DB.struttura.logo=ev.target.result;document.getElementById('logo-preview-wrap').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;">`;saveDB();};r.readAsDataURL(f);}
 function addSport(){const v=document.getElementById('sport-new-input').value.trim();if(!v)return;if(!DB.struttura.sport)DB.struttura.sport=[];DB.struttura.sport.push(v);document.getElementById('sport-new-input').value='';saveDB();renderSportTags();}
 function renderSportTags(){const c=document.getElementById('sport-list');c.innerHTML=(DB.struttura.sport||[]).map((s,i)=>`<div style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:12px;">${s}<span style="cursor:pointer;color:var(--red);" onclick="removeSport(${i})">✕</span></div>`).join('')||'<span style="color:var(--text3);font-size:12px;">Nessuno</span>';}
@@ -2231,7 +2230,7 @@ function populateCorseSel(){const sel=document.getElementById('m-s-corso');if(se
 const TIPOLOGIE={atleta:'🏒 Atleta',dirigente:'👔 Dirigente',tecnico:'🧑‍🏫 Tecnico',genitore:'👨‍👧 Genitore',presidente:'⭐ Presidente','vice-presidente':'🔱 Vice-Pres.',segretario:'📋 Segretario',tesoriere:'💰 Tesoriere',attrezzista:'🔧 Attrezzista',cronometrista:'⏱️ Crono',segnapunti:'📝 Segnapunti'};
 const TIP_COL={atleta:'bb',dirigente:'bp',tecnico:'bo',genitore:'bgy',presidente:'by','vice-presidente':'by',segretario:'bb',tesoriere:'bg',attrezzista:'br',cronometrista:'bb',segnapunti:'bb'};
 
-function saveSocio(){
+function saveSocio(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}
   const nome=document.getElementById('m-s-nome').value.trim(),cognome=document.getElementById('m-s-cognome').value.trim();
   if(!nome||!cognome){toast('Nome e cognome obbligatori','error');return;}
   const corsoId=document.getElementById('m-s-corso').value;
@@ -2286,7 +2285,7 @@ function saveSocio(){
 }
 
 function editSocio(id){openModalSocio(id);}
-function deleteSocio(id){if(!confirm('Eliminare questo atleta?'))return;DB.soci=DB.soci.filter(x=>x.id!==id);saveDB();renderSoci();updateBadges();renderDashboard();toast('Eliminato','warning');}
+function deleteSocio(id){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare questo atleta?'))return;DB.soci=DB.soci.filter(x=>x.id!==id);saveDB();renderSoci();updateBadges();renderDashboard();toast('Eliminato','warning');}
 
 // ═══ CATEGORIE FISR ═══════════════════════════════════════
 // Calcola la categoria FISR di un atleta in base all'anno di nascita
@@ -2424,7 +2423,7 @@ function openModalStaff(id=null){
   document.getElementById('modal-staff').classList.add('open');
 }
 
-function saveStaff(){
+function saveStaff(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}
   if(!DB.staff)DB.staff=[];
   const nome=document.getElementById('m-st-nome').value.trim();
   const cognome=document.getElementById('m-st-cognome').value.trim();
@@ -2492,7 +2491,7 @@ function renderStaff(search=''){
   }).join('');
 }
 
-function deleteStaff(id){if(!confirm('Eliminare questo membro staff?'))return;DB.staff=DB.staff.filter(x=>x.id!==id);saveDB();renderStaff();toast('Membro staff eliminato','success');}
+function deleteStaff(id){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare questo membro staff?'))return;DB.staff=DB.staff.filter(x=>x.id!==id);saveDB();renderStaff();toast('Membro staff eliminato','success');}
 
 function showStaffTab(tab){
   ['anagrafica','sanitario','genitori','taglie','pagamenti'].forEach(t=>{
@@ -2921,7 +2920,7 @@ function importFromCSV(){
 }
 
 // ═══ PIANI ════════════════════════════════════════════════
-function savePiano(){const nome=document.getElementById('m-p-nome').value.trim();if(!nome){toast('Nome obbligatorio','error');return;}const obj={id:editingId||uid(),nome,durata:document.getElementById('m-p-durata').value,prezzo:parseFloat(document.getElementById('m-p-prezzo').value)||0,sport:document.getElementById('m-p-sport').value,ingressi:parseInt(document.getElementById('m-p-ingressi').value)||0,note:document.getElementById('m-p-note').value};if(editingId){const i=DB.piani.findIndex(x=>x.id===editingId);if(i>-1)DB.piani[i]=obj;}else DB.piani.push(obj);saveDB();closeModal('modal-piano');renderPiani();toast('Piano salvato','success');}
+function savePiano(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}const nome=document.getElementById('m-p-nome').value.trim();if(!nome){toast('Nome obbligatorio','error');return;}const obj={id:editingId||uid(),nome,durata:document.getElementById('m-p-durata').value,prezzo:parseFloat(document.getElementById('m-p-prezzo').value)||0,sport:document.getElementById('m-p-sport').value,ingressi:parseInt(document.getElementById('m-p-ingressi').value)||0,note:document.getElementById('m-p-note').value};if(editingId){const i=DB.piani.findIndex(x=>x.id===editingId);if(i>-1)DB.piani[i]=obj;}else DB.piani.push(obj);saveDB();closeModal('modal-piano');renderPiani();toast('Piano salvato','success');}
 function renderPiani(){const tb=document.getElementById('piani-tbody');if(!DB.piani.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">🎫</div><h3>Nessun piano</h3></div></td></tr>';return;}tb.innerHTML=DB.piani.map(p=>`<tr><td><strong>${p.nome}</strong></td><td>${p.durata}</td><td>€${p.prezzo.toFixed(2)}</td><td>${p.sport||'—'}</td><td>${p.note||'—'}</td><td><div class="tda"><button class="bico" onclick="editPiano('${p.id}')">✏️</button><button class="bico" onclick="deletePiano('${p.id}')">🗑️</button></div></td></tr>`).join('');}
 
 // ═══ SOLLECITI ABBONAMENTI ════════════════════════════════
@@ -3158,14 +3157,14 @@ function renderChecklistIscritto(){
   `;
 }
 // ══════════════════════════════════════════════════════════const p=DB.piani.find(x=>x.id===id);if(!p)return;['nome','durata','prezzo','sport','ingressi','note'].forEach(k=>{const el=document.getElementById('m-p-'+k);if(el)el.value=p[k]||'';});document.getElementById('modal-piano').classList.add('open');}
-function deletePiano(id){if(!confirm('Eliminare?'))return;DB.piani=DB.piani.filter(x=>x.id!==id);saveDB();renderPiani();}
+function deletePiano(id){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare?'))return;DB.piani=DB.piani.filter(x=>x.id!==id);saveDB();renderPiani();}
 function populateSociSel(){document.getElementById('m-as-socio').innerHTML='<option value="">Seleziona...</option>'+DB.soci.map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');}
 function populatePianiSel(){document.getElementById('m-as-piano').innerHTML='<option value="">Seleziona...</option>'+DB.piani.map(p=>`<option value="${p.id}">${p.nome} — €${p.prezzo}</option>`).join('');}
 
 // ═══ ABBONAMENTI ══════════════════════════════════════════
-function saveAbbSocio(){const sId=document.getElementById('m-as-socio').value,pId=document.getElementById('m-as-piano').value;if(!sId||!pId){toast('Seleziona socio e piano','error');return;}const s=DB.soci.find(x=>x.id===sId),p=DB.piani.find(x=>x.id===pId);DB.abbonamenti.push({id:uid(),socioId:sId,pianoId:pId,socioNome:`${s.cognome} ${s.nome}`,pianoNome:p.nome,inizio:document.getElementById('m-as-inizio').value,scadenza:document.getElementById('m-as-scadenza').value,pagato:parseFloat(document.getElementById('m-as-pagato').value)||0,metodo:document.getElementById('m-as-metodo').value});saveDB();closeModal('modal-abb-socio');renderAbbAttivi();renderDashboard();toast('Abbonamento assegnato','success');}
+function saveAbbSocio(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}const sId=document.getElementById('m-as-socio').value,pId=document.getElementById('m-as-piano').value;if(!sId||!pId){toast('Seleziona socio e piano','error');return;}const s=DB.soci.find(x=>x.id===sId),p=DB.piani.find(x=>x.id===pId);DB.abbonamenti.push({id:uid(),socioId:sId,pianoId:pId,socioNome:`${s.cognome} ${s.nome}`,pianoNome:p.nome,inizio:document.getElementById('m-as-inizio').value,scadenza:document.getElementById('m-as-scadenza').value,pagato:parseFloat(document.getElementById('m-as-pagato').value)||0,metodo:document.getElementById('m-as-metodo').value});saveDB();closeModal('modal-abb-socio');renderAbbAttivi();renderDashboard();toast('Abbonamento assegnato','success');}
 function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=new Date().toISOString().slice(0,10);tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td>€${a.pagato.toFixed(2)}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></td></tr>`;}).join('');}
-function deleteAbb(id){if(!confirm('Rimuovere?'))return;DB.abbonamenti=DB.abbonamenti.filter(x=>x.id!==id);saveDB();renderAbbAttivi();renderDashboard();}
+function deleteAbb(id){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Rimuovere?'))return;DB.abbonamenti=DB.abbonamenti.filter(x=>x.id!==id);saveDB();renderAbbAttivi();renderDashboard();}
 
 // ═══ GIORNI/ORARI ═════════════════════════════════════════
 function toggleGiorno(btn){const g=btn.dataset.g;btn.classList.toggle('sel');if(btn.classList.contains('sel'))selectedGiorni[g]={ora:'',oraFine:''};else delete selectedGiorni[g];renderOrariList();}
@@ -3176,7 +3175,7 @@ function getOrariString(){return Object.entries(selectedGiorni).map(([g,o])=>`${
 // ═══ CORSI ════════════════════════════════════════════════
 function populateMaestriSel(){document.getElementById('m-c-maestro').innerHTML='<option value="">—</option>'+DB.maestri.map(m=>`<option value="${m.id}">${m.cognome} ${m.nome}</option>`).join('');}
 function populateImpiantiSel(){document.getElementById('m-c-impianto').innerHTML='<option value="">—</option>'+DB.impianti.map(i=>`<option value="${i.id}">${i.nome}</option>`).join('');}
-function saveCorso(){
+function saveCorso(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}
   const nome=document.getElementById('m-c-nome').value.trim();if(!nome){toast('Nome obbligatorio','error');return;}
   const mId=document.getElementById('m-c-maestro').value,m=mId?DB.maestri.find(x=>x.id===mId):null;
   const iId=document.getElementById('m-c-impianto').value,imp=iId?DB.impianti.find(x=>x.id===iId):null;
@@ -3338,7 +3337,7 @@ function rimuoviDaLinea(corsoId,li,atletaId){
   document.getElementById(`linee-container-${corsoId}`).innerHTML=renderLinee(corsoId);
 }
 function editCorso(id){editingId=id;const c=DB.corsi.find(x=>x.id===id);if(!c)return;populateMaestriSel();populateImpiantiSel();resetGiorni();['nome','tipo','sport','max','stato','note'].forEach(k=>{const el=document.getElementById('m-c-'+k);if(el)el.value=c[k]||'';});document.getElementById('m-c-maestro').value=c.maestroId||'';document.getElementById('m-c-impianto').value=c.impiantoId||'';if(c.giorni){selectedGiorni=JSON.parse(JSON.stringify(c.giorni));document.querySelectorAll('.giorno-btn').forEach(b=>{if(selectedGiorni[b.dataset.g])b.classList.add('sel');});renderOrariList();}document.getElementById('modal-corso').classList.add('open');}
-function deleteCorso(id){if(!confirm('Eliminare?'))return;DB.corsi=DB.corsi.filter(x=>x.id!==id);DB.eventi=DB.eventi.filter(e=>e.autoCorsoId!==id);saveDB();renderCorsi();renderDashboard();}
+function deleteCorso(id){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare?'))return;DB.corsi=DB.corsi.filter(x=>x.id!==id);DB.eventi=DB.eventi.filter(e=>e.autoCorsoId!==id);saveDB();renderCorsi();renderDashboard();}
 
 // ═══ PRESENZE ═════════════════════════════════════════════
 function initPresenze(){
@@ -3375,7 +3374,7 @@ function loadPresenze(){
   }).join('');
 }
 function togglePresenza(socioId,el,key){el.classList.toggle('present');const present=el.classList.contains('present');if(!DB.presenze[key])DB.presenze[key]={};DB.presenze[key][socioId]=present;const lbl=el.nextElementSibling?.nextElementSibling?.nextElementSibling;if(lbl){lbl.textContent=present?'Presente':'Assente';lbl.style.color=present?'var(--green)':'var(--text3)';}}
-function salvaPresenze(){
+function salvaPresenze(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}
   const corsoId=document.getElementById('pres-corso').value;
   const data=document.getElementById('pres-data').value;
   if(!corsoId||!data){toast('Seleziona corso e data','error');return;}
@@ -3430,19 +3429,19 @@ function renderStoricoPresenze(){
 
 // ═══ IMPIANTI ═════════════════════════════════════════════
 function selectIcon(el){document.querySelectorAll('.icon-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');selectedImpiantoIcon=el.dataset.icon;}
-function saveImpianto(){const nome=document.getElementById('m-i-nome').value.trim();if(!nome){toast('Nome obbligatorio','error');return;}const obj={id:editingId||uid(),nome,tipo:document.getElementById('m-i-tipo').value,icona:selectedImpiantoIcon,capienza:parseInt(document.getElementById('m-i-capienza').value)||0,indirizzo:document.getElementById('m-i-indirizzo').value,note:document.getElementById('m-i-note').value};if(editingId){const i=DB.impianti.findIndex(x=>x.id===editingId);if(i>-1)DB.impianti[i]=obj;}else DB.impianti.push(obj);saveDB();closeModal('modal-impianto');renderImpianti();toast('Salvato','success');}
+function saveImpianto(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}const nome=document.getElementById('m-i-nome').value.trim();if(!nome){toast('Nome obbligatorio','error');return;}const obj={id:editingId||uid(),nome,tipo:document.getElementById('m-i-tipo').value,icona:selectedImpiantoIcon,capienza:parseInt(document.getElementById('m-i-capienza').value)||0,indirizzo:document.getElementById('m-i-indirizzo').value,note:document.getElementById('m-i-note').value};if(editingId){const i=DB.impianti.findIndex(x=>x.id===editingId);if(i>-1)DB.impianti[i]=obj;}else DB.impianti.push(obj);saveDB();closeModal('modal-impianto');renderImpianti();toast('Salvato','success');}
 function renderImpianti(){const g=document.getElementById('impianti-grid');if(!DB.impianti.length){g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">🏟️</div><h3>Nessun impianto</h3></div>';return;}g.innerHTML=DB.impianti.map(i=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:15px;"><div style="font-size:26px;margin-bottom:7px;">${i.icona||'🏟️'}</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px;">${i.nome}</div><div style="font-size:12px;color:var(--text2);">${i.tipo}${i.capienza?' · Cap. '+i.capienza:''}</div>${i.indirizzo?`<div style="font-size:11px;color:var(--text3);margin-top:3px;">📍 ${i.indirizzo}</div>`:''}<div style="display:flex;gap:6px;margin-top:9px;"><button class="btn btn-s btn-sm" onclick="editImpianto('${i.id}')">✏️</button><button class="btn btn-d btn-sm" onclick="deleteImpianto('${i.id}')">🗑️</button></div></div>`).join('');}
 function editImpianto(id){editingId=id;const i=DB.impianti.find(x=>x.id===id);if(!i)return;['nome','tipo','capienza','indirizzo','note'].forEach(k=>{const el=document.getElementById('m-i-'+k);if(el)el.value=i[k]||'';});selectedImpiantoIcon=i.icona||'🏟️';document.querySelectorAll('.icon-opt').forEach(o=>{o.classList.toggle('sel',o.dataset.icon===selectedImpiantoIcon);});document.getElementById('modal-impianto').classList.add('open');}
-function deleteImpianto(id){if(!confirm('Eliminare?'))return;DB.impianti=DB.impianti.filter(x=>x.id!==id);saveDB();renderImpianti();}
+function deleteImpianto(id){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare?'))return;DB.impianti=DB.impianti.filter(x=>x.id!==id);saveDB();renderImpianti();}
 
 // ═══ MAESTRI ══════════════════════════════════════════════
-function saveMaestro(){const nome=document.getElementById('m-m-nome').value.trim(),cognome=document.getElementById('m-m-cognome').value.trim();if(!nome||!cognome){toast('Nome e cognome obbligatori','error');return;}const obj={id:editingId||uid(),nome,cognome,email:document.getElementById('m-m-email').value,tel:document.getElementById('m-m-tel').value,sport:document.getElementById('m-m-sport').value,qualifica:document.getElementById('m-m-qualifica').value,note:document.getElementById('m-m-note').value};if(editingId){const i=DB.maestri.findIndex(x=>x.id===editingId);if(i>-1)DB.maestri[i]=obj;}else DB.maestri.push(obj);saveDB();closeModal('modal-maestro');renderMaestri();toast('Salvato','success');}
+function saveMaestro(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}const nome=document.getElementById('m-m-nome').value.trim(),cognome=document.getElementById('m-m-cognome').value.trim();if(!nome||!cognome){toast('Nome e cognome obbligatori','error');return;}const obj={id:editingId||uid(),nome,cognome,email:document.getElementById('m-m-email').value,tel:document.getElementById('m-m-tel').value,sport:document.getElementById('m-m-sport').value,qualifica:document.getElementById('m-m-qualifica').value,note:document.getElementById('m-m-note').value};if(editingId){const i=DB.maestri.findIndex(x=>x.id===editingId);if(i>-1)DB.maestri[i]=obj;}else DB.maestri.push(obj);saveDB();closeModal('modal-maestro');renderMaestri();toast('Salvato','success');}
 function renderMaestri(){const tb=document.getElementById('maestri-tbody');if(!DB.maestri.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🧑‍🏫</div><h3>Nessun tecnico</h3></div></td></tr>';return;}tb.innerHTML=DB.maestri.map(m=>{const n=DB.corsi.filter(c=>c.maestroId===m.id).length;return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${m.nome[0]}${m.cognome[0]}</div><strong>${m.cognome} ${m.nome}</strong></div></td><td>${m.email||'—'}</td><td>${m.tel||'—'}</td><td>${m.sport||'—'}</td><td>${m.qualifica||'—'}</td><td><span class="badge bb">${n}</span></td><td><div class="tda"><button class="bico" onclick="editMaestro('${m.id}')">✏️</button><button class="bico" onclick="deleteMaestro('${m.id}')">🗑️</button></div></td></tr>`;}).join('');}
 function editMaestro(id){editingId=id;const m=DB.maestri.find(x=>x.id===id);if(!m)return;['nome','cognome','email','tel','sport','qualifica','note'].forEach(k=>{const el=document.getElementById('m-m-'+k);if(el)el.value=m[k]||'';});document.getElementById('modal-maestro').classList.add('open');}
-function deleteMaestro(id){if(!confirm('Eliminare?'))return;DB.maestri=DB.maestri.filter(x=>x.id!==id);saveDB();renderMaestri();}
+function deleteMaestro(id){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare?'))return;DB.maestri=DB.maestri.filter(x=>x.id!==id);saveDB();renderMaestri();}
 
 // ═══ AMMINISTRAZIONE ══════════════════════════════════════
-function saveMovimento(){
+function saveMovimento(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}
   const descr=document.getElementById('m-mov-descr').value.trim(),importo=parseFloat(document.getElementById('m-mov-importo').value)||0;
   if(!descr||!importo){toast('Dati mancanti','error');return;}
   const foSel=document.getElementById('m-mov-fornitore');
@@ -3510,7 +3509,7 @@ function renderAmministrazione(){
   document.getElementById('amm-tot-uscite').textContent=`€${totU.toFixed(2)}`;
   const se=document.getElementById('amm-saldo');se.textContent=`€${saldo.toFixed(2)}`;se.style.color=saldo>=0?'var(--green)':'var(--red)';
 }
-function deleteMovimento(tipo,id){if(!confirm('Eliminare?'))return;if(tipo==='entrata')DB.entrate=DB.entrate.filter(x=>x.id!==id);else DB.uscite=DB.uscite.filter(x=>x.id!==id);saveDB();renderAmministrazione();}
+function deleteMovimento(tipo,id){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare?'))return;if(tipo==='entrata')DB.entrate=DB.entrate.filter(x=>x.id!==id);else DB.uscite=DB.uscite.filter(x=>x.id!==id);saveDB();renderAmministrazione();}
 
 // ═══ CALENDARIO ═══════════════════════════════════════════
 const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
@@ -3618,7 +3617,7 @@ function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalend
 function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
 function calDayClick(date){document.getElementById('m-ev-data').value=date;openModal('modal-evento','gara');}
 function populateSquadreSel(){document.getElementById('m-ev-squadra').innerHTML='<option value="">—</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');}
-function saveEvento(){const titolo=document.getElementById('m-ev-titolo').value.trim(),data=document.getElementById('m-ev-data').value;if(!titolo||!data){toast('Titolo e data obbligatori','error');return;}const obj={id:editingId||uid(),titolo,tipo:eventoTipo,data,ora:document.getElementById('m-ev-ora').value,luogo:document.getElementById('m-ev-luogo').value,squadraId:document.getElementById('m-ev-squadra').value,squadraNome:DB.corsi.find(x=>x.id===document.getElementById('m-ev-squadra').value)?.nome||'',note:document.getElementById('m-ev-note').value,convocati:[]};if(editingId){const i=DB.eventi.findIndex(x=>x.id===editingId);if(i>-1)DB.eventi[i]=obj;}else DB.eventi.push(obj);saveDB();closeModal('modal-evento');renderCalendar();renderDashboard();toast('Evento salvato','success');}
+function saveEvento(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}const titolo=document.getElementById('m-ev-titolo').value.trim(),data=document.getElementById('m-ev-data').value;if(!titolo||!data){toast('Titolo e data obbligatori','error');return;}const obj={id:editingId||uid(),titolo,tipo:eventoTipo,data,ora:document.getElementById('m-ev-ora').value,luogo:document.getElementById('m-ev-luogo').value,squadraId:document.getElementById('m-ev-squadra').value,squadraNome:DB.corsi.find(x=>x.id===document.getElementById('m-ev-squadra').value)?.nome||'',note:document.getElementById('m-ev-note').value,convocati:[]};if(editingId){const i=DB.eventi.findIndex(x=>x.id===editingId);if(i>-1)DB.eventi[i]=obj;}else DB.eventi.push(obj);saveDB();closeModal('modal-evento');renderCalendar();renderDashboard();toast('Evento salvato','success');}
 function showEventDetail(id){const ev=DB.eventi.find(x=>x.id===id);if(!ev)return;document.getElementById('modal-evd-title').textContent=ev.tipo==='gara'?'⚔️ Gara':'🏒 Allenamento';document.getElementById('modal-evd-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:9px;"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;">${ev.titolo}</div><div style="font-size:12px;color:var(--text2);">📅 ${formatDate(ev.data)}${ev.ora?' · '+ev.ora:''}${ev.luogo?' · '+ev.luogo:''}</div>${ev.squadraNome?`<div style="font-size:13px;">🏒 ${ev.squadraNome}</div>`:''}${ev.convocati?.length?`<div style="font-size:13px;">👥 Convocati: <strong>${ev.convocati.length}</strong></div>`:''}${ev.autoCorsoId?'<div style="font-size:11px;color:var(--text3);">⚡ Allenamento generato automaticamente</div>':''}${ev.note?`<div style="font-size:12px;color:var(--text2);padding:9px;background:var(--surface2);border-radius:7px;">${ev.note}</div>`:''}</div>`;const bc=document.getElementById('btn-evd-conv');bc.style.display=ev.tipo==='gara'?'':'none';bc.onclick=()=>{closeModal('modal-evento-detail');openConvocazioni(id);};const bh2=document.getElementById('btn-evd-h2');if(bh2){bh2.style.display=ev.tipo==='gara'?'':'none';bh2.onclick=()=>{closeModal('modal-evento-detail');apriModuloH2(id);};}document.getElementById('btn-evd-delete').onclick=()=>{if(!confirm('Eliminare?'))return;DB.eventi=DB.eventi.filter(x=>x.id!==id);saveDB();closeModal('modal-evento-detail');renderCalendar();renderDashboard();};document.getElementById('modal-evento-detail').classList.add('open');}
 
 // ═══ CONVOCAZIONI ═════════════════════════════════════════
@@ -3862,6 +3861,7 @@ function renderDashboard(){
   const prossimi=DB.eventi.filter(e=>!e.autoCorsoId&&e.data>=today).sort((a,b)=>a.data.localeCompare(b.data)).slice(0,6);
   // Compleanni entro 14 giorni
   const now14=new Date();
+  const todayMidnight=new Date(now14.getFullYear(),now14.getMonth(),now14.getDate());
   const compleanni=[];
   [...(DB.soci||[]),...(DB.staff||[])].forEach(s=>{
     if(!s.nascita)return;
@@ -3869,9 +3869,8 @@ function renderDashboard(){
     if(p.length<3)return;
     const yr=now14.getFullYear();
     let bd=new Date(yr,parseInt(p[1])-1,parseInt(p[2]));
-    const todayMidnight=new Date(now14.getFullYear(),now14.getMonth(),now14.getDate());
     if(bd<todayMidnight)bd=new Date(yr+1,parseInt(p[1])-1,parseInt(p[2]));
-    const diff=Math.round((bd-now14)/86400000);
+    const diff=Math.round((bd-todayMidnight)/86400000);
     if(diff<=14)compleanni.push({nome:`${s.nome} ${s.cognome}`,eta:bd.getFullYear()-parseInt(p[0]),data:`${bd.getFullYear()}-${String(bd.getMonth()+1).padStart(2,'0')}-${String(bd.getDate()).padStart(2,'0')}`,diff});
   });
   compleanni.sort((a,b)=>a.diff-b.diff);
@@ -4778,7 +4777,7 @@ function openModalFornitore(id=null){
   document.getElementById('modal-fornitore').classList.add('open');
 }
 
-function saveFornitore(){
+function saveFornitore(){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}
   if(!DB.fornitori)DB.fornitori=[];
   const nome=document.getElementById('m-fo-nome').value.trim();
   if(!nome){toast('Ragione sociale obbligatoria','error');return;}
@@ -4798,6 +4797,7 @@ function saveFornitore(){
 }
 
 function deleteFornitore(id){
+  if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}
   if(!confirm('Eliminare questo fornitore?'))return;
   DB.fornitori=(DB.fornitori||[]).filter(f=>f.id!==id);
   saveDB();renderFornitori();toast('Fornitore eliminato','success');
@@ -5286,6 +5286,8 @@ const FB_CONFIG = {
 
 let fbApp=null, fbDb=null, fbAuth=null, fbUser=null;
 let fbSaveTimer=null, fbListenerActive=false;
+const DEMO_UID='W3NA6MJJJcPu64EhI2QBtMKZs6i2';
+const isDemoMode=()=>!!(fbUser&&fbUser.uid===DEMO_UID);
 
 function fbInit(){
   try{
@@ -5297,9 +5299,15 @@ function fbInit(){
         fbUser=user;
         document.getElementById('login-overlay').classList.add('hidden');
         driveSetStatus('syncing','Connessione Firebase...');
-        fbLoadData();
-        fbStartLiveSync();
-        driveSetStatus('connected',`✓ Connesso · ${user.email}`);
+        if(isDemoMode()){
+          fbLoadDemoData();
+        }else{
+          fbLoadData();
+          fbStartLiveSync();
+        }
+        driveSetStatus('connected',`${isDemoMode()?'🎭 DEMO':'✓ Connesso'} · ${user.email}`);
+        if(isDemoMode())setTimeout(showDemoBanner,500);
+      }else{
       }else{
         fbUser=null;
         driveSetStatus('','Non connesso');
@@ -5372,6 +5380,7 @@ async function fbLoadData(){
 
 async function fbSaveNow(){
   if(!fbUser||!fbDb)return;
+  if(isDemoMode())return; // Demo: sola lettura
   driveSetStatus('syncing','Salvataggio...');
   try{
     // Firebase non accetta undefined — pulizia ricorsiva
@@ -5412,6 +5421,44 @@ function fbStartLiveSync(){
       toast('📡 Dati aggiornati da altro dispositivo','info');
     }
   });
+}
+
+async function fbLoadDemoData(){
+  try{
+    // Carica dati demo da nodo Firebase separato
+    const snap=await fbDb.ref('spartans/demo').get();
+    if(snap.exists()){
+      DB=Object.assign(DB,snap.val());
+    }else{
+      // Prima volta: inizializza nodo demo con dataset predefinito
+      const demoData={"struttura":{"anno":"2025","cf":"99887766554","piva":"99887766554","citta":"Milano","cap":"20100","via":"Via dello Sport, 42","descr":"ASD Demo Hockey Inline — Associazione Sportiva Dilettantistica","email":"info@demohockey.it","telefono":"02 1234567","sito":"www.demohockey.it","affiliazione":"FISR","nome":"ASD Demo Hockey Inline","natura":"Club"},"soci":[{"id":"movsphv4czbed","nome":"Marco","cognome":"Bianchi","nascita":"2013-03-15","luogo":"Milano","cf":"BNCMRC13C15F205X","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"001","tesseraFisr":"FI001","tesseraFisrScad":"2026-10-06","stato":"attivo","tipologia":"atleta","tel":"333 7481812","visitaScad":"2026-11-27","visitaTipo":"agonistica"},{"id":"mov1pmj7f6mmq","nome":"Sofia","cognome":"Rossi","nascita":"2013-07-22","luogo":"Roma","cf":"RSSSFO13L62H501Y","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"002","tesseraFisr":"FI002","tesseraFisrScad":"2026-09-04","stato":"attivo","tipologia":"atleta","tel":"333 4463588","visitaScad":"2027-06-08","visitaTipo":"agonistica"},{"id":"movf7qkgwczqw","nome":"Luca","cognome":"Verdi","nascita":"2014-01-10","luogo":"Torino","cf":"VRDLCU14A10L219Z","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"003","tesseraFisr":"FI003","tesseraFisrScad":"2026-09-13","stato":"attivo","tipologia":"atleta","tel":"333 7617602","visitaScad":"2026-09-12","visitaTipo":"agonistica"},{"id":"movfca7zf9eb9","nome":"Giulia","cognome":"Esposito","nascita":"2013-11-05","luogo":"Napoli","cf":"SPSGLI13S45F839W","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"004","tesseraFisr":"FI004","tesseraFisrScad":"2027-01-20","stato":"attivo","tipologia":"atleta","tel":"333 9499141","visitaScad":"2027-05-24","visitaTipo":"agonistica"},{"id":"movll6ajx8pfn","nome":"Alessandro","cognome":"Ferrari","nascita":"2014-04-18","luogo":"Bologna","cf":"FRRLSN14D18A944V","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"005","tesseraFisr":"FI005","tesseraFisrScad":"2026-12-20","stato":"attivo","tipologia":"atleta","tel":"333 3169590","visitaScad":"2027-01-03","visitaTipo":"non agonistica"},{"id":"mov1agovs0w95","nome":"Chiara","cognome":"Romano","nascita":"2013-09-30","luogo":"Firenze","cf":"RMNCHR13P70D612T","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"006","tesseraFisr":"FI006","tesseraFisrScad":"2026-10-13","stato":"attivo","tipologia":"atleta","tel":"333 6640174","visitaScad":"2026-11-10","visitaTipo":"non agonistica"},{"id":"movk3un7ttxsx","nome":"Davide","cognome":"Conti","nascita":"2014-06-25","luogo":"Genova","cf":"CNTDVD14H25D969U","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"007","tesseraFisr":"FI007","tesseraFisrScad":"2027-04-05","stato":"attivo","tipologia":"atleta","tel":"333 6525051","visitaScad":"2026-10-24","visitaTipo":"agonistica"},{"id":"movd2rgm37szf","nome":"Elena","cognome":"Ricci","nascita":"2013-12-01","luogo":"Palermo","cf":"RCCELN13T41G273S","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"008","tesseraFisr":"FI008","tesseraFisrScad":"2027-04-28","stato":"attivo","tipologia":"atleta","tel":"333 4409255","visitaScad":"2027-05-21","visitaTipo":"agonistica"},{"id":"movh1alponnwx","nome":"Matteo","cognome":"Lombardi","nascita":"2014-02-14","luogo":"Venezia","cf":"LMBMTT14B14L736R","corsoId":"corso_u12","corsoNome":"Under 12","tesseraAsd":"009","tesseraFisr":"FI009","tesseraFisrScad":"2027-01-24","stato":"attivo","tipologia":"atleta","tel":"333 1679095","visitaScad":"2027-06-25","visitaTipo":"agonistica"},{"id":"movl2gcafmgxl","nome":"Anna","cognome":"Martinelli","nascita":"2017-05-20","luogo":"Bari","cf":"MRTNNA17E60A662Q","corsoId":"corso_avi","corsoNome":"Avviamento","tesseraAsd":"010","tesseraFisr":"FI010","tesseraFisrScad":"2026-12-18","stato":"attivo","tipologia":"atleta","tel":"333 1551982","visitaScad":"2027-03-30","visitaTipo":"agonistica"},{"id":"movkb5hsykzab","nome":"Pietro","cognome":"Gallo","nascita":"2017-08-11","luogo":"Catania","cf":"GLLPTR17M11C351P","corsoId":"corso_avi","corsoNome":"Avviamento","tesseraAsd":"011","tesseraFisr":"FI011","tesseraFisrScad":"2026-08-20","stato":"attivo","tipologia":"atleta","tel":"333 3481091","visitaScad":"2027-02-16","visitaTipo":"non agonistica"},{"id":"movla7eup2fm7","nome":"Valentina","cognome":"Costa","nascita":"2016-10-03","luogo":"Verona","cf":"CSTVNT16J43L781O","corsoId":"corso_avi","corsoNome":"Avviamento","tesseraAsd":"012","tesseraFisr":"FI012","tesseraFisrScad":"2026-10-24","stato":"attivo","tipologia":"atleta","tel":"333 8511903","visitaScad":"2027-06-22","visitaTipo":"agonistica"},{"id":"movzil83l2f49","nome":"Francesco","cognome":"Bruno","nascita":"2017-03-28","luogo":"Trieste","cf":"BRNFNC17C28L424N","corsoId":"corso_avi","corsoNome":"Avviamento","tesseraAsd":"013","tesseraFisr":"FI013","tesseraFisrScad":"2027-06-09","stato":"attivo","tipologia":"atleta","tel":"333 3701084","visitaScad":"2027-01-20","visitaTipo":"agonistica"},{"id":"mov5otl7t9itn","nome":"Martina","cognome":"De Luca","nascita":"2016-07-17","luogo":"Padova","cf":"DLCMTN16L57G224M","corsoId":"corso_avi","corsoNome":"Avviamento","tesseraAsd":"014","tesseraFisr":"FI014","tesseraFisrScad":"2026-08-14","stato":"attivo","tipologia":"atleta","tel":"333 1470666","visitaScad":"2027-07-04","visitaTipo":"non agonistica"},{"id":"movi4titk8feo","nome":"Simone","cognome":"Marini","nascita":"2017-01-09","luogo":"Brescia","cf":"MRNSMN17A09B157L","corsoId":"corso_avi","corsoNome":"Avviamento","tesseraAsd":"015","tesseraFisr":"FI015","tesseraFisrScad":"2027-02-24","stato":"attivo","tipologia":"atleta","tel":"333 5969247","visitaScad":"2027-02-15","visitaTipo":"agonistica"}],"staff":[{"id":"mov5242j1iknt","nome":"Giorgio","cognome":"Mancini","ruolo":"presidente","tel":"02 9876543","email":"g.mancini@demohockey.it","tesseraAsd":"S001","stato":"attivo","nascita":"1975-04-12"},{"id":"movkmxwoznuf3","nome":"Paola","cognome":"Ferrara","ruolo":"segretario","tel":"02 8765432","email":"p.ferrara@demohockey.it","tesseraAsd":"S002","stato":"attivo","nascita":"1982-09-28"},{"id":"movw9deg2lyfh","nome":"Roberto","cognome":"Neri","ruolo":"tesoriere","tel":"02 7654321","email":"r.neri@demohockey.it","tesseraAsd":"S003","stato":"attivo","nascita":"1979-11-15"}],"corsi":[{"id":"corso_u12","nome":"Under 12","stato":"attivo","colore":"#e74c3c","maestroId":"maestro_01","maestroNome":"Luca Ferretti"},{"id":"corso_avi","nome":"Avviamento","stato":"attivo","colore":"#3498db","maestroId":"maestro_02","maestroNome":"Sara Colombo"}],"maestri":[{"id":"maestro_01","nome":"Luca","cognome":"Ferretti","tessera":"M001","telefono":"333 1111111"},{"id":"maestro_02","nome":"Sara","cognome":"Colombo","tessera":"M002","telefono":"333 2222222"}],"impianti":[{"id":"imp_01","nome":"Palaghiaccio Demo","indirizzo":"Via Arena 1, Milano"}],"stagioni":[{"id":"mov4p8tpasbkz","label":"2025/26","inizio":"2025-09-01","fine":"2026-06-30","attiva":true}],"stagioniArchivio":[],"eventi":[{"id":"movo91zgdoxne","tipo":"allenamento","titolo":"Allenamento Under 12 #1","data":"2026-06-09","ora":"09:00","luogo":"Palaghiaccio Demo","squadraId":"corso_u12","squadraNome":"Under 12","autoCorsoId":null},{"id":"movcqbzfxa00s","tipo":"gara","titolo":"Gara Under 12 #2","data":"2026-07-12","ora":"17:00","luogo":"Palazzetto Nord","squadraId":"corso_u12","squadraNome":"Under 12","autoCorsoId":null},{"id":"movl8dux11136","tipo":"allenamento","titolo":"Allenamento Under 12 #3","data":"2026-07-21","ora":"10:30","luogo":"Campo Centrale","squadraId":"corso_u12","squadraNome":"Under 12","autoCorsoId":null},{"id":"mov6eugwf7rs4","tipo":"gara","titolo":"Gara Under 12 #4","data":"2026-06-19","ora":"18:30","luogo":"Palazzetto Nord","squadraId":"corso_u12","squadraNome":"Under 12","autoCorsoId":null},{"id":"mov49n07g7fqu","tipo":"allenamento","titolo":"Allenamento Avviamento #5","data":"2026-05-23","ora":"18:30","luogo":"Campo Centrale","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movtktetvkypw","tipo":"gara","titolo":"Gara Avviamento #6","data":"2026-08-07","ora":"09:00","luogo":"Campo Centrale","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"mov4vyrav7tph","tipo":"allenamento","titolo":"Allenamento Avviamento #7","data":"2026-06-01","ora":"09:00","luogo":"Campo Centrale","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movrkwkfu2nt1","tipo":"allenamento","titolo":"Allenamento Avviamento #8","data":"2026-05-15","ora":"17:00","luogo":"Palaghiaccio Demo","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"mova86ud1ecor","tipo":"allenamento","titolo":"Allenamento Avviamento #9","data":"2026-06-27","ora":"17:00","luogo":"Campo Centrale","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movredgt7y44m","tipo":"gara","titolo":"Gara Under 12 #10","data":"2026-05-23","ora":"17:00","luogo":"Palazzetto Nord","squadraId":"corso_u12","squadraNome":"Under 12","autoCorsoId":null},{"id":"movn0hmfkqont","tipo":"allenamento","titolo":"Allenamento Under 12 #11","data":"2026-06-02","ora":"18:30","luogo":"Arena Est","squadraId":"corso_u12","squadraNome":"Under 12","autoCorsoId":null},{"id":"movarhfa1cbdl","tipo":"allenamento","titolo":"Allenamento Avviamento #12","data":"2026-05-13","ora":"10:30","luogo":"Palaghiaccio Demo","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movm24zhmkb5e","tipo":"allenamento","titolo":"Allenamento Under 12 #13","data":"2026-06-29","ora":"10:30","luogo":"Arena Est","squadraId":"corso_u12","squadraNome":"Under 12","autoCorsoId":null},{"id":"movqfxd79pqou","tipo":"allenamento","titolo":"Allenamento Avviamento #14","data":"2026-05-31","ora":"18:30","luogo":"Palaghiaccio Demo","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movbrst6pb3ch","tipo":"allenamento","titolo":"Allenamento Avviamento #15","data":"2026-07-13","ora":"10:30","luogo":"Palaghiaccio Demo","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movhxzsctc6ta","tipo":"gara","titolo":"Gara Avviamento #16","data":"2026-07-25","ora":"10:30","luogo":"Palazzetto Nord","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movdk4yo1v6ih","tipo":"allenamento","titolo":"Allenamento Avviamento #17","data":"2026-05-26","ora":"09:00","luogo":"Palaghiaccio Demo","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"mov52ff1b08pt","tipo":"allenamento","titolo":"Allenamento Avviamento #18","data":"2026-05-29","ora":"09:00","luogo":"Palazzetto Nord","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movhoczjtuqfj","tipo":"allenamento","titolo":"Allenamento Avviamento #19","data":"2026-05-29","ora":"09:00","luogo":"Palaghiaccio Demo","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null},{"id":"movzqdiotucak","tipo":"allenamento","titolo":"Allenamento Avviamento #20","data":"2026-05-29","ora":"10:30","luogo":"Palaghiaccio Demo","squadraId":"corso_avi","squadraNome":"Avviamento","autoCorsoId":null}],"presenze":{"corso_avi_2026-05-26":{"movl2gcafmgxl":true,"movkb5hsykzab":false,"movla7eup2fm7":false,"movzil83l2f49":true,"mov5otl7t9itn":false,"movi4titk8feo":true},"corso_avi_2026-05-29":{"movl2gcafmgxl":false,"movkb5hsykzab":false,"movla7eup2fm7":false,"movzil83l2f49":true,"mov5otl7t9itn":false,"movi4titk8feo":true},"corso_avi_2026-05-31":{"movl2gcafmgxl":true,"movkb5hsykzab":true,"movla7eup2fm7":true,"movzil83l2f49":true,"mov5otl7t9itn":false,"movi4titk8feo":false},"corso_avi_2026-06-01":{"movl2gcafmgxl":true,"movkb5hsykzab":true,"movla7eup2fm7":true,"movzil83l2f49":true,"mov5otl7t9itn":false,"movi4titk8feo":true},"corso_u12_2026-06-02":{"movsphv4czbed":true,"mov1pmj7f6mmq":true,"movf7qkgwczqw":false,"movfca7zf9eb9":true,"movll6ajx8pfn":true,"mov1agovs0w95":true,"movk3un7ttxsx":true,"movd2rgm37szf":true,"movh1alponnwx":false},"corso_u12_2026-06-09":{"movsphv4czbed":false,"mov1pmj7f6mmq":true,"movf7qkgwczqw":false,"movfca7zf9eb9":true,"movll6ajx8pfn":true,"mov1agovs0w95":true,"movk3un7ttxsx":true,"movd2rgm37szf":true,"movh1alponnwx":true}},"entrate":[{"id":"movjis5lrrv2f","data":"2026-04-25","causale":"Quota associativa","importo":150,"atletaId":"movsphv4czbed","atletaNome":"Marco Bianchi","metodo":"contanti"},{"id":"movjfe8b9twds","data":"2025-12-15","causale":"Quota corso Avviamento","importo":100,"atletaId":"mov1pmj7f6mmq","atletaNome":"Sofia Rossi","metodo":"bonifico"},{"id":"movrforb6jba0","data":"2026-03-15","causale":"Quota corso Avviamento","importo":80,"atletaId":"movf7qkgwczqw","atletaNome":"Luca Verdi","metodo":"contanti"},{"id":"movc7hisgaufs","data":"2026-01-24","causale":"Iscrizione stagione","importo":120,"atletaId":"movfca7zf9eb9","atletaNome":"Giulia Esposito","metodo":"bonifico"},{"id":"movpl3kk8qfwb","data":"2026-01-10","causale":"Quota associativa","importo":120,"atletaId":"movll6ajx8pfn","atletaNome":"Alessandro Ferrari","metodo":"POS"},{"id":"movbjix6xodrz","data":"2026-02-22","causale":"Quota corso Under 12","importo":100,"atletaId":"mov1agovs0w95","atletaNome":"Chiara Romano","metodo":"POS"},{"id":"moval89l9voxp","data":"2026-05-30","causale":"Iscrizione stagione","importo":80,"atletaId":"movk3un7ttxsx","atletaNome":"Davide Conti","metodo":"bonifico"},{"id":"movppltjvx7vk","data":"2026-05-16","causale":"Quota corso Under 12","importo":100,"atletaId":"movd2rgm37szf","atletaNome":"Elena Ricci","metodo":"bonifico"},{"id":"movntbu1k9utz","data":"2026-01-28","causale":"Quota corso Avviamento","importo":120,"atletaId":"movh1alponnwx","atletaNome":"Matteo Lombardi","metodo":"bonifico"},{"id":"movzqdrb6b0ge","data":"2026-04-04","causale":"Iscrizione stagione","importo":80,"atletaId":"movl2gcafmgxl","atletaNome":"Anna Martinelli","metodo":"POS"},{"id":"movel4yln955l","data":"2026-02-12","causale":"Quota associativa","importo":80,"atletaId":"movkb5hsykzab","atletaNome":"Pietro Gallo","metodo":"bonifico"},{"id":"movrt0d5aqfh8","data":"2026-05-08","causale":"Quota corso Under 12","importo":100,"atletaId":"movla7eup2fm7","atletaNome":"Valentina Costa","metodo":"contanti"},{"id":"movmrte6jxxs9","data":"2026-05-14","causale":"Iscrizione stagione","importo":120,"atletaId":"movzil83l2f49","atletaNome":"Francesco Bruno","metodo":"contanti"},{"id":"movu9w61wuvhk","data":"2026-01-02","causale":"Quota corso Avviamento","importo":150,"atletaId":"mov5otl7t9itn","atletaNome":"Martina De Luca","metodo":"contanti"},{"id":"mov0mh8sy35tl","data":"2026-01-05","causale":"Quota corso Under 12","importo":120,"atletaId":"movi4titk8feo","atletaNome":"Simone Marini","metodo":"contanti"}],"uscite":[{"id":"movjp6nulh1zk","data":"2026-01-13","causale":"Assicurazione","importo":200,"fornitoreNome":"Pulizie Milano"},{"id":"movx8vvacdoaa","data":"2026-05-22","causale":"Manutenzione impianto","importo":80,"fornitoreNome":"Pulizie Milano"},{"id":"movtti745lvlp","data":"2026-05-10","causale":"Assicurazione","importo":80,"fornitoreNome":"Sport Equipment Srl"},{"id":"movotd7h84mmx","data":"2026-05-15","causale":"Cancelleria","importo":350,"fornitoreNome":"Pulizie Milano"},{"id":"movy6mtu402n2","data":"2026-04-21","causale":"Attrezzatura","importo":50,"fornitoreNome":"Pulizie Milano"},{"id":"movav6v25tzaj","data":"2026-03-09","causale":"Attrezzatura","importo":500,"fornitoreNome":"Sport Equipment Srl"},{"id":"movno45y4j5t8","data":"2025-12-31","causale":"Attrezzatura","importo":350,"fornitoreNome":"Sport Equipment Srl"},{"id":"mov1i4soh1dh1","data":"2026-03-10","causale":"Manutenzione impianto","importo":50,"fornitoreNome":"FISR"}],"fornitori":[{"id":"mova24ywz59eh","ragioneSociale":"Sport Equipment Srl","cf":"12345678901","categoria":"Attrezzatura sportiva","email":"info@sportequip.it","tel":"02 1111111"},{"id":"movpq62i2n8gy","ragioneSociale":"Pulizie Milano Srl","cf":"98765432109","categoria":"Servizi","email":"info@pulizimi.it","tel":"02 2222222"}],"piani":[{"id":"movgoej5kzst3","nome":"Quota stagionale","importo":120,"durataMesi":10}],"abbonamenti":[{"id":"movx0qkxhybys","socioId":"movsphv4czbed","socioNome":"Marco Bianchi","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2026-10-06","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"movxx36ykvh8z","socioId":"mov1pmj7f6mmq","socioNome":"Sofia Rossi","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2026-12-23","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"movfoxb922ekq","socioId":"movf7qkgwczqw","socioNome":"Luca Verdi","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2026-09-23","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"mov3w4ihojh9a","socioId":"movfca7zf9eb9","socioNome":"Giulia Esposito","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2026-07-26","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"movh0xl87o5ci","socioId":"movll6ajx8pfn","socioNome":"Alessandro Ferrari","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2026-10-12","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"movk76ytpwp6b","socioId":"mov1agovs0w95","socioNome":"Chiara Romano","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2027-02-19","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"mov7ziooqf559","socioId":"movk3un7ttxsx","socioNome":"Davide Conti","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2027-03-11","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"movfcy4ugj1y5","socioId":"movd2rgm37szf","socioNome":"Elena Ricci","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2026-12-31","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"mov85ip3zvs8q","socioId":"movh1alponnwx","socioNome":"Matteo Lombardi","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2027-03-15","dataInizio":"2026-04-13","metodo":"bonifico"},{"id":"movnw8rxpitu4","socioId":"movl2gcafmgxl","socioNome":"Anna Martinelli","pianoId":"movgoej5kzst3","pianoNome":"Quota stagionale","importo":120,"scadenza":"2026-08-28","dataInizio":"2026-04-13","metodo":"bonifico"}],"valutazioni":{"movsphv4czbed":{"data":"2026-04-27","f_velocita":3.9,"f_resistenza":4.4,"f_forza":4.7,"p_concentrazione":2.6,"p_spirito":4.5,"t_pattinaggio":3.1,"t_controllo":3.9,"t_tiro":4.2,"t_passaggio":4.5,"tt_posizione":4.3,"tt_lettura":4.7,"tt_difesa":4.9},"mov1pmj7f6mmq":{"data":"2026-05-13","f_velocita":4.3,"f_resistenza":4.0,"f_forza":3.3,"p_concentrazione":3.7,"p_spirito":3.0,"t_pattinaggio":4.3,"t_controllo":4.2,"t_tiro":3.6,"t_passaggio":4.6,"tt_posizione":4.1,"tt_lettura":3.3,"tt_difesa":3.4},"movf7qkgwczqw":{"data":"2026-05-24","f_velocita":2.7,"f_resistenza":2.5,"f_forza":4.1,"p_concentrazione":3.0,"p_spirito":3.5,"t_pattinaggio":3.4,"t_controllo":4.3,"t_tiro":4.5,"t_passaggio":4.2,"tt_posizione":2.5,"tt_lettura":2.8,"tt_difesa":2.8},"movfca7zf9eb9":{"data":"2026-04-30","f_velocita":2.9,"f_resistenza":4.2,"f_forza":4.2,"p_concentrazione":3.5,"p_spirito":4.7,"t_pattinaggio":3.4,"t_controllo":4.1,"t_tiro":4.7,"t_passaggio":3.3,"tt_posizione":3.7,"tt_lettura":2.7,"tt_difesa":4.7},"movll6ajx8pfn":{"data":"2026-05-04","f_velocita":4.5,"f_resistenza":4.7,"f_forza":4.1,"p_concentrazione":4.2,"p_spirito":2.7,"t_pattinaggio":3.4,"t_controllo":3.8,"t_tiro":3.3,"t_passaggio":4.7,"tt_posizione":3.9,"tt_lettura":4.2,"tt_difesa":2.7},"mov1agovs0w95":{"data":"2026-04-26","f_velocita":4.1,"f_resistenza":4.4,"f_forza":4.4,"p_concentrazione":4.6,"p_spirito":3.3,"t_pattinaggio":4.4,"t_controllo":3.3,"t_tiro":4.6,"t_passaggio":4.4,"tt_posizione":4.4,"tt_lettura":4.5,"tt_difesa":3.0},"movk3un7ttxsx":{"data":"2026-05-27","f_velocita":3.3,"f_resistenza":4.0,"f_forza":3.9,"p_concentrazione":3.6,"p_spirito":2.9,"t_pattinaggio":3.9,"t_controllo":4.5,"t_tiro":4.2,"t_passaggio":2.5,"tt_posizione":2.9,"tt_lettura":3.2,"tt_difesa":3.5},"movd2rgm37szf":{"data":"2026-04-27","f_velocita":3.2,"f_resistenza":4.5,"f_forza":2.9,"p_concentrazione":4.2,"p_spirito":3.8,"t_pattinaggio":4.0,"t_controllo":5.0,"t_tiro":3.6,"t_passaggio":2.9,"tt_posizione":2.6,"tt_lettura":4.7,"tt_difesa":4.4},"movh1alponnwx":{"data":"2026-05-05","f_velocita":4.3,"f_resistenza":3.3,"f_forza":4.9,"p_concentrazione":4.2,"p_spirito":4.3,"t_pattinaggio":3.4,"t_controllo":4.8,"t_tiro":3.2,"t_passaggio":4.0,"tt_posizione":3.9,"tt_lettura":4.7,"tt_difesa":4.2},"movl2gcafmgxl":{"data":"2026-05-16","f_velocita":3.0,"f_resistenza":4.9,"f_forza":2.8,"p_concentrazione":2.5,"p_spirito":4.6,"t_pattinaggio":4.4,"t_controllo":4.5,"t_tiro":3.6,"t_passaggio":4.5,"tt_posizione":3.9,"tt_lettura":3.7,"tt_difesa":2.8},"movkb5hsykzab":{"data":"2026-04-20","f_velocita":3.4,"f_resistenza":3.2,"f_forza":4.2,"p_concentrazione":4.4,"p_spirito":4.6,"t_pattinaggio":4.7,"t_controllo":2.7,"t_tiro":4.7,"t_passaggio":2.6,"tt_posizione":3.9,"tt_lettura":4.8,"tt_difesa":3.4},"movla7eup2fm7":{"data":"2026-04-24","f_velocita":3.1,"f_resistenza":4.3,"f_forza":2.6,"p_concentrazione":3.1,"p_spirito":3.2,"t_pattinaggio":2.5,"t_controllo":4.8,"t_tiro":4.8,"t_passaggio":4.5,"tt_posizione":4.4,"tt_lettura":3.4,"tt_difesa":4.7},"movzil83l2f49":{"data":"2026-04-18","f_velocita":4.7,"f_resistenza":3.6,"f_forza":2.8,"p_concentrazione":2.7,"p_spirito":3.3,"t_pattinaggio":4.0,"t_controllo":4.2,"t_tiro":2.8,"t_passaggio":3.7,"tt_posizione":2.6,"tt_lettura":2.7,"tt_difesa":4.9},"mov5otl7t9itn":{"data":"2026-05-16","f_velocita":2.6,"f_resistenza":3.8,"f_forza":3.6,"p_concentrazione":3.3,"p_spirito":3.9,"t_pattinaggio":3.1,"t_controllo":3.5,"t_tiro":5.0,"t_passaggio":3.9,"tt_posizione":5.0,"tt_lettura":2.6,"tt_difesa":2.9},"movi4titk8feo":{"data":"2026-05-16","f_velocita":2.5,"f_resistenza":3.0,"f_forza":3.7,"p_concentrazione":2.9,"p_spirito":2.7,"t_pattinaggio":4.7,"t_controllo":4.7,"t_tiro":2.9,"t_passaggio":3.8,"tt_posizione":4.6,"tt_lettura":3.0,"tt_difesa":2.8}},"quoteAtleti":[{"id":"movojc0fgth9s","stagione":"2025/26","importo":120,"scadenza":"2025-11-30"}],"macrogruppi":[]};
+      await fbDb.ref('spartans/demo').set(demoData);
+      DB=Object.assign(DB,demoData);
+    }
+    saveDB();loadTheme();renderAll();
+    driveSetStatus('connected','🎭 Modalità DEMO — sola lettura');
+    toast('🎭 Accesso demo — i dati sono dimostrativi e non modificabili','info');
+    // Banner demo
+    showDemoBanner();
+  }catch(e){
+    console.error('Demo load error:',e);
+    toast('Errore caricamento dati demo','error');
+  }
+}
+
+function showDemoBanner(){
+  if(document.getElementById('demo-banner'))return;
+  const b=document.createElement('div');
+  b.id='demo-banner';
+  b.innerHTML='🎭 MODALITÀ DEMO';
+  b.style.cssText='position:fixed;bottom:60px;right:16px;background:#e67e22;color:#fff;font-family:Oswald,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:6px 14px;border-radius:20px;z-index:9999;pointer-events:none;animation:demoPulse 2s ease-in-out infinite;box-shadow:0 2px 10px rgba(230,126,34,.5);';
+  document.body.appendChild(b);
+  if(!document.getElementById('demo-banner-style')){
+    const st=document.createElement('style');
+    st.id='demo-banner-style';
+    st.textContent='@keyframes demoPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.7;transform:scale(.97);}}';
+    document.head.appendChild(st);
+  }
 }
 
 // Compatibilità con il resto del codice che chiama driveScheduleSave
