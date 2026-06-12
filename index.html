@@ -3871,7 +3871,7 @@ function renderDashboard(){
     const todayMidnight=new Date(now14.getFullYear(),now14.getMonth(),now14.getDate());
     if(bd<todayMidnight)bd=new Date(yr+1,parseInt(p[1])-1,parseInt(p[2]));
     const diff=Math.round((bd-now14)/86400000);
-    if(diff<=14)compleanni.push({nome:`${s.nome} ${s.cognome}`,eta:bd.getFullYear()-parseInt(p[0]),data:bd.toISOString().slice(0,10),diff});
+    if(diff<=14)compleanni.push({nome:`${s.nome} ${s.cognome}`,eta:bd.getFullYear()-parseInt(p[0]),data:`${bd.getFullYear()}-${String(bd.getMonth()+1).padStart(2,'0')}-${String(bd.getDate()).padStart(2,'0')}`,diff});
   });
   compleanni.sort((a,b)=>a.diff-b.diff);
   const bdHtml=compleanni.map(c=>{
