@@ -3858,38 +3858,27 @@ function renderDashboard(){
   if(gare.length){pg.textContent=formatDate(gare[0].data);pgs.textContent=gare[0].titolo;}else{pg.textContent='—';pgs.textContent='Nessuna gara';}
   // Prossimi eventi
   const evCont=document.getElementById('ds-eventi');
-  const today=new Date().toISOString().slice(0,10);
-  const now2=new Date();
   const prossimi=DB.eventi.filter(e=>!e.autoCorsoId&&e.data>=today).sort((a,b)=>a.data.localeCompare(b.data)).slice(0,6);
   // Compleanni entro 14 giorni
+  const now14=new Date();
   const compleanni=[];
   [...(DB.soci||[]),...(DB.staff||[])].forEach(s=>{
     if(!s.nascita)return;
-    const parts=s.nascita.split('-');
-    if(parts.length<3)return;
-    const thisYear=now2.getFullYear();
-    let bday=new Date(thisYear,parseInt(parts[1])-1,parseInt(parts[2]));
-    if(bday<now2)bday=new Date(thisYear+1,parseInt(parts[1])-1,parseInt(parts[2]));
-    const diff=Math.round((bday-now2)/86400000);
-    if(diff<=14){
-      const eta=bday.getFullYear()-parseInt(parts[0]);
-      compleanni.push({nome:`${s.nome} ${s.cognome}`,eta,data:bday.toISOString().slice(0,10),diff});
-    }
+    const p=s.nascita.split('-');
+    if(p.length<3)return;
+    const yr=now14.getFullYear();
+    let bd=new Date(yr,parseInt(p[1])-1,parseInt(p[2]));
+    if(bd<now14)bd=new Date(yr+1,parseInt(p[1])-1,parseInt(p[2]));
+    const diff=Math.round((bd-now14)/86400000);
+    if(diff<=14)compleanni.push({nome:`${s.nome} ${s.cognome}`,eta:bd.getFullYear()-parseInt(p[0]),data:bd.toISOString().slice(0,10),diff});
   });
   compleanni.sort((a,b)=>a.diff-b.diff);
-  const bdayHtml=compleanni.map(c=>{
+  const bdHtml=compleanni.map(c=>{
     const lbl=c.diff===0?'Oggi! 🎉':c.diff===1?'Domani':`fra ${c.diff}gg`;
-    return`<div style="display:flex;align-items:center;gap:9px;padding:8px;background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.2);border-radius:7px;margin-bottom:5px;">
-      <span style="font-size:15px;">🎂</span>
-      <div style="flex:1;">
-        <div style="font-size:13px;font-weight:500;">${c.nome}</div>
-        <div style="font-size:11px;color:var(--text2);">${formatDate(c.data)} · compie ${c.eta} anni</div>
-      </div>
-      <div style="font-size:11px;font-weight:700;color:var(--accent);">${lbl}</div>
-    </div>`;
+    return '<div style="display:flex;align-items:center;gap:9px;padding:8px;background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.2);border-radius:7px;margin-bottom:5px;"><span style="font-size:15px;">🎂</span><div style="flex:1;"><div style="font-size:13px;font-weight:500;">'+c.nome+'</div><div style="font-size:11px;color:var(--text2);">'+formatDate(c.data)+' · compie '+c.eta+' anni</div></div><div style="font-size:11px;font-weight:700;color:var(--accent);">'+lbl+'</div></div>';
   }).join('');
   if(!prossimi.length&&!compleanni.length)evCont.innerHTML='<div class="empty"><div class="ei">📅</div><p>Nessun evento</p></div>';
-  else evCont.innerHTML=bdayHtml+prossimi.map(e=>`<div style="display:flex;align-items:center;gap:9px;padding:8px;background:var(--surface2);border-radius:7px;margin-bottom:5px;cursor:pointer;" onclick="showPage('calendario')"><span style="font-size:15px;">${e.tipo==='gara'?'⚔️':'🏒'}</span><div style="flex:1;"><div style="font-size:13px;font-weight:500;">${e.titolo}</div><div style="font-size:11px;color:var(--text2);">${formatDate(e.data)}${e.ora?' · '+e.ora:''}${e.luogo?' · '+e.luogo:''}</div></div></div>`).join('');
+  else evCont.innerHTML=bdHtml+prossimi.map(e=>'<div style="display:flex;align-items:center;gap:9px;padding:8px;background:var(--surface2);border-radius:7px;margin-bottom:5px;cursor:pointer;" onclick="showPage(\'calendario\')"><span style="font-size:15px;">'+(e.tipo==='gara'?'⚔️':'🏒')+'</span><div style="flex:1;"><div style="font-size:13px;font-weight:500;">'+e.titolo+'</div><div style="font-size:11px;color:var(--text2);">'+formatDate(e.data)+(e.ora?' · '+e.ora:'')+(e.luogo?' · '+e.luogo:'')+'</div></div></div>').join('');
   // Scadenze — finestra 60 giorni, include atleti e staff
   const cont=document.getElementById('ds-scadenze'),now=new Date();const scad=[];
   const addScad=(nome,tipo,dataScad,onclick)=>{
