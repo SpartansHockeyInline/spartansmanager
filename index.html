@@ -2932,7 +2932,7 @@ function importFromCSV(){
 
 // ═══ PIANI ════════════════════════════════════════════════
 function savePiano(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}const nome=document.getElementById('m-p-nome').value.trim();if(!nome){toast('Nome obbligatorio','error');return;}const obj={id:editingId||uid(),nome,durata:document.getElementById('m-p-durata').value,prezzo:parseFloat(document.getElementById('m-p-prezzo').value)||0,sport:document.getElementById('m-p-sport').value,ingressi:parseInt(document.getElementById('m-p-ingressi').value)||0,note:document.getElementById('m-p-note').value};if(editingId){const i=DB.piani.findIndex(x=>x.id===editingId);if(i>-1)DB.piani[i]=obj;}else DB.piani.push(obj);saveDB();closeModal('modal-piano');renderPiani();toast('Piano salvato','success');}
-function renderPiani(){const tb=document.getElementById('piani-tbody');if(!DB.piani.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">🎫</div><h3>Nessun piano</h3></div></td></tr>';return;}tb.innerHTML=DB.piani.map(p=>`<tr><td><strong>${p.nome}</strong></td><td>${p.durata}</td><td>€${p.prezzo.toFixed(2)}</td><td>${p.sport||'—'}</td><td>${p.note||'—'}</td><td><div class="tda"><button class="bico" onclick="editPiano('${p.id}')">✏️</button><button class="bico" onclick="deletePiano('${p.id}')">🗑️</button></div></td></tr>`).join('');}
+function renderPiani(){const tb=document.getElementById('piani-tbody');if(!DB.piani.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">🎫</div><h3>Nessun piano</h3></div></td></tr>';return;}tb.innerHTML=DB.piani.map(p=>`<tr><td><strong>${p.nome}</strong></td><td>${p.durata||'—'}</td><td>€${(parseFloat(p.prezzo)||0).toFixed(2)}</td><td>${p.sport||'—'}</td><td>${p.note||'—'}</td><td><div class="tda"><button class="bico" onclick="editPiano('${p.id}')">✏️</button><button class="bico" onclick="deletePiano('${p.id}')">🗑️</button></div></td></tr>`).join('');}
 
 // ═══ SOLLECITI ABBONAMENTI ════════════════════════════════
 function renderSollecitiAbb(){
@@ -3508,7 +3508,7 @@ function renderAmministrazione(){
       <td>${e.data?formatDate(e.data):'—'}</td>
       <td>${e.descr}</td>
       <td><span class="badge ${sign==='+'?'bb':'bo'}">${e.cat}</span></td>
-      <td style="color:${col};font-weight:700;">${sign}€${e.importo.toFixed(2)}</td>
+      <td style="color:${col};font-weight:700;">${sign}€${(parseFloat(e.importo)||0).toFixed(2)}</td>
       <td>${e.metodo}</td>
       <td><div class="tda"><button class="bico" onclick="editMovimento('${tipo}','${e.id}')">✏️</button><button class="bico" onclick="deleteMovimento('${tipo}','${e.id}')">🗑️</button></div></td>
     </tr>`).join('');
@@ -5309,6 +5309,15 @@ function fbInit(){
       if(user){
         fbUser=user;
         _isDemo=(user.uid===DEMO_UID);
+        // Se il localStorage contiene dati demo da sessione precedente, puliscilo
+        if(!_isDemo){
+          try{
+            const cached=JSON.parse(localStorage.getItem('spartans_db')||'{}');
+            if(cached?.struttura?.nome==='ASD Demo Hockey Inline'){
+              localStorage.removeItem('spartans_db');
+            }
+          }catch(e){}
+        }
         document.getElementById('login-overlay').classList.add('hidden');
         driveSetStatus('syncing','Connessione Firebase...');
         if(_isDemo){
