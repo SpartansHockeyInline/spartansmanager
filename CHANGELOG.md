@@ -2,9 +2,20 @@
 
 ---
 
+## v4.3.0 · Giugno 2026
+
+### Nuove funzionalità
+- **Accesso demo** — login con `demo@spartansmanager.app` attiva la modalità demo: dati dimostrativi su nodo Firebase separato (`/spartans/demo/`), completamente isolato dai dati reali
+- **Sola lettura** — tutte le operazioni di scrittura (salvataggio, eliminazione, importazione) sono bloccate in modalità demo con avviso toast
+- **Dataset dimostrativo** — ASD Demo Hockey Inline, Milano: 15 atleti (9 Under 12 + 6 Avviamento), 3 staff, 20 eventi, presenze, abbonamenti, valutazioni e fornitori pre-popolati
+- **Banner demo** — badge arancione lampeggiante 🎭 MODALITÀ DEMO in basso a destra durante la navigazione
+
+---
+
 ## v4.2.0 · Giugno 2026
 
 ### Nuove funzionalità
+- **Avvisi compleanno in Prossimi eventi** — soci e staff con compleanno entro 14 giorni appaiono in dashboard con sfondo azzurro, età che compiono e label Oggi! 🎉 / Domani / fra Ngg
 - **Snapshot completo alla chiusura stagione** — alla chiusura vengono salvati integralmente: atleti, staff, corsi, presenze, eventi, abbonamenti, piani e valutazioni atleti; i dati sono navigabili in futuro senza limiti
 - **Archivio stagione a 5 tab** — il dettaglio di ogni stagione archiviata mostra: Riepilogo (statistiche chiave + risultato sportivo), Atleti (tabella completa con tessere), Presenze (classifica % per atleta con barra visiva), Valutazioni (punteggi fisico/tecnico/tattico per ogni atleta al momento della chiusura), Eventi (calendario gare e allenamenti)
 - **Badge snapshot** — indicatore visivo "✓ Snapshot completo" vs "⚠ Snapshot parziale" per distinguere le stagioni archiviate con la nuova logica da quelle precedenti
