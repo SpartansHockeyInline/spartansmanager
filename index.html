@@ -2062,8 +2062,8 @@ function riparaPresenzeOrphane(){
 }
 // ══════════════════════════════════════════════════════════
 
-function saveDB(){riparaPresenzeOrphane();try{localStorage.setItem('spartans_db',JSON.stringify(DB));}catch(e){}driveScheduleSave();}
-function loadDB(){try{const s=localStorage.getItem('spartans_db');if(s){DB=Object.assign(DB,JSON.parse(s));riparaPresenzeOrphane();}}catch(e){}}
+function saveDB(){if(_isDemo)return;riparaPresenzeOrphane();try{localStorage.setItem('spartans_db',JSON.stringify(DB));}catch(e){}driveScheduleSave();}
+function loadDB(){if(_isDemo)return;try{const s=localStorage.getItem('spartans_db');if(s){DB=Object.assign(DB,JSON.parse(s));riparaPresenzeOrphane();}}catch(e){}}
 function exportData(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`spartans_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Dati esportati','success');}
 function importData(){document.getElementById('import-input').click();}
 function handleImport(e){if(isDemoMode()){toast("🎭 Modalità demo — sola lettura","warning");return;}const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{DB=Object.assign(DB,JSON.parse(ev.target.result));riparaPresenzeOrphane();saveDB();renderAll();toast('Importato','success');}catch{toast('File non valido','error');}};r.readAsText(f);e.target.value='';}
@@ -5287,7 +5287,8 @@ const FB_CONFIG = {
 let fbApp=null, fbDb=null, fbAuth=null, fbUser=null;
 let fbSaveTimer=null, fbListenerActive=false;
 const DEMO_UID='W3NA6MJJJcPu64EhI2QBtMKZs6i2';
-const isDemoMode=()=>!!(fbUser&&fbUser.uid===DEMO_UID);
+let _isDemo=false;
+const isDemoMode=()=>_isDemo;
 
 function fbInit(){
   try{
@@ -5297,16 +5298,17 @@ function fbInit(){
     fbAuth.onAuthStateChanged(user=>{
       if(user){
         fbUser=user;
+        _isDemo=(user.uid===DEMO_UID);
         document.getElementById('login-overlay').classList.add('hidden');
         driveSetStatus('syncing','Connessione Firebase...');
-        if(isDemoMode()){
+        if(_isDemo){
           fbLoadDemoData();
         }else{
           fbLoadData();
           fbStartLiveSync();
         }
-        driveSetStatus('connected',`${isDemoMode()?'🎭 DEMO':'✓ Connesso'} · ${user.email}`);
-        if(isDemoMode())setTimeout(showDemoBanner,500);
+        driveSetStatus('connected',`${_isDemo?'🎭 DEMO':'✓ Connesso'} · ${user.email}`);
+        if(_isDemo)setTimeout(showDemoBanner,500);
       }else{
       }else{
         fbUser=null;
@@ -5425,7 +5427,10 @@ function fbStartLiveSync(){
 
 async function fbLoadDemoData(){
   try{
-    // Carica dati demo da nodo Firebase separato
+    // Pulisce localStorage per evitare contaminazione con dati reali
+    localStorage.removeItem('spartans_db');
+    // Reset DB a struttura vuota
+    DB={struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},soci:[],staff:[],macrogruppi:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],quoteAtleti:[],valutazioni:{}};
     const snap=await fbDb.ref('spartans/demo').get();
     if(snap.exists()){
       DB=Object.assign(DB,snap.val());
