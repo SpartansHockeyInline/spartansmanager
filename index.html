@@ -3174,7 +3174,7 @@ function populatePianiSel(){document.getElementById('m-as-piano').innerHTML='<op
 
 // ═══ ABBONAMENTI ══════════════════════════════════════════
 function saveAbbSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}const sId=document.getElementById('m-as-socio').value,pId=document.getElementById('m-as-piano').value;if(!sId||!pId){toast('Seleziona socio e piano','error');return;}const s=DB.soci.find(x=>x.id===sId),p=DB.piani.find(x=>x.id===pId);DB.abbonamenti.push({id:uid(),socioId:sId,pianoId:pId,socioNome:`${s.cognome} ${s.nome}`,pianoNome:p.nome,inizio:document.getElementById('m-as-inizio').value,scadenza:document.getElementById('m-as-scadenza').value,pagato:parseFloat(document.getElementById('m-as-pagato').value)||0,metodo:document.getElementById('m-as-metodo').value});saveDB();closeModal('modal-abb-socio');renderAbbAttivi();renderDashboard();toast('Abbonamento assegnato','success');}
-function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=new Date().toISOString().slice(0,10);tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td>€${a.pagato.toFixed(2)}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></td></tr>`;}).join('');}
+function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=new Date().toISOString().slice(0,10);tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td>€${(parseFloat(a.pagato)||0).toFixed(2)}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></td></tr>`;}).join('');}
 function deleteAbb(id){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Rimuovere?'))return;DB.abbonamenti=DB.abbonamenti.filter(x=>x.id!==id);saveDB();renderAbbAttivi();renderDashboard();}
 
 // ═══ GIORNI/ORARI ═════════════════════════════════════════
@@ -5320,15 +5320,16 @@ function fbInit(){
         driveSetStatus('connected',_isDemo?'🎭 DEMO · demo@spartansmanager.app':'✓ Connesso · '+user.email);
         if(_isDemo)setTimeout(showDemoBanner,500);
       }else{
+        const wasDemo=_isDemo;
         fbUser=null;
-        if(_isDemo){
+        _isDemo=false;
+        if(wasDemo){
           // Pulizia completa dopo sessione demo
-          _isDemo=false;
+          fbListenerActive=false;
           localStorage.removeItem('spartans_db');
           DB={struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},soci:[],staff:[],macrogruppi:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],quoteAtleti:[],valutazioni:{}};
           const banner=document.getElementById('demo-banner');if(banner)banner.remove();
         }
-        _isDemo=false;
         driveSetStatus('','Non connesso');
         driveShowControls(false);
         if(!localStorage.getItem('sm_skip_login'))
