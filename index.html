@@ -614,6 +614,18 @@ tbody td{padding:10px 13px;vertical-align:middle;}
               <div class="fgroup s2"><label>Indirizzo</label><input class="fi" id="s-indirizzo"></div>
               <div class="fgroup s2"><label>Descrizione</label><textarea class="fta" id="s-descr"></textarea></div>
             </div>
+            <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+              <div style="font-weight:700;margin-bottom:10px;">⚖️ Presidente / Legale rappresentante (per contratti)</div>
+              <div class="fg">
+                <div class="fgroup s2"><label>Nome e cognome</label><input class="fi" id="s-presidente" placeholder="es. Mario Rossi"></div>
+                <div class="fgroup"><label>Data di nascita</label><input class="fi" id="s-presidente-nascita" type="date"></div>
+                <div class="fgroup"><label>Luogo di nascita</label><input class="fi" id="s-presidente-luogo-nascita" placeholder="es. Bari (BA)"></div>
+                <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="s-presidente-cf"></div>
+                <div class="fgroup s2"><label>Residenza</label><input class="fi" id="s-presidente-residenza" placeholder="es. Via Roma 1, 70100 Bari (BA)"></div>
+                <div class="fgroup"><label>N° Carta d'identità</label><input class="fi" id="s-presidente-ci"></div>
+                <div class="fgroup"><label>Affiliazione federale</label><input class="fi" id="s-affiliazione" placeholder="es. FISR"></div>
+              </div>
+            </div>
             <div style="display:flex;justify-content:flex-end;margin-top:14px;"><button class="btn btn-p" onclick="saveStruttura()">💾 Salva</button></div>
           </div>
           <div class="card" style="text-align:center;">
@@ -1574,6 +1586,11 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Integrazione con Amministrazione</strong> — al contrassegno "Incassato" il contratto genera automaticamente un'entrata collegata, identificata in tabella con il badge 🤝 sponsor; aggiornamenti e cancellazioni si propagano automaticamente</div>
         <div class="cl-item"><strong>Fattura sponsor</strong> — documento generabile dalla tabella sponsor con numerazione progressiva, dati ASD e sponsor, dettaglio contratto e timbro digitale</div>
         <div class="cl-item"><strong>Alert scadenza contratti</strong> — i contratti sponsor in scadenza entro 60 giorni compaiono nelle Scadenze imminenti della dashboard</div>
+        <div class="cl-item"><strong>Oggetto della sponsorizzazione</strong> — nuovo campo per descrivere le controprestazioni dell'ASD (es. apposizione marchio su divise, banner, social)</div>
+        <div class="cl-item"><strong>Contratto di sponsorizzazione generabile</strong> — documento completo con dati ASD, dati sponsor, legale rappresentante di entrambe le parti, oggetto, durata e corrispettivo, pronto per la doppia firma</div>
+        <div class="cl-item"><strong>Dati Presidente/Legale rappresentante ASD</strong> — nuova sezione in "La mia struttura" per inserire i dati anagrafici del presidente, riutilizzati automaticamente nei contratti</div>
+        <div class="cl-item"><strong>Allegato contratto firmato</strong> — campo per archiviare il link al contratto firmato e scansionato (es. Google Drive) nella scheda sponsor</div>
+        <div class="cl-item"><strong>Fix ricerca globale</strong> — gli sponsor sono ora indicizzati nella ricerca globale (ragione sociale, categoria, referente, descrizione contratto)</div>
       </div>
 
       <div class="cl-entry">
@@ -1951,9 +1968,22 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </div>
 
       <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+        <div style="font-weight:700;margin-bottom:10px;">⚖️ Legale rappresentante (per contratto)</div>
+        <div class="fg">
+          <div class="fgroup"><label>Nome e cognome</label><input class="fi" id="m-sp-lr-nome" placeholder="es. Mario Rossi"></div>
+          <div class="fgroup"><label>Data di nascita</label><input class="fi" id="m-sp-lr-nascita" type="date"></div>
+          <div class="fgroup"><label>Luogo di nascita</label><input class="fi" id="m-sp-lr-luogo-nascita" placeholder="es. Bari (BA)"></div>
+          <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="m-sp-lr-cf"></div>
+          <div class="fgroup s2"><label>Residenza</label><input class="fi" id="m-sp-lr-residenza" placeholder="es. Via Roma 1, 70100 Bari (BA)"></div>
+          <div class="fgroup"><label>N° Carta d'identità</label><input class="fi" id="m-sp-lr-ci"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
         <div style="font-weight:700;margin-bottom:10px;">📄 Contratto di sponsorizzazione</div>
         <div class="fg">
-          <div class="fgroup s2"><label>Descrizione / oggetto contratto</label><input class="fi" id="m-sp-contratto-descr" placeholder="es. Sponsorizzazione tecnica stagione 2025/26"></div>
+          <div class="fgroup s2"><label>Descrizione / causale economica</label><input class="fi" id="m-sp-contratto-descr" placeholder="es. Sponsorizzazione tecnica stagione 2025/26"></div>
+          <div class="fgroup s2"><label>Oggetto della sponsorizzazione (controprestazioni ASD)</label><textarea class="fta" id="m-sp-contratto-oggetto" placeholder="es. Apposizione del marchio su: divise da gara, banner 3x1m a bordo pista, pagine social (Facebook, Instagram)" rows="3"></textarea></div>
           <div class="fgroup"><label>Importo (€)</label><input class="fi" id="m-sp-contratto-importo" type="number" step="0.01"></div>
           <div class="fgroup"><label>Periodicità</label>
             <select class="fsel" id="m-sp-contratto-periodicita">
@@ -1971,6 +2001,21 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             </select>
           </div>
         </div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+        <div style="font-weight:700;margin-bottom:10px;">📎 Documenti</div>
+        <div class="fg">
+          <div class="fgroup s2">
+            <label>Contratto firmato (URL file su Drive)</label>
+            <input class="fi" id="m-sp-contratto-allegato" placeholder="https://drive.google.com/...">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+          <button class="btn btn-s btn-sm" type="button" onclick="generaContrattoSponsor(editingId)">📄 Genera contratto di sponsorizzazione</button>
+          <button class="btn btn-s btn-sm" type="button" onclick="generaFatturaSponsor(editingId)">🧾 Genera fattura</button>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-top:6px;">Salva lo sponsor prima di generare i documenti, così i dati restano sincronizzati.</div>
       </div>
 
       <div class="fgroup" style="margin-top:10px;"><label>Note</label><textarea class="fta" id="m-sp-note"></textarea></div>
@@ -2301,13 +2346,19 @@ document.addEventListener('click',e=>{if(e.target.classList.contains('mo'))close
 // ═══ STRUTTURA ════════════════════════════════════════════
 function loadStrutturaForm(){
   const s=DB.struttura;
-  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr'].forEach(k=>{const el=document.getElementById('s-'+k);if(el)el.value=s[k]||'';});
+  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr',
+   'presidente','presidenteNascita','presidenteLuogoNascita','presidenteCf','presidenteResidenza','presidenteCi','affiliazione']
+   .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)el.value=s[k]||'';});
   document.getElementById('logo-nome-display').textContent=s.nome||'Spartans';
   const pw=document.getElementById('logo-preview-wrap');
   pw.innerHTML=s.logo?`<img src="${s.logo}" style="width:100%;height:100%;object-fit:cover;">`:'⚔️';
   renderSportTags();renderDocumentiList();
 }
-function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr'].forEach(k=>{const el=document.getElementById('s-'+k);if(el)DB.struttura[k]=el.value;});document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
+function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr',
+   'presidente','presidenteNascita','presidenteLuogoNascita','presidenteCf','presidenteResidenza','presidenteCi','affiliazione']
+   .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)DB.struttura[k]=el.value;});
+  document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
 function loadLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{DB.struttura.logo=ev.target.result;document.getElementById('logo-preview-wrap').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;">`;saveDB();};r.readAsDataURL(f);}
 function addSport(){const v=document.getElementById('sport-new-input').value.trim();if(!v)return;if(!DB.struttura.sport)DB.struttura.sport=[];DB.struttura.sport.push(v);document.getElementById('sport-new-input').value='';saveDB();renderSportTags();}
 function renderSportTags(){const c=document.getElementById('sport-list');c.innerHTML=(DB.struttura.sport||[]).map((s,i)=>`<div style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:12px;">${s}<span style="cursor:pointer;color:var(--red);" onclick="removeSport(${i})">✕</span></div>`).join('')||'<span style="color:var(--text3);font-size:12px;">Nessuno</span>';}
@@ -4957,9 +5008,13 @@ function openModalSponsor(id=null){
         indirizzo:'m-sp-indirizzo',tel:'m-sp-tel',email:'m-sp-email',web:'m-sp-web',
         referente:'m-sp-referente',referenteTel:'m-sp-referente-tel',logo:'m-sp-logo',note:'m-sp-note'};
       Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&s[k]!==undefined)el.value=s[k];});
+      const lr=s.legaleRapp||{};
+      const lrmap={nome:'m-sp-lr-nome',nascita:'m-sp-lr-nascita',luogoNascita:'m-sp-lr-luogo-nascita',
+        cf:'m-sp-lr-cf',residenza:'m-sp-lr-residenza',ci:'m-sp-lr-ci'};
+      Object.entries(lrmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&lr[k]!==undefined)el.value=lr[k];});
       const c=s.contratto||{};
-      const cmap={descr:'m-sp-contratto-descr',importo:'m-sp-contratto-importo',periodicita:'m-sp-contratto-periodicita',
-        inizio:'m-sp-contratto-inizio',scadenza:'m-sp-contratto-scadenza',pagato:'m-sp-contratto-pagato'};
+      const cmap={descr:'m-sp-contratto-descr',oggetto:'m-sp-contratto-oggetto',importo:'m-sp-contratto-importo',periodicita:'m-sp-contratto-periodicita',
+        inizio:'m-sp-contratto-inizio',scadenza:'m-sp-contratto-scadenza',pagato:'m-sp-contratto-pagato',allegato:'m-sp-contratto-allegato'};
       Object.entries(cmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&c[k]!==undefined)el.value=c[k];});
     }
   }
@@ -4973,24 +5028,33 @@ function saveSponsor(){
   const nome=document.getElementById('m-sp-nome').value.trim();
   if(!nome){toast('Ragione sociale obbligatoria','error');return;}
   const g=id=>document.getElementById(id)?.value||'';
+  const legaleRapp={
+    nome:g('m-sp-lr-nome'),nascita:g('m-sp-lr-nascita'),luogoNascita:g('m-sp-lr-luogo-nascita'),
+    cf:g('m-sp-lr-cf'),residenza:g('m-sp-lr-residenza'),ci:g('m-sp-lr-ci'),
+  };
   const contratto={
     descr:g('m-sp-contratto-descr'),
+    oggetto:g('m-sp-contratto-oggetto'),
     importo:g('m-sp-contratto-importo'),
     periodicita:g('m-sp-contratto-periodicita')||'una_tantum',
     inizio:g('m-sp-contratto-inizio'),
     scadenza:g('m-sp-contratto-scadenza'),
     pagato:g('m-sp-contratto-pagato')||'no',
+    allegato:g('m-sp-contratto-allegato'),
   };
   const obj={
     id:editingId||uid(),nome,cat:g('m-sp-cat'),stato:g('m-sp-stato')||'attivo',
     cf:g('m-sp-cf'),piva:g('m-sp-piva'),indirizzo:g('m-sp-indirizzo'),
     tel:g('m-sp-tel'),email:g('m-sp-email'),web:g('m-sp-web'),
     referente:g('m-sp-referente'),referenteTel:g('m-sp-referente-tel'),
-    logo:g('m-sp-logo'),note:g('m-sp-note'),contratto,
+    logo:g('m-sp-logo'),note:g('m-sp-note'),contratto,legaleRapp,
     creato:editingId?(DB.sponsor.find(x=>x.id===editingId)?.creato||new Date().toISOString()):new Date().toISOString()
   };
+  // editingId è temporaneamente impostato per permettere la generazione documenti pre-salvataggio
+  const newId=obj.id;
   if(editingId){const i=DB.sponsor.findIndex(x=>x.id===editingId);if(i>=0)DB.sponsor[i]=obj;}
   else DB.sponsor.push(obj);
+  editingId=newId;
 
   // Sincronizza entrata in Amministrazione collegata allo sponsor
   const importoNum=parseFloat(contratto.importo)||0;
@@ -5044,6 +5108,35 @@ function generaFatturaSponsor(id){
   }else{
     generaDoc(Date.now().toString().slice(-4));
   }
+}
+
+function generaContrattoSponsor(id){
+  if(!id){toast('Salva prima lo sponsor per generare il contratto','error');return;}
+  const s=(DB.sponsor||[]).find(x=>x.id===id);if(!s)return;
+  const c=s.contratto||{};
+  const lr=s.legaleRapp||{};
+  const curr=getStagioneCorrente?getStagioneCorrente():null;
+  const stagione=curr?curr.label:'';
+  const oggi=new Date().toISOString().slice(0,10);
+  const ps=DB.struttura?{
+    asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||DB.struttura.cf||'',
+    asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',
+    asdPresidente:DB.struttura.presidente||'',asdPresidenteNascita:DB.struttura.presidenteNascita||'',
+    asdPresidenteLuogoNascita:DB.struttura.presidenteLuogoNascita||'',asdPresidenteCf:DB.struttura.presidenteCf||'',
+    asdPresidenteResidenza:DB.struttura.presidenteResidenza||'',asdPresidenteCi:DB.struttura.presidenteCi||'',
+    asdEmail:DB.struttura.email||'',asdTel:DB.struttura.telefono||DB.struttura.tel||'',asdWeb:DB.struttura.sito||DB.struttura.web||'',
+    asdAffiliazione:DB.struttura.affiliazione||''
+  }:{};
+  const p=new URLSearchParams({
+    sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
+    sponsorEmail:s.email||'',sponsorTel:s.tel||'',
+    lrNome:lr.nome||'',lrNascita:lr.nascita?formatDate(lr.nascita):'',lrLuogoNascita:lr.luogoNascita||'',
+    lrCf:lr.cf||'',lrResidenza:lr.residenza||'',lrCi:lr.ci||'',
+    descr:c.descr||'',oggetto:c.oggetto||'',importo:c.importo||'',periodicita:c.periodicita||'',
+    inizio:c.inizio?formatDate(c.inizio):'',scadenza:c.scadenza?formatDate(c.scadenza):'',
+    stagione,dataDoc:oggi,...ps
+  });
+  window.open(`${BASE_URL}modulo_contratto_sponsor.html?${p}`,'_blank');
 }
 
 function popolaSelectFornitori(){
@@ -5235,6 +5328,9 @@ function globalSearch(q){
   // Fornitori
   (DB.fornitori||[]).filter(f=>`${f.nome} ${f.cat||''}`.toLowerCase().includes(ql))
     .slice(0,3).forEach(f=>results.push({tipo:'🏭 Fornitore',label:f.nome,sub:f.cat||'',action:`showPage('fornitori')`}));
+  // Sponsor
+  (DB.sponsor||[]).filter(s=>`${s.nome} ${s.cat||''} ${s.referente||''} ${s.contratto?.descr||''}`.toLowerCase().includes(ql))
+    .slice(0,3).forEach(s=>results.push({tipo:'🤝 Sponsor',label:s.nome,sub:s.cat||'',action:`showPage('sponsor');setTimeout(()=>openModalSponsor('${s.id}'),150)`}));
   // Entrate
   (DB.entrate||[]).filter(e=>`${e.descr||''} ${e.cat||''} ${e.socioNome||''}`.toLowerCase().includes(ql))
     .slice(0,3).forEach(e=>results.push({tipo:'💚 Entrata',label:e.descr||'—',sub:`€${parseFloat(e.importo||0).toFixed(2)} · ${e.data?formatDate(e.data):''}`,action:`showPage('amministrazione')`}));

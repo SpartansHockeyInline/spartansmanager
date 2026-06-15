@@ -10,9 +10,17 @@
 - **Integrazione con Amministrazione** — al contrassegno "Incassato" il contratto genera automaticamente un'entrata collegata, identificata in tabella con il badge 🤝 sponsor; aggiornamenti e cancellazioni si propagano automaticamente
 - **Fattura sponsor** — documento generabile dalla tabella sponsor con numerazione progressiva, dati ASD e sponsor, dettaglio contratto e timbro digitale
 - **Alert scadenza contratti** — i contratti sponsor in scadenza entro 60 giorni compaiono nelle Scadenze imminenti della dashboard
+- **Oggetto della sponsorizzazione** — nuovo campo per descrivere le controprestazioni dell'ASD (es. apposizione marchio su divise, banner, social)
+- **Contratto di sponsorizzazione generabile** — documento completo con dati ASD, dati sponsor, legale rappresentante di entrambe le parti, oggetto, durata e corrispettivo, pronto per la doppia firma
+- **Dati Presidente/Legale rappresentante ASD** — nuova sezione in "La mia struttura" per inserire i dati anagrafici del presidente, riutilizzati automaticamente nei contratti
+- **Allegato contratto firmato** — campo per archiviare il link al contratto firmato e scansionato (es. Google Drive) nella scheda sponsor
+
+### Fix
+- **Ricerca globale** — gli sponsor sono ora indicizzati nella ricerca globale (ragione sociale, categoria, referente, descrizione contratto)
 
 ### File aggiunti
 - `modulo_fattura_sponsor.html`
+- `modulo_contratto_sponsor.html`
 
 ---
 

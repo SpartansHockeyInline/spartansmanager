@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Contratto di sponsorizzazione — ASD Spartans Hockey Inline</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap');
+:root{--red:#c0392b;--gold:#d4a017;--dark:#1a1a1a;--border:#ddd;--radius:4px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);background:#fff;line-height:1.6;}
+.page{max-width:210mm;margin:0 auto;padding:12mm 16mm;}
+.header{display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--red);padding-bottom:10px;margin-bottom:16px;}
+.ht{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;line-height:1.1;}
+.hs{font-size:11px;color:#666;margin-top:2px;}
+.section{margin-bottom:14px;break-inside:avoid;}
+.st{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:#fff;background:var(--red);padding:5px 10px;margin-bottom:8px;border-radius:var(--radius) var(--radius) 0 0;}
+.st.gold{background:var(--gold);}.st.dark{background:var(--dark);}
+.grid{display:grid;gap:6px 10px;}.g2{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:1px;}
+.field label{font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.5px;}
+.fval{border-bottom:1px solid var(--border);min-height:20px;padding:2px 0;font-size:12px;font-weight:600;}
+.firma-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px;}
+.firma-box{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.firma-line{width:100%;border-bottom:1px solid var(--dark);height:40px;}
+.firma-label{font-size:10px;color:#666;text-align:center;}
+.firma-label strong{display:block;font-size:11px;color:var(--dark);margin-bottom:2px;}
+.footer{border-top:1px solid var(--border);padding-top:8px;margin-top:14px;font-size:10px;color:#999;text-align:center;}
+.corpo-doc{font-size:12.5px;color:#333;text-align:justify;line-height:1.75;}
+.corpo-doc p{margin-bottom:10px;}
+.corpo-doc strong{color:var(--dark);}
+.parti-box{font-size:12.5px;line-height:1.8;padding:12px 14px;background:#fafafa;border-left:3px solid var(--red);border-radius:0 var(--radius) var(--radius) 0;margin-bottom:12px;}
+.parti-box .label-parte{font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--red);margin-bottom:4px;display:block;}
+.art{margin-bottom:10px;}
+.art-title{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--dark);margin-bottom:3px;}
+.art-body{font-size:12px;color:#333;text-align:justify;line-height:1.65;}
+.page-break{break-before:page;}
+@media print{body{font-size:11.5px;}.page{padding:8mm 10mm;}.no-print{display:none;}@page{size:A4;margin:0;}}
+@media screen{body{background:#eee;}.page{background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.15);margin:20px auto;}
+.print-btn{position:fixed;bottom:24px;right:24px;background:var(--red);color:#fff;border:none;padding:12px 24px;border-radius:30px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(192,57,43,.4);letter-spacing:1px;z-index:100;}
+.print-btn:hover{background:#a93226;}}</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">🖨️ STAMPA / SALVA PDF</button>
+<div class="page">
+  <div class="header">
+    <div style="flex:1;">
+      <div class="ht" id="f-asd-nome-head">ASD Spartans Hockey Inline</div>
+      <div class="hs">Contratto di sponsorizzazione</div>
+      <div class="hs" style="color:var(--red);font-size:10px;">Stagione sportiva <span id="f-stagione-head"></span></div>
+    </div>
+    <div style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--gold);text-align:right;flex-shrink:0;">
+      Data<br><strong id="f-data-doc">_______</strong>
+    </div>
+  </div>
+
+  <div class="section"><div class="st">Dati dell'Associazione</div>
+    <div class="grid g3">
+      <div class="field"><label>Denominazione</label><div class="fval" id="f-asd-nome">ASD Spartans Hockey Inline</div></div>
+      <div class="field"><label>Codice Fiscale</label><div class="fval" id="f-asd-cf">&nbsp;</div></div>
+      <div class="field"><label>Partita IVA</label><div class="fval" id="f-asd-piva">&nbsp;</div></div>
+    </div>
+    <div class="grid g3" style="margin-top:6px;">
+      <div class="field" style="grid-column:span 2;"><label>Sede legale</label><div class="fval" id="f-asd-indirizzo">&nbsp;</div></div>
+      <div class="field"><label>Affiliazione</label><div class="fval" id="f-asd-affiliazione">&nbsp;</div></div>
+    </div>
+  </div>
+
+  <div class="section"><div class="st gold">Dati dello Sponsor</div>
+    <div class="grid g3">
+      <div class="field" style="grid-column:span 2;"><label>Ragione sociale</label><div class="fval" id="f-sponsor-nome">&nbsp;</div></div>
+      <div class="field"><label>Partita IVA / C.F.</label><div class="fval" id="f-sponsor-piva">&nbsp;</div></div>
+    </div>
+    <div class="grid g3" style="margin-top:6px;">
+      <div class="field" style="grid-column:span 3;"><label>Sede legale</label><div class="fval" id="f-sponsor-indirizzo">&nbsp;</div></div>
+    </div>
+  </div>
+
+  <div class="section"><div class="st dark">Tra le parti</div>
+    <div class="parti-box">
+      <span class="label-parte">Lo Sponsor</span>
+      La Società <strong><span id="f-sponsor-nome2"></span></strong> con sede legale in <span id="f-sponsor-indirizzo2"></span>,
+      Partita IVA / Codice Fiscale <span id="f-sponsor-piva2"></span>, nella qualità del suo legale rappresentante
+      <strong><span id="f-lr-nome"></span></strong>, nato/a il <span id="f-lr-nascita"></span> a <span id="f-lr-luogo-nascita"></span>,
+      residente in <span id="f-lr-residenza"></span>, Carta d'Identità n. <span id="f-lr-ci"></span>,
+      Codice Fiscale <span id="f-lr-cf"></span>
+      <span style="display:block;margin-top:8px;"><strong>di seguito denominato "Sponsor"</strong></span>
+    </div>
+    <div class="parti-box" style="border-left-color:var(--gold);">
+      <span class="label-parte" style="color:var(--gold);">Il Sodalizio</span>
+      L'Associazione Sportiva Dilettantistica <strong><span id="f-asd-nome2">ASD Spartans Hockey Inline</span></strong>
+      con sede legale in <span id="f-asd-indirizzo2"></span>, Partita IVA <span id="f-asd-piva2"></span>
+      e Codice Fiscale <span id="f-asd-cf2"></span>, affiliata a <span id="f-asd-affiliazione2"></span>,
+      nella persona del suo Legale Rappresentante <strong><span id="f-asd-presidente"></span></strong>,
+      nato/a il <span id="f-asd-presidente-nascita"></span> a <span id="f-asd-presidente-luogo-nascita"></span>,
+      residente in <span id="f-asd-presidente-residenza"></span>, Carta d'Identità n. <span id="f-asd-presidente-ci"></span>,
+      Codice Fiscale <span id="f-asd-presidente-cf"></span>
+      <span style="display:block;margin-top:8px;"><strong>di seguito denominato "Sodalizio"</strong></span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="corpo-doc">
+      <p><strong>Premesso che:</strong></p>
+      <p>il Sodalizio svolge e promuove attività sportiva dilettantistica e nell'ambito delle proprie iniziative è interessato a instaurare con lo Sponsor un rapporto di collaborazione a carattere promo-pubblicitario;</p>
+      <p>lo Sponsor, nell'ambito delle proprie iniziative promozionali, è interessato a promuovere la diffusione del proprio marchio attraverso le attività del Sodalizio;</p>
+      <p>lo Sponsor dichiara di essere al corrente che nell'ambito dell'attività del Sodalizio sono presenti altri marchi pubblicitari, anche di settori merceologici differenti;</p>
+      <p>il presente contratto rientra nell'ambito dei rapporti di collaborazione promo-pubblicitaria disciplinati secondo lo spirito delle disposizioni emanate in materia dalla Federazione / Ente di Promozione Sportiva di affiliazione del Sodalizio.</p>
+      <p><strong>si conviene e si stipula quanto segue:</strong></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="art"><div class="art-title">Art. 1 — Premesse</div><div class="art-body">Le premesse formano parte integrante e sostanziale del presente contratto.</div></div>
+
+    <div class="art"><div class="art-title">Art. 2 — Oggetto del contratto e obblighi delle parti</div>
+      <div class="art-body">
+        Il Sodalizio concede allo Sponsor la qualifica di sponsor della propria attività sportiva, con le seguenti modalità di valorizzazione del marchio:
+        <div class="fval" style="white-space:pre-wrap;min-height:48px;margin-top:4px;" id="f-oggetto">&nbsp;</div>
+        L'apposizione del marchio ai fini della sponsorizzazione e la fornitura dell'eventuale materiale pubblicitario necessario sono a cura e a spese dello Sponsor, salvo diverso accordo scritto tra le parti.
+      </div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 3 — Durata del contratto</div>
+      <div class="art-body">
+        Il presente contratto ha decorrenza dal <strong><span id="f-inizio"></span></strong>
+        e <span id="f-durata-testo"></span>.
+        È esclusa ogni forma di tacito rinnovo: per ulteriori periodi di sponsorizzazione le parti dovranno stipulare un nuovo accordo.
+      </div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 4 — Facoltà dello Sponsor</div>
+      <div class="art-body">È facoltà dello Sponsor effettuare ulteriori iniziative promo-pubblicitarie, i cui contenuti dovranno essere concordati preventivamente con il Sodalizio.</div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 5 — Corrispettivo</div>
+      <div class="art-body">
+        A titolo di corrispettivo per le prestazioni promo-pubblicitarie e per i diritti concessi dal presente contratto, lo Sponsor corrisponderà al Sodalizio la somma di
+        <strong>€ <span id="f-importo"></span></strong> (<span id="f-importo-lettere"></span>), con periodicità <strong><span id="f-periodicita"></span></strong>,
+        secondo le modalità di pagamento concordate tra le parti.
+        A fronte dei pagamenti, il Sodalizio rilascerà regolare ricevuta/fattura ai sensi delle normative vigenti, con quietanza a saldo.
+      </div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 6 — Esonero da responsabilità</div>
+      <div class="art-body">La conduzione tecnico-sportiva e le scelte organizzative restano completamente estranee allo Sponsor, il quale non risponderà per eventuali infortuni accidentali nei quali possano incorrere partecipanti o pubblico durante lo svolgimento delle attività sportive.</div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 7 — Dichiarazioni lesive</div>
+      <div class="art-body">Le parti si impegnano reciprocamente a vietare ai propri esponenti, rappresentanti e tesserati di formulare giudizi o rilasciare dichiarazioni che possano ledere l'immagine reciproca.</div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 8 — Modifiche contrattuali</div>
+      <div class="art-body">Durante il corso di validità del contratto, qualunque modifica al presente atto non potrà essere apportata se non mediante approvazione e sottoscrizione di entrambe le parti.</div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 9 — Risoluzione del contratto</div>
+      <div class="art-body">Costituiscono eventi risolutivi ai sensi dell'art. 1456 c.c.: l'inosservanza delle norme afferenti la disciplina degli accordi promo-pubblicitari di cui al presente contratto; il comportamento contrario ai doveri di correttezza e diligenza nell'esecuzione del contratto; atti e/o fatti lesivi dell'immagine e del diritto di riservatezza di ciascuna parte. Il mancato o inesatto adempimento di una delle obbligazioni qui indicate comporta la risoluzione <em>ipso iure</em> del contratto, con obbligo per la parte inadempiente di restituire o versare una somma proporzionale al periodo in cui la prestazione non è stata eseguita.</div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 10 — Cessione del contratto</div>
+      <div class="art-body">È vietata la cessione, anche parziale, del presente contratto e dei diritti che ne derivano, anche nel caso in cui lo Sponsor venga incorporato in altra azienda o sia oggetto di atti di trasformazione a seguito dei quali perda la propria identità giuridica.</div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 11 — Elezione di domicilio</div>
+      <div class="art-body">Le parti dichiarano di eleggere domicilio ai fini del presente contratto presso le sedi indicate in epigrafe. Qualsiasi comunicazione relativa al presente contratto dovrà essere effettuata al domicilio eletto a mezzo raccomandata a.r. o equipollente.</div>
+    </div>
+
+    <div class="art"><div class="art-title">Art. 12 — Trattamento dei dati personali</div>
+      <div class="art-body">Le parti, in conformità al Regolamento (UE) 2016/679 e alla normativa nazionale applicabile, forniscono il proprio consenso al trattamento dei dati personali, anche tramite terzi, per l'esecuzione del presente contratto e per l'adempimento di obblighi di legge connessi.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div style="font-size:12px;margin-bottom:4px;">Luogo: <span id="f-luogo-firma" style="font-weight:600;"></span> — Data: <span id="f-data-firma" style="font-weight:600;"></span></div>
+  </div>
+
+  <div class="firma-row">
+    <div class="firma-box">
+      <div class="firma-line"></div>
+      <div class="firma-label"><strong>Il Sodalizio</strong>Il Presidente / Legale Rappresentante<br>ASD Spartans Hockey Inline</div>
+    </div>
+    <div class="firma-box">
+      <div class="firma-line"></div>
+      <div class="firma-label"><strong>Lo Sponsor</strong>Il Legale Rappresentante<br><span id="f-sponsor-nome3"></span></div>
+    </div>
+  </div>
+
+  <div class="firma-row" style="margin-top:18px;">
+    <div class="firma-box"><div id="timbro-box" style="display:flex;align-items:center;justify-content:center;min-height:105px;"></div></div>
+    <div></div>
+  </div>
+
+  <div class="footer">ASD Spartans Hockey Inline · spartanshockeyinline@gmail.com · Documento generato da Spartans Manager</div>
+</div>
+<script>
+(function(){
+  const p=new URLSearchParams(window.location.search);
+  const get=k=>p.get(k)||'';
+  const set=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=get(key)||'\u00a0';};
+
+  const periodicitaLabel={una_tantum:'Una tantum',annuale:'Annuale (con rinnovo)',mensile:'Mensile'};
+
+  function generaTimbro(){
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="90" viewBox="0 0 200 90">'
+      +'<rect x="2" y="2" width="196" height="86" rx="6" ry="6" fill="none" stroke="#1a3a6e" stroke-width="2.5"/>'
+      +'<text x="100" y="20" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#1a3a6e">ASD SPARTANS HOCKEY INLINE</text>'
+      +'<text x="100" y="35" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">Via Generale Rocco Maffei, 34</text>'
+      +'<text x="100" y="48" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">70028 - Sannicandro di Bari</text>'
+      +'<text x="100" y="61" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">Tel. +39 320 964 6207</text>'
+      +'<text x="100" y="74" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">C.F. e P.IVA: 09179390720</text>'
+      +'</svg>';
+  }
+
+  // Numero in lettere (semplificato, solo parte intera in euro)
+  function numeroInLettere(n){
+    n=Math.floor(n);
+    if(n===0)return'zero euro';
+    const unita=['','uno','due','tre','quattro','cinque','sei','sette','otto','nove'];
+    const decine=['','dieci','venti','trenta','quaranta','cinquanta','sessanta','settanta','ottanta','novanta'];
+    const speciali={11:'undici',12:'dodici',13:'tredici',14:'quattordici',15:'quindici',16:'sedici',17:'diciassette',18:'diciotto',19:'diciannove'};
+    function trecifre(num){
+      let s='';
+      const c=Math.floor(num/100),r=num%100;
+      if(c>0)s+=(c===1?'cento':unita[c]+'cento');
+      if(r>0){
+        if(r<10)s+=unita[r];
+        else if(speciali[r])s+=speciali[r];
+        else{
+          const d=Math.floor(r/10),u=r%10;
+          let dec=decine[d];
+          if(u===1||u===8)dec=dec.slice(0,-1);
+          s+=dec+unita[u];
+        }
+      }
+      return s;
+    }
+    if(n<1000)return trecifre(n)+' euro';
+    if(n<1000000){
+      const mig=Math.floor(n/1000),r=n%1000;
+      let s=(mig===1?'mille':trecifre(mig)+'mila');
+      if(r>0)s+=trecifre(r);
+      return s+' euro';
+    }
+    return n.toLocaleString('it-IT')+' euro';
+  }
+
+  // Testata
+  set('f-asd-nome-head','asdNome');
+  set('f-stagione-head','stagione');
+  set('f-data-doc','dataDoc');
+
+  // Dati ASD
+  set('f-asd-nome','asdNome');set('f-asd-nome2','asdNome');
+  set('f-asd-cf','asdCf');set('f-asd-cf2','asdPresidenteCf');
+  set('f-asd-piva','asdPiva');set('f-asd-piva2','asdPiva');
+  set('f-asd-indirizzo','asdIndirizzo');set('f-asd-indirizzo2','asdIndirizzo');
+  set('f-asd-affiliazione','asdAffiliazione');set('f-asd-affiliazione2','asdAffiliazione');
+
+  // Presidente ASD
+  set('f-asd-presidente','asdPresidente');
+  set('f-asd-presidente-nascita','asdPresidenteNascita');
+  set('f-asd-presidente-luogo-nascita','asdPresidenteLuogoNascita');
+  set('f-asd-presidente-residenza','asdPresidenteResidenza');
+  set('f-asd-presidente-ci','asdPresidenteCi');
+  set('f-asd-presidente-cf','asdPresidenteCf');
+
+  // Sponsor
+  set('f-sponsor-nome','sponsorNome');set('f-sponsor-nome2','sponsorNome');set('f-sponsor-nome3','sponsorNome');
+  set('f-sponsor-indirizzo','sponsorIndirizzo');set('f-sponsor-indirizzo2','sponsorIndirizzo');
+  const sponsorPiva=get('sponsorPiva')||get('sponsorCf');
+  document.getElementById('f-sponsor-piva').textContent=sponsorPiva||'\u00a0';
+  document.getElementById('f-sponsor-piva2').textContent=sponsorPiva||'\u00a0';
+
+  // Legale rappresentante sponsor
+  set('f-lr-nome','lrNome');
+  set('f-lr-nascita','lrNascita');
+  set('f-lr-luogo-nascita','lrLuogoNascita');
+  set('f-lr-residenza','lrResidenza');
+  set('f-lr-ci','lrCi');
+  set('f-lr-cf','lrCf');
+
+  // Oggetto
+  document.getElementById('f-oggetto').textContent=get('oggetto')||'\u00a0';
+
+  // Durata
+  set('f-inizio','inizio');
+  const periodicita=get('periodicita');
+  let durataTesto='';
+  if(get('scadenza')){
+    durataTesto='avrà termine il '+get('scadenza');
+  }else if(periodicita==='annuale'){
+    durataTesto='avrà durata annuale, salvo rinnovo da concordare tra le parti';
+  }else if(periodicita==='mensile'){
+    durataTesto='si rinnoverà mensilmente fino a disdetta scritta di una delle parti';
+  }else{
+    durataTesto='avrà durata pari al periodo concordato tra le parti per la realizzazione dell\'iniziativa';
+  }
+  document.getElementById('f-durata-testo').textContent=durataTesto;
+
+  // Corrispettivo
+  const importoNum=parseFloat(get('importo'))||0;
+  document.getElementById('f-importo').textContent=importoNum.toFixed(2).replace('.',',');
+  document.getElementById('f-importo-lettere').textContent=numeroInLettere(importoNum);
+  document.getElementById('f-periodicita').textContent=periodicitaLabel[periodicita]||'una tantum';
+
+  // Luogo e data firma
+  document.getElementById('f-luogo-firma').textContent=get('asdIndirizzo').split(',').pop().trim()||'\u00a0';
+  document.getElementById('f-data-firma').textContent=get('dataDoc')||'\u00a0';
+
+  const tb=document.getElementById('timbro-box');
+  if(tb)tb.innerHTML=generaTimbro();
+})();
+</script>
+</body></html>
