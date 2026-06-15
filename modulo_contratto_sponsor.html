@@ -78,7 +78,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
     <div class="parti-box">
       <span class="label-parte">Lo Sponsor</span>
       La Società <strong><span id="f-sponsor-nome2"></span></strong> con sede legale in <span id="f-sponsor-indirizzo2"></span>,
-      Partita IVA / Codice Fiscale <span id="f-sponsor-piva2"></span>, nella persona del suo Legale Rappresentante
+      Partita IVA / Codice Fiscale <span id="f-sponsor-piva2"></span>, nella qualità del suo legale rappresentante
       <strong><span id="f-lr-nome"></span></strong>, nato/a il <span id="f-lr-nascita"></span> a <span id="f-lr-luogo-nascita"></span>,
       residente in <span id="f-lr-residenza"></span>, Carta d'Identità n. <span id="f-lr-ci"></span>,
       Codice Fiscale <span id="f-lr-cf"></span>
@@ -250,7 +250,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
 
   // Dati ASD
   set('f-asd-nome','asdNome');set('f-asd-nome2','asdNome');
-  set('f-asd-cf','asdCf');set('f-asd-cf2','asdPresidenteCf');
+  set('f-asd-cf','asdCf');set('f-asd-cf2','asdCf');
   set('f-asd-piva','asdPiva');set('f-asd-piva2','asdPiva');
   set('f-asd-indirizzo','asdIndirizzo');set('f-asd-indirizzo2','asdIndirizzo');
   set('f-asd-affiliazione','asdAffiliazione');set('f-asd-affiliazione2','asdAffiliazione');
@@ -303,7 +303,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   document.getElementById('f-periodicita').textContent=periodicitaLabel[periodicita]||'una tantum';
 
   // Luogo e data firma
-  document.getElementById('f-luogo-firma').textContent=get('asdIndirizzo').split(',').pop().trim()||'\u00a0';
+  document.getElementById('f-luogo-firma').textContent=get('asdCitta')||get('asdIndirizzo')||'\u00a0';
   document.getElementById('f-data-firma').textContent=get('dataDoc')||'\u00a0';
 
   const tb=document.getElementById('timbro-box');

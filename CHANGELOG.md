@@ -17,6 +17,14 @@
 
 ### Fix
 - **Ricerca globale** — gli sponsor sono ora indicizzati nella ricerca globale (ragione sociale, categoria, referente, descrizione contratto)
+- **Contratto sponsor** — corretto il Codice Fiscale dell'ASD (mostrava erroneamente quello del Presidente) e il campo "Luogo" in epigrafe (mostrava il numero civico invece della città)
+
+### Altre modifiche
+- **Documento d'identità in anagrafica** — nuovi campi tipo, numero e scadenza documento per atleti, utili per gare e procedure FISR
+- **Documenti struttura con link Drive** — la tab Documenti di "La mia struttura" ora permette di allegare data e link al file per ogni documento
+- **Rimossa tab Sport** da "La mia struttura" (non utilizzata)
+- **Scadenza CI Presidente** — aggiunto campo data di scadenza della carta d'identità del Presidente/Legale rappresentante
+- **Guida aggiornata** — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor e modalità demo
 
 ### File aggiunti
 - `modulo_fattura_sponsor.html`

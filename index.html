@@ -592,8 +592,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <!-- ═══ STRUTTURA ═══ -->
     <div class="page" id="page-struttura">
       <div class="tabs">
-        <div class="tab active" onclick="showTab('struttura','ids')">🪪 IDS</div>
-        <div class="tab" onclick="showTab('struttura','sport')">🏒 Sport</div>
+        <div class="tab active" onclick="showTab('struttura','ids')">🏛️ IDS</div>
         <div class="tab" onclick="showTab('struttura','documenti')">📄 Documenti</div>
       </div>
       <div class="tab-panel active" id="struttura-tab-ids">
@@ -623,6 +622,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
                 <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="s-presidente-cf"></div>
                 <div class="fgroup s2"><label>Residenza</label><input class="fi" id="s-presidente-residenza" placeholder="es. Via Roma 1, 70100 Bari (BA)"></div>
                 <div class="fgroup"><label>N° Carta d'identità</label><input class="fi" id="s-presidente-ci"></div>
+                <div class="fgroup"><label>Scadenza Carta d'identità</label><input class="fi" id="s-presidente-ci-scadenza" type="date"></div>
                 <div class="fgroup"><label>Affiliazione federale</label><input class="fi" id="s-affiliazione" placeholder="es. FISR"></div>
               </div>
             </div>
@@ -636,18 +636,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           </div>
         </div>
       </div>
-      <div class="tab-panel" id="struttura-tab-sport">
-        <div class="card">
-          <div class="card-title">🏒 Sport praticati</div>
-          <div id="sport-list" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;"></div>
-          <div style="display:flex;gap:7px;"><input class="fi" id="sport-new-input" placeholder="Aggiungi sport..." style="max-width:240px;"><button class="btn btn-p btn-sm" onclick="addSport()">+ Aggiungi</button></div>
-        </div>
-      </div>
       <div class="tab-panel" id="struttura-tab-documenti">
         <div class="card">
           <div class="card-title">📄 Documenti struttura</div>
           <div id="doc-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
-          <div style="display:flex;gap:7px;"><input class="fi" id="doc-new-nome" placeholder="Nome documento..." style="flex:1;"><button class="btn btn-p btn-sm" onclick="addDocumento()">+ Aggiungi</button></div>
+          <div class="fg" style="margin-bottom:0;">
+            <div class="fgroup"><label>Nome documento</label><input class="fi" id="doc-new-nome" placeholder="es. Statuto, Atto Costitutivo..."></div>
+            <div class="fgroup"><label>Data documento</label><input class="fi" id="doc-new-data" type="date"></div>
+            <div class="fgroup s2"><label>Link documento (Drive)</label><input class="fi" id="doc-new-link" placeholder="https://drive.google.com/..."></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px;"><button class="btn btn-p btn-sm" onclick="addDocumento()">+ Aggiungi</button></div>
         </div>
       </div>
     </div>
@@ -1229,6 +1227,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="fgroup"><label>N° Tessera FISR</label><input class="fi" id="m-s-tessera-fisr"></div>
           <div class="fgroup"><label>Scad. FISR</label><input class="fi" id="m-s-tessera-fisr-scad" type="date"></div>
         </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 8px;">🏛️ Documento d'identità</div>
+        <div class="fg">
+          <div class="fgroup"><label>Tipo documento</label><select class="fsel" id="m-s-doc-tipo"><option value="">—</option><option value="CI">Carta d'identità</option><option value="Passaporto">Passaporto</option><option value="Patente">Patente</option></select></div>
+          <div class="fgroup"><label>Numero documento</label><input class="fi" id="m-s-doc-numero"></div>
+          <div class="fgroup"><label>Scadenza documento</label><input class="fi" id="m-s-doc-scadenza" type="date"></div>
+        </div>
         <div class="fgroup" style="margin-top:10px;"><label>Note</label><textarea class="fta" id="m-s-note"></textarea></div>
       </div>
       <div class="tab-panel" id="socio-tab-sanitario">
@@ -1591,6 +1595,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Dati Presidente/Legale rappresentante ASD</strong> — nuova sezione in "La mia struttura" per inserire i dati anagrafici del presidente, riutilizzati automaticamente nei contratti</div>
         <div class="cl-item"><strong>Allegato contratto firmato</strong> — campo per archiviare il link al contratto firmato e scansionato (es. Google Drive) nella scheda sponsor</div>
         <div class="cl-item"><strong>Fix ricerca globale</strong> — gli sponsor sono ora indicizzati nella ricerca globale (ragione sociale, categoria, referente, descrizione contratto)</div>
+        <div class="cl-item"><strong>Documento d'identità in anagrafica</strong> — nuovi campi tipo, numero e scadenza documento per atleti, utili per gare e procedure FISR</div>
+        <div class="cl-item"><strong>Documenti struttura con link Drive</strong> — la tab Documenti di "La mia struttura" ora permette di allegare data e link al file per ogni documento (Statuto, Atto Costitutivo, ecc.)</div>
+        <div class="cl-item"><strong>Rimossa tab Sport</strong> da "La mia struttura" (non utilizzata)</div>
+        <div class="cl-item"><strong>Scadenza CI Presidente</strong> — aggiunto campo data di scadenza della carta d'identità del Presidente/Legale rappresentante</div>
+        <div class="cl-item"><strong>Fix contratto sponsor</strong> — corretto il Codice Fiscale dell'ASD (mostrava erroneamente quello del Presidente) e il campo "Luogo" in epigrafe (mostrava il numero civico invece della città)</div>
+        <div class="cl-item"><strong>Guida aggiornata</strong> — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor e modalità demo</div>
       </div>
 
       <div class="cl-entry">
@@ -2329,7 +2339,7 @@ function openModalSocio(id=null){
   if(id){
     const s=DB.soci.find(x=>x.id===id);
     if(s){
-      const map={nome:'m-s-nome',cognome:'m-s-cognome',email:'m-s-email',tel:'m-s-tel',nascita:'m-s-nascita',cf:'m-s-cf',luogo:'m-s-luogo',sesso:'m-s-sesso',indirizzo:'m-s-indirizzo',tipologia:'m-s-tipologia',stato:'m-s-stato',maglia:'m-s-maglia',altezza:'m-s-altezza',peso:'m-s-peso',tGuanti:'m-s-t-guanti',tGinocchiere:'m-s-t-ginocchiere',tGomitiere:'m-s-t-gomitiere',tAbbigliamento:'m-s-t-abbigliamento',tPattini:'m-s-t-pattini',tesseraAsd:'m-s-tessera-asd',tesseraAsdScad:'m-s-tessera-asd-scad',tesseraFisr:'m-s-tessera-fisr',tesseraFisrScad:'m-s-tessera-fisr-scad',assicurazione:'m-s-assicurazione',assicurazioneScad:'m-s-assicurazione-scad',assicurazioneEnte:'m-s-assicurazione-ente',assicurazionePolizza:'m-s-assicurazione-polizza',visitaTipo:'m-s-visita-tipo',visitaScad:'m-s-visita-scad',visitaMedico:'m-s-visita-medico',visitaAllegato:'m-s-visita-allegato',allergie:'m-s-allergie',farmaci:'m-s-farmaci',noteMediche:'m-s-note-mediche',g1Nome:'m-s-g1-nome',g1Cognome:'m-s-g1-cognome',g1Rapporto:'m-s-g1-rapporto',g1Cf:'m-s-g1-cf',g1Tel:'m-s-g1-tel',g1Email:'m-s-g1-email',g2Nome:'m-s-g2-nome',g2Cognome:'m-s-g2-cognome',g2Rapporto:'m-s-g2-rapporto',g2Cf:'m-s-g2-cf',g2Tel:'m-s-g2-tel',g2Email:'m-s-g2-email',privacyAllegato:'m-s-privacy-allegato',iscrizioneAllegato:'m-s-iscrizione-allegato',note:'m-s-note'};
+      const map={nome:'m-s-nome',cognome:'m-s-cognome',email:'m-s-email',tel:'m-s-tel',nascita:'m-s-nascita',cf:'m-s-cf',luogo:'m-s-luogo',sesso:'m-s-sesso',indirizzo:'m-s-indirizzo',tipologia:'m-s-tipologia',stato:'m-s-stato',maglia:'m-s-maglia',altezza:'m-s-altezza',peso:'m-s-peso',tGuanti:'m-s-t-guanti',tGinocchiere:'m-s-t-ginocchiere',tGomitiere:'m-s-t-gomitiere',tAbbigliamento:'m-s-t-abbigliamento',tPattini:'m-s-t-pattini',tesseraAsd:'m-s-tessera-asd',tesseraAsdScad:'m-s-tessera-asd-scad',tesseraFisr:'m-s-tessera-fisr',tesseraFisrScad:'m-s-tessera-fisr-scad',assicurazione:'m-s-assicurazione',assicurazioneScad:'m-s-assicurazione-scad',assicurazioneEnte:'m-s-assicurazione-ente',assicurazionePolizza:'m-s-assicurazione-polizza',visitaTipo:'m-s-visita-tipo',visitaScad:'m-s-visita-scad',visitaMedico:'m-s-visita-medico',visitaAllegato:'m-s-visita-allegato',allergie:'m-s-allergie',farmaci:'m-s-farmaci',noteMediche:'m-s-note-mediche',g1Nome:'m-s-g1-nome',g1Cognome:'m-s-g1-cognome',g1Rapporto:'m-s-g1-rapporto',g1Cf:'m-s-g1-cf',g1Tel:'m-s-g1-tel',g1Email:'m-s-g1-email',g2Nome:'m-s-g2-nome',g2Cognome:'m-s-g2-cognome',g2Rapporto:'m-s-g2-rapporto',g2Cf:'m-s-g2-cf',g2Tel:'m-s-g2-tel',g2Email:'m-s-g2-email',privacyAllegato:'m-s-privacy-allegato',iscrizioneAllegato:'m-s-iscrizione-allegato',docTipo:'m-s-doc-tipo',docNumero:'m-s-doc-numero',docScadenza:'m-s-doc-scadenza',note:'m-s-note'};
       Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&s[k]!==undefined)el.value=s[k];});
       if(s.corsoId)document.getElementById('m-s-corso').value=s.corsoId;
       if(s.macrogruppoId&&sm)sm.value=s.macrogruppoId;
@@ -2347,24 +2357,44 @@ document.addEventListener('click',e=>{if(e.target.classList.contains('mo'))close
 function loadStrutturaForm(){
   const s=DB.struttura;
   ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr',
-   'presidente','presidenteNascita','presidenteLuogoNascita','presidenteCf','presidenteResidenza','presidenteCi','affiliazione']
+   'presidente','presidenteNascita','presidenteLuogoNascita','presidenteCf','presidenteResidenza','presidenteCi','presidenteCiScadenza','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)el.value=s[k]||'';});
   document.getElementById('logo-nome-display').textContent=s.nome||'Spartans';
   const pw=document.getElementById('logo-preview-wrap');
   pw.innerHTML=s.logo?`<img src="${s.logo}" style="width:100%;height:100%;object-fit:cover;">`:'⚔️';
-  renderSportTags();renderDocumentiList();
+  renderDocumentiList();
 }
 function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
   ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr',
-   'presidente','presidenteNascita','presidenteLuogoNascita','presidenteCf','presidenteResidenza','presidenteCi','affiliazione']
+   'presidente','presidenteNascita','presidenteLuogoNascita','presidenteCf','presidenteResidenza','presidenteCi','presidenteCiScadenza','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)DB.struttura[k]=el.value;});
   document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
 function loadLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{DB.struttura.logo=ev.target.result;document.getElementById('logo-preview-wrap').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;">`;saveDB();};r.readAsDataURL(f);}
 function addSport(){const v=document.getElementById('sport-new-input').value.trim();if(!v)return;if(!DB.struttura.sport)DB.struttura.sport=[];DB.struttura.sport.push(v);document.getElementById('sport-new-input').value='';saveDB();renderSportTags();}
 function renderSportTags(){const c=document.getElementById('sport-list');c.innerHTML=(DB.struttura.sport||[]).map((s,i)=>`<div style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:12px;">${s}<span style="cursor:pointer;color:var(--red);" onclick="removeSport(${i})">✕</span></div>`).join('')||'<span style="color:var(--text3);font-size:12px;">Nessuno</span>';}
 function removeSport(i){DB.struttura.sport.splice(i,1);saveDB();renderSportTags();}
-function addDocumento(){const v=document.getElementById('doc-new-nome').value.trim();if(!v)return;if(!DB.struttura.documenti)DB.struttura.documenti=[];DB.struttura.documenti.push({nome:v,data:new Date().toISOString().slice(0,10)});document.getElementById('doc-new-nome').value='';saveDB();renderDocumentiList();}
-function renderDocumentiList(){const c=document.getElementById('doc-list');if(!DB.struttura.documenti?.length){c.innerHTML='<span style="color:var(--text3);font-size:12px;">Nessun documento</span>';return;}c.innerHTML=DB.struttura.documenti.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:7px;"><span>📄</span><span style="flex:1;font-size:13px;">${d.nome}</span><span style="font-size:11px;color:var(--text2);">${d.data}</span><button class="bico" onclick="removeDocumento(${i})">🗑️</button></div>`).join('');}
+function addDocumento(){
+  const nome=document.getElementById('doc-new-nome').value.trim();
+  if(!nome)return;
+  if(!DB.struttura.documenti)DB.struttura.documenti=[];
+  DB.struttura.documenti.push({
+    nome,
+    data:document.getElementById('doc-new-data').value||new Date().toISOString().slice(0,10),
+    link:document.getElementById('doc-new-link').value.trim()
+  });
+  document.getElementById('doc-new-nome').value='';
+  document.getElementById('doc-new-data').value='';
+  document.getElementById('doc-new-link').value='';
+  saveDB();renderDocumentiList();
+}
+function renderDocumentiList(){
+  const c=document.getElementById('doc-list');
+  if(!DB.struttura.documenti?.length){c.innerHTML='<span style="color:var(--text3);font-size:12px;">Nessun documento</span>';return;}
+  c.innerHTML=DB.struttura.documenti.map((d,i)=>{
+    const nomeHtml=d.link?`<a href="${d.link.startsWith('http')?d.link:'https://'+d.link}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:500;">${d.nome}</a>`:d.nome;
+    return`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:7px;"><span>📄</span><span style="flex:1;font-size:13px;">${nomeHtml}</span><span style="font-size:11px;color:var(--text2);">${d.data?formatDate(d.data):'—'}</span><button class="bico" onclick="removeDocumento(${i})">🗑️</button></div>`;
+  }).join('');
+}
 function removeDocumento(i){DB.struttura.documenti.splice(i,1);saveDB();renderDocumentiList();}
 
 // ═══ FOTO SOCIO ═══════════════════════════════════════════
@@ -2425,6 +2455,8 @@ function saveSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","w
     // Privacy
     privacyAllegato:g('m-s-privacy-allegato'),
     iscrizioneAllegato:g('m-s-iscrizione-allegato'),
+    // Documento identità
+    docTipo:g('m-s-doc-tipo'),docNumero:g('m-s-doc-numero'),docScadenza:g('m-s-doc-scadenza'),
     note:g('m-s-note'),
     foto:tempFoto||(editingId?DB.soci.find(x=>x.id===editingId)?.foto:''),
     documenti:tempDocs,
@@ -5120,10 +5152,12 @@ function generaContrattoSponsor(id){
   const oggi=new Date().toISOString().slice(0,10);
   const ps=DB.struttura?{
     asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||DB.struttura.cf||'',
-    asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',
+    asdIndirizzo:[DB.struttura.indirizzo,DB.struttura.citta].filter(Boolean).join(', ')||DB.struttura.descr||'',
+    asdCitta:DB.struttura.citta||'',
     asdPresidente:DB.struttura.presidente||'',asdPresidenteNascita:DB.struttura.presidenteNascita||'',
     asdPresidenteLuogoNascita:DB.struttura.presidenteLuogoNascita||'',asdPresidenteCf:DB.struttura.presidenteCf||'',
     asdPresidenteResidenza:DB.struttura.presidenteResidenza||'',asdPresidenteCi:DB.struttura.presidenteCi||'',
+    asdPresidenteCiScadenza:DB.struttura.presidenteCiScadenza?formatDate(DB.struttura.presidenteCiScadenza):'',
     asdEmail:DB.struttura.email||'',asdTel:DB.struttura.telefono||DB.struttura.tel||'',asdWeb:DB.struttura.sito||DB.struttura.web||'',
     asdAffiliazione:DB.struttura.affiliazione||''
   }:{};
@@ -5391,6 +5425,32 @@ const GUIDA_VOCI=[
   {cat:'🏭 Fornitori',titolo:'Aggiungere un fornitore',testo:'Vai su Fornitori → "+ Nuovo fornitore". Compila ragione sociale, CF/P.IVA, indirizzo, referente, categoria. Una volta salvato, appare nel campo "Fornitore" quando crei una nuova uscita in Amministrazione.',tag:'fornitore aggiungere nuovo'},
   {cat:'⚙️ Impostazioni',titolo:'Fare un backup dei dati',testo:'Vai su Impostazioni → Backup dati → clicca l\'icona di esportazione. Viene scaricato un file JSON con tutti i dati. Conservalo in un posto sicuro. Puoi reimportarlo in caso di necessità.',tag:'backup dati esportare json impostazioni'},
   {cat:'⚙️ Impostazioni',titolo:'Cambiare il tema (chiaro/scuro)',testo:'Vai su Impostazioni → Aspetto. Scegli tra Tema scuro (sfondo nero con accenti oro/rosso) e Tema chiaro (sfondo bianco). La scelta viene salvata nel browser.',tag:'tema scuro chiaro aspetto impostazioni'},
+
+  {cat:'👤 Anagrafiche',titolo:'Generare il certificato di iscrizione',testo:'Vai su Genera Documenti → Certificato di iscrizione. Seleziona l\'atleta: il documento certifica formalmente l\'iscrizione all\'ASD per la stagione sportiva in corso, con tessera ASD/FISR e firma del presidente.',tag:'certificato iscrizione documento atleta'},
+  {cat:'👤 Anagrafiche',titolo:'Generare l\'attestato di frequenza',testo:'Vai su Genera Documenti → Attestato di frequenza. Seleziona l\'atleta e inserisci data inizio e data fine del periodo: il documento attesta la partecipazione alle attività nel periodo indicato, con firma del presidente.',tag:'attestato frequenza documento periodo atleta'},
+  {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab \"✅ Checklist\". Mostra i 7 passi del processo di iscrizione (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) con una barra di avanzamento e link diretti alle sezioni da completare.',tag:'checklist nuovo iscritto onboarding passi'},
+  {cat:'👤 Anagrafiche',titolo:'Verificare i moduli firmati a colpo d\'occhio',testo:'Nella tabella Anagrafiche → Atleti, la colonna \"Moduli\" mostra ✓ verde se sia il modulo iscrizione che quello privacy sono stati caricati, ⚠ se solo uno dei due, ✗ se nessuno. I link ai file vanno inseriti nella scheda atleta → tab Documenti.',tag:'moduli firmati badge iscrizione privacy tabella'},
+  {cat:'👤 Anagrafiche',titolo:'Inserire i dati del documento d\'identità',testo:'Apri la scheda atleta → tab Anagrafica → sezione \"🏛️ Documento d\'identità\". Inserisci tipo documento, numero e data di scadenza: utile per le gare e per le procedure FISR.',tag:'documento identità carta numero scadenza atleta'},
+
+  {cat:'📋 Presenze',titolo:'Spostare un atleta tra corsi senza perdere lo storico presenze',testo:'Cambia semplicemente il campo \"Corso/Squadra\" nella scheda atleta e salva. L\'app sposta automaticamente tutte le presenze storiche dell\'atleta dal vecchio corso al nuovo corso, mantenendo le statistiche corrette.',tag:'spostamento atleta corso presenze storico fix'},
+
+  {cat:'🏆 Stagioni',titolo:'Chiudere una stagione sportiva',testo:'Vai su Stagioni → \"Chiudi stagione\". L\'app crea uno snapshot completo (atleti, staff, corsi, presenze, eventi, abbonamenti, piani, valutazioni) e lo archivia. I dati operativi (presenze, eventi, abbonamenti) vengono azzerati per la nuova stagione, mentre entrate/uscite restano in Amministrazione fino alla chiusura dell\'anno fiscale.',tag:'chiusura stagione sportiva archivio snapshot'},
+  {cat:'🏆 Stagioni',titolo:'Consultare l\'archivio di una stagione passata',testo:'Vai su Stagioni → clicca su una stagione archiviata. Trovi 5 tab: Riepilogo (statistiche e risultato sportivo), Atleti, Presenze (classifica %), Valutazioni (punteggi fisico/tecnico/tattico), Eventi. I dati sono in sola lettura.',tag:'archivio stagione passata consultare snapshot'},
+
+  {cat:'📊 Dashboard',titolo:'Avvisi di compleanno',testo:'In Dashboard → \"Prossimi eventi\", soci e staff con compleanno entro 14 giorni appaiono con sfondo azzurro, età che compiranno e indicazione \"Oggi! 🎉\", \"Domani\" o \"fra Ngg\".',tag:'compleanno avviso dashboard eventi'},
+
+  {cat:'🤝 Sponsor',titolo:'Aggiungere uno sponsor',testo:'Vai su Sponsor → \"+ Nuovo sponsor\". Compila l\'anagrafica (ragione sociale, categoria, CF/P.IVA, contatti, referente, logo) e la sezione Contratto (descrizione, oggetto della sponsorizzazione, importo, periodicità, scadenza).',tag:'sponsor nuovo aggiungere anagrafica contratto'},
+  {cat:'🤝 Sponsor',titolo:'Generare il contratto di sponsorizzazione',testo:'Apri la scheda dello sponsor → sezione Documenti → \"📄 Genera contratto di sponsorizzazione\". Il documento riporta i dati di entrambe le parti (ASD e sponsor), i rispettivi legali rappresentanti, l\'oggetto, la durata e il corrispettivo, pronto per la doppia firma. Inserisci i dati del Presidente in \"La mia struttura\" → IDS perché vengano riportati correttamente.',tag:'contratto sponsorizzazione generare documento firma'},
+  {cat:'🤝 Sponsor',titolo:'Archiviare il contratto firmato',testo:'Dopo la firma, carica la scansione su Drive e incolla il link nel campo \"Contratto firmato\" nella scheda sponsor.',tag:'contratto firmato allegato archiviare drive sponsor'},
+  {cat:'🤝 Sponsor',titolo:'Collegare il contratto a un\'entrata in Amministrazione',testo:'Nella scheda sponsor, imposta \"Stato pagamento\" su \"Incassato\" e inserisci l\'importo: l\'app crea automaticamente un\'entrata in Amministrazione con il badge 🤝 sponsor. Se modifichi importo o stato, l\'entrata si aggiorna; se elimini lo sponsor, l\'entrata collegata viene rimossa.',tag:'sponsor entrata amministrazione incassato collegamento automatico'},
+  {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva, dati ASD e sponsor, descrizione e importo del contratto.',tag:'fattura sponsor generare documento numerazione'},
+  {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
+
+  {cat:'🏛️ Struttura',titolo:'Inserire i dati del Presidente / Legale rappresentante',testo:'Vai su La mia struttura → IDS → sezione \"⚖️ Presidente / Legale rappresentante\". Inserisci nome, data e luogo di nascita, CF, residenza, numero e scadenza della carta d\'identità. Questi dati vengono riutilizzati automaticamente nei contratti di sponsorizzazione.',tag:'presidente legale rappresentante struttura dati contratto'},
+  {cat:'🏛️ Struttura',titolo:'Archiviare i documenti della struttura',testo:'Vai su La mia struttura → Documenti. Per ogni documento (Statuto, Atto Costitutivo, ecc.) inserisci nome, data e link al file su Drive: il nome diventa un link cliccabile che apre il documento.',tag:'documenti struttura statuto atto costitutivo drive link'},
+
+  {cat:'🔍 Ricerca',titolo:'Cercare uno sponsor',testo:'La barra di ricerca globale in alto cerca anche tra gli sponsor: ragione sociale, categoria, referente e descrizione del contratto. Cliccando sul risultato si apre direttamente la scheda dello sponsor.',tag:'ricerca globale sponsor cercare'},
+  {cat:'⚙️ Impostazioni',titolo:'Modalità demo',testo:'L\'accesso con l\'utente demo mostra dati dimostrativi (atleti, eventi, presenze, valutazioni) su un nodo Firebase separato dai dati reali, ed è in sola lettura: ogni tentativo di salvare o eliminare mostra un avviso. Utile per mostrare l\'app a terzi senza rischi.',tag:'demo modalità sola lettura dimostrativo'},
 ];
 
 function initGuida(){
