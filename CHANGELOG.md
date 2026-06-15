@@ -2,6 +2,20 @@
 
 ---
 
+## v4.4.0 · Giugno 2026
+
+### Nuove funzionalità
+- **Nuova sezione Sponsor** — anagrafica completa (ragione sociale, CF/P.IVA, referente, contatti, logo, categoria: main sponsor, sponsor tecnico, sponsor ufficiale, fornitore-sponsor)
+- **Contratto di sponsorizzazione** — descrizione, importo, periodicità (una tantum / annuale / mensile), data inizio e scadenza, stato pagamento
+- **Integrazione con Amministrazione** — al contrassegno "Incassato" il contratto genera automaticamente un'entrata collegata, identificata in tabella con il badge 🤝 sponsor; aggiornamenti e cancellazioni si propagano automaticamente
+- **Fattura sponsor** — documento generabile dalla tabella sponsor con numerazione progressiva, dati ASD e sponsor, dettaglio contratto e timbro digitale
+- **Alert scadenza contratti** — i contratti sponsor in scadenza entro 60 giorni compaiono nelle Scadenze imminenti della dashboard
+
+### File aggiunti
+- `modulo_fattura_sponsor.html`
+
+---
+
 ## v4.3.0 · Giugno 2026
 
 ### Nuove funzionalità

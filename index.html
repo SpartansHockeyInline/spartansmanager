@@ -450,6 +450,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ni-item" onclick="showPage('impianti')"><span class="ico">🏟️</span><span class="lbl">Impianti</span></div>
     <div class="ni-item" onclick="showPage('maestri')"><span class="ico">👨‍🎓</span><span class="lbl">Maestri/Tecnici</span></div>
     <div class="ni-item" onclick="showPage('fornitori')"><span class="ico">🏭</span><span class="lbl">Fornitori</span></div>
+    <div class="ni-item" onclick="showPage('sponsor')"><span class="ico">🤝</span><span class="lbl">Sponsor</span></div>
     <div class="nav-sec-label">Gestione</div>
     <div class="ni-item" onclick="showPage('amministrazione')"><span class="ico">💰</span><span class="lbl">Amministrazione</span></div>
     <div class="ni-item" onclick="showPage('comunicazioni')"><span class="ico">📨</span><span class="lbl">Comunicazioni</span></div>
@@ -1109,6 +1110,25 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </tr></thead><tbody id="fornitori-tbody"></tbody></table></div>
     </div>
 
+    <!-- ═══ SPONSOR ═══ -->
+    <div class="page" id="page-sponsor">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <input class="fi" id="filter-sponsor-search" placeholder="🔍 Cerca ragione sociale, categoria..." style="max-width:320px;" oninput="renderSponsor()">
+        <select class="fsel" id="filter-sponsor-cat" style="width:200px;" onchange="renderSponsor()">
+          <option value="">Tutte le categorie</option>
+          <option>Main sponsor</option>
+          <option>Sponsor tecnico</option>
+          <option>Sponsor ufficiale</option>
+          <option>Fornitore-sponsor</option>
+          <option>Altro</option>
+        </select>
+        <button class="btn btn-p btn-sm" onclick="openModalSponsor()">+ Nuovo sponsor</button>
+      </div>
+      <div class="tw"><table><thead><tr>
+        <th>#</th><th>Ragione sociale</th><th>Categoria</th><th>Referente</th><th>Contratto</th><th>Importo</th><th>Scadenza</th><th>Stato</th><th>Azioni</th>
+      </tr></thead><tbody id="sponsor-tbody"></tbody></table></div>
+    </div>
+
     <!-- ═══ GUIDA ═══ -->
     <div class="page" id="page-guida">
       <div style="margin-bottom:14px;">
@@ -1146,7 +1166,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.3.0 · Giugno 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.4.0 · Giugno 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1547,6 +1567,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v4.4.0 · Giugno 2026</div>
+        <div class="cl-section">Gestione sponsor</div>
+        <div class="cl-item"><strong>Nuova sezione Sponsor</strong> — anagrafica completa (ragione sociale, CF/P.IVA, referente, contatti, logo, categoria: main sponsor, sponsor tecnico, sponsor ufficiale, fornitore-sponsor)</div>
+        <div class="cl-item"><strong>Contratto di sponsorizzazione</strong> — descrizione, importo, periodicità (una tantum / annuale / mensile), data inizio e scadenza, stato pagamento</div>
+        <div class="cl-item"><strong>Integrazione con Amministrazione</strong> — al contrassegno "Incassato" il contratto genera automaticamente un'entrata collegata, identificata in tabella con il badge 🤝 sponsor; aggiornamenti e cancellazioni si propagano automaticamente</div>
+        <div class="cl-item"><strong>Fattura sponsor</strong> — documento generabile dalla tabella sponsor con numerazione progressiva, dati ASD e sponsor, dettaglio contratto e timbro digitale</div>
+        <div class="cl-item"><strong>Alert scadenza contratti</strong> — i contratti sponsor in scadenza entro 60 giorni compaiono nelle Scadenze imminenti della dashboard</div>
+      </div>
+
       <div class="cl-entry">
         <div class="cl-ver">v4.3.0 · Giugno 2026</div>
         <div class="cl-section">Modalità demo</div>
@@ -1890,6 +1919,66 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   </div>
 </div>
 
+<!-- MODAL SPONSOR -->
+<div class="mo" id="modal-sponsor">
+  <div class="modal wide">
+    <div class="mh"><div class="mt" id="modal-sponsor-title">Nuovo sponsor</div><button class="mc" onclick="closeModal('modal-sponsor')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fgroup s2"><label>Ragione sociale *</label><input class="fi" id="m-sp-nome"></div>
+        <div class="fgroup"><label>Categoria</label>
+          <select class="fsel" id="m-sp-cat">
+            <option value="">—</option>
+            <option>Main sponsor</option>
+            <option>Sponsor tecnico</option>
+            <option>Sponsor ufficiale</option>
+            <option>Fornitore-sponsor</option>
+            <option>Altro</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Stato</label>
+          <select class="fsel" id="m-sp-stato"><option value="attivo">Attivo</option><option value="inattivo">Inattivo</option></select>
+        </div>
+        <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="m-sp-cf"></div>
+        <div class="fgroup"><label>Partita IVA</label><input class="fi" id="m-sp-piva"></div>
+        <div class="fgroup s2"><label>Indirizzo</label><input class="fi" id="m-sp-indirizzo"></div>
+        <div class="fgroup"><label>Telefono</label><input class="fi" id="m-sp-tel"></div>
+        <div class="fgroup"><label>Email</label><input class="fi" id="m-sp-email" type="email"></div>
+        <div class="fgroup"><label>Sito web</label><input class="fi" id="m-sp-web" placeholder="https://..."></div>
+        <div class="fgroup"><label>Referente</label><input class="fi" id="m-sp-referente"></div>
+        <div class="fgroup"><label>Tel. referente</label><input class="fi" id="m-sp-referente-tel"></div>
+        <div class="fgroup s2"><label>Logo (URL immagine)</label><input class="fi" id="m-sp-logo" placeholder="https://..."></div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+        <div style="font-weight:700;margin-bottom:10px;">📄 Contratto di sponsorizzazione</div>
+        <div class="fg">
+          <div class="fgroup s2"><label>Descrizione / oggetto contratto</label><input class="fi" id="m-sp-contratto-descr" placeholder="es. Sponsorizzazione tecnica stagione 2025/26"></div>
+          <div class="fgroup"><label>Importo (€)</label><input class="fi" id="m-sp-contratto-importo" type="number" step="0.01"></div>
+          <div class="fgroup"><label>Periodicità</label>
+            <select class="fsel" id="m-sp-contratto-periodicita">
+              <option value="una_tantum">Una tantum</option>
+              <option value="annuale">Annuale</option>
+              <option value="mensile">Mensile</option>
+            </select>
+          </div>
+          <div class="fgroup"><label>Data inizio</label><input class="fi" id="m-sp-contratto-inizio" type="date"></div>
+          <div class="fgroup"><label>Data scadenza / rinnovo</label><input class="fi" id="m-sp-contratto-scadenza" type="date"></div>
+          <div class="fgroup"><label>Stato pagamento</label>
+            <select class="fsel" id="m-sp-contratto-pagato">
+              <option value="no">Da incassare</option>
+              <option value="si">Incassato</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="fgroup" style="margin-top:10px;"><label>Note</label><textarea class="fta" id="m-sp-note"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-sponsor')">Annulla</button><button class="btn btn-p" onclick="saveSponsor()">💾 Salva</button></div>
+  </div>
+</div>
+
 <!-- MODAL STAFF -->
 <div class="mo" id="modal-staff">
   <div class="modal wide">
@@ -2128,6 +2217,7 @@ function showPage(page){
   if(page==='comunicazioni')initComunicazioni();
   if(page==='valutazioni')renderValutazioni();
   if(page==='fornitori')renderFornitori();
+  if(page==='sponsor')renderSponsor();
   if(page==='guida')initGuida();
   if(page==='comunicati-fisr')initComunicatiFisr();
   if(page==='genera-documenti')initGeneraDocumenti();
@@ -3506,7 +3596,7 @@ function renderAmministrazione(){
     });
     document.getElementById(tbody).innerHTML=sorted.map(e=>`<tr>
       <td>${e.data?formatDate(e.data):'—'}</td>
-      <td>${e.descr}</td>
+      <td>${e.descr}${e.sponsorId?' <span class="badge bgold" style="font-size:9px;">🤝 sponsor</span>':''}</td>
       <td><span class="badge ${sign==='+'?'bb':'bo'}">${e.cat}</span></td>
       <td style="color:${col};font-weight:700;">${sign}€${(parseFloat(e.importo)||0).toFixed(2)}</td>
       <td>${e.metodo}</td>
@@ -3912,6 +4002,14 @@ function renderDashboard(){
   });
   DB.abbonamenti.forEach(a=>{
     if(a.scadenza){const diff=Math.round((new Date(a.scadenza)-now)/86400000);if(diff<=60)scad.push({nome:a.socioNome,tipo:`Abb. ${a.pianoNome}`,scad:a.scadenza,diff});}
+  });
+  // Contratti sponsor in scadenza
+  (DB.sponsor||[]).forEach(s=>{
+    const c=s.contratto||{};
+    if(c.scadenza){
+      const diff=Math.round((new Date(c.scadenza)-now)/86400000);
+      if(diff<=60)scad.push({nome:s.nome,tipo:'🤝 Contratto sponsor',scad:c.scadenza,diff});
+    }
   });
   // Eventi non-allenamento entro 60 giorni
   const today2=now.toISOString().slice(0,10);
@@ -4811,6 +4909,141 @@ function deleteFornitore(id){
   if(!confirm('Eliminare questo fornitore?'))return;
   DB.fornitori=(DB.fornitori||[]).filter(f=>f.id!==id);
   saveDB();renderFornitori();toast('Fornitore eliminato','success');
+}
+
+// ═══ SPONSOR ══════════════════════════════════════════════
+function renderSponsor(){
+  if(!DB.sponsor)DB.sponsor=[];
+  const tbody=document.getElementById('sponsor-tbody');if(!tbody)return;
+  const search=(document.getElementById('filter-sponsor-search')?.value||'').toLowerCase();
+  const cat=document.getElementById('filter-sponsor-cat')?.value||'';
+  let lista=DB.sponsor;
+  if(search)lista=lista.filter(s=>`${s.nome} ${s.cat||''} ${s.referente||''}`.toLowerCase().includes(search));
+  if(cat)lista=lista.filter(s=>s.cat===cat);
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">🤝</div><h3>Nessuno sponsor</h3></div></td></tr>`;return;}
+  const now=new Date();
+  tbody.innerHTML=lista.map((s,idx)=>{
+    const c=s.contratto||{};
+    let scadCol='var(--text2)';
+    if(c.scadenza){
+      const diff=Math.round((new Date(c.scadenza)-now)/86400000);
+      scadCol=diff<0?'var(--red)':diff<=30?'var(--yellow)':'var(--text2)';
+    }
+    return`<tr>
+      <td>${idx+1}</td>
+      <td><div style="display:flex;align-items:center;gap:8px;">${s.logo?`<img src="${s.logo}" style="width:28px;height:28px;object-fit:contain;border-radius:4px;">`:''}<div><div style="font-weight:600;">${s.nome}</div>${s.web?`<div style="font-size:10px;"><a href="${s.web.startsWith('http')?s.web:'https://'+s.web}" target="_blank" rel="noopener" style="color:var(--accent);">${s.web}</a></div>`:''}</div></div></td>
+      <td><span class="badge bgold">${s.cat||'—'}</span></td>
+      <td>${s.referente||'—'}${s.referenteTel?`<div style="font-size:10px;color:var(--text2);">${s.referenteTel}</div>`:''}</td>
+      <td style="max-width:180px;">${c.descr||'—'}</td>
+      <td style="font-weight:600;color:var(--green);">${c.importo?`€${parseFloat(c.importo).toFixed(2)}`:'—'}${c.periodicita&&c.periodicita!=='una_tantum'?`<div style="font-size:10px;color:var(--text2);">/${c.periodicita==='annuale'?'anno':'mese'}</div>`:''}</td>
+      <td style="color:${scadCol};font-weight:${scadCol!=='var(--text2)'?'700':'400'};">${c.scadenza?formatDate(c.scadenza):'—'}</td>
+      <td><span class="badge ${s.stato==='attivo'?'bg':'bgy'}">${s.stato||'attivo'}</span>${c.importo?`<div style="margin-top:3px;"><span class="badge ${c.pagato==='si'?'bg':'by'}" style="font-size:10px;">${c.pagato==='si'?'✓ Incassato':'Da incassare'}</span></div>`:''}</td>
+      <td><div class="tda"><button class="bico" onclick="openModalSponsor('${s.id}')">✏️</button>${c.importo?`<button class="bico" onclick="generaFatturaSponsor('${s.id}')" title="Genera fattura">📄</button>`:''}<button class="bico" onclick="deleteSponsor('${s.id}')">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openModalSponsor(id=null){
+  if(!DB.sponsor)DB.sponsor=[];
+  editingId=id;
+  document.getElementById('modal-sponsor-title').textContent=id?'Modifica sponsor':'Nuovo sponsor';
+  document.getElementById('modal-sponsor').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
+  document.getElementById('m-sp-contratto-periodicita').value='una_tantum';
+  document.getElementById('m-sp-contratto-pagato').value='no';
+  if(id){
+    const s=DB.sponsor.find(x=>x.id===id);
+    if(s){
+      const map={nome:'m-sp-nome',cat:'m-sp-cat',stato:'m-sp-stato',cf:'m-sp-cf',piva:'m-sp-piva',
+        indirizzo:'m-sp-indirizzo',tel:'m-sp-tel',email:'m-sp-email',web:'m-sp-web',
+        referente:'m-sp-referente',referenteTel:'m-sp-referente-tel',logo:'m-sp-logo',note:'m-sp-note'};
+      Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&s[k]!==undefined)el.value=s[k];});
+      const c=s.contratto||{};
+      const cmap={descr:'m-sp-contratto-descr',importo:'m-sp-contratto-importo',periodicita:'m-sp-contratto-periodicita',
+        inizio:'m-sp-contratto-inizio',scadenza:'m-sp-contratto-scadenza',pagato:'m-sp-contratto-pagato'};
+      Object.entries(cmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&c[k]!==undefined)el.value=c[k];});
+    }
+  }
+  document.getElementById('modal-sponsor').classList.add('open');
+}
+
+function saveSponsor(){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  if(!DB.sponsor)DB.sponsor=[];
+  if(!DB.entrate)DB.entrate=[];
+  const nome=document.getElementById('m-sp-nome').value.trim();
+  if(!nome){toast('Ragione sociale obbligatoria','error');return;}
+  const g=id=>document.getElementById(id)?.value||'';
+  const contratto={
+    descr:g('m-sp-contratto-descr'),
+    importo:g('m-sp-contratto-importo'),
+    periodicita:g('m-sp-contratto-periodicita')||'una_tantum',
+    inizio:g('m-sp-contratto-inizio'),
+    scadenza:g('m-sp-contratto-scadenza'),
+    pagato:g('m-sp-contratto-pagato')||'no',
+  };
+  const obj={
+    id:editingId||uid(),nome,cat:g('m-sp-cat'),stato:g('m-sp-stato')||'attivo',
+    cf:g('m-sp-cf'),piva:g('m-sp-piva'),indirizzo:g('m-sp-indirizzo'),
+    tel:g('m-sp-tel'),email:g('m-sp-email'),web:g('m-sp-web'),
+    referente:g('m-sp-referente'),referenteTel:g('m-sp-referente-tel'),
+    logo:g('m-sp-logo'),note:g('m-sp-note'),contratto,
+    creato:editingId?(DB.sponsor.find(x=>x.id===editingId)?.creato||new Date().toISOString()):new Date().toISOString()
+  };
+  if(editingId){const i=DB.sponsor.findIndex(x=>x.id===editingId);if(i>=0)DB.sponsor[i]=obj;}
+  else DB.sponsor.push(obj);
+
+  // Sincronizza entrata in Amministrazione collegata allo sponsor
+  const importoNum=parseFloat(contratto.importo)||0;
+  const entrataIdx=DB.entrate.findIndex(e=>e.sponsorId===obj.id);
+  if(importoNum>0&&contratto.pagato==='si'){
+    const entrataObj={
+      id:entrataIdx>-1?DB.entrate[entrataIdx].id:uid(),
+      data:contratto.inizio||new Date().toISOString().slice(0,10),
+      descr:`Sponsorizzazione — ${nome}${contratto.descr?': '+contratto.descr:''}`,
+      importo:importoNum,cat:'Sponsorizzazioni',metodo:'bonifico',note:contratto.descr||'',
+      sponsorId:obj.id,sponsorNome:nome
+    };
+    if(entrataIdx>-1)DB.entrate[entrataIdx]=entrataObj;
+    else DB.entrate.push(entrataObj);
+  }else if(entrataIdx>-1){
+    // Pagamento non confermato/importo azzerato: rimuove l'entrata collegata
+    DB.entrate.splice(entrataIdx,1);
+  }
+
+  saveDB();closeModal('modal-sponsor');renderSponsor();renderAmministrazione();renderDashboard();
+  toast(editingId?'Sponsor aggiornato':'Sponsor aggiunto','success');
+}
+
+function deleteSponsor(id){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  if(!confirm('Eliminare questo sponsor? Verrà rimossa anche l\'entrata collegata in Amministrazione.'))return;
+  DB.sponsor=(DB.sponsor||[]).filter(s=>s.id!==id);
+  DB.entrate=(DB.entrate||[]).filter(e=>e.sponsorId!==id);
+  saveDB();renderSponsor();renderAmministrazione();renderDashboard();toast('Sponsor eliminato','success');
+}
+
+function generaFatturaSponsor(id){
+  const s=(DB.sponsor||[]).find(x=>x.id===id);if(!s)return;
+  const c=s.contratto||{};
+  const curr=getStagioneCorrente?getStagioneCorrente():null;
+  const stagione=curr?curr.label:'';
+  const oggi=new Date().toISOString().slice(0,10);
+  const ps=DB.struttura?{asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||''}:{};
+  const numRef=fbDb?fbDb.ref('spartans/contatori/fatture'):null;
+  const generaDoc=(numFattura)=>{
+    const p=new URLSearchParams({
+      sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
+      sponsorEmail:s.email||'',descr:c.descr||'Sponsorizzazione',importo:c.importo||'',
+      periodicita:c.periodicita||'',stagione,numFattura:String(numFattura).padStart(4,'0'),
+      dataDoc:oggi,...ps
+    });
+    window.open(`${BASE_URL}modulo_fattura_sponsor.html?${p}`,'_blank');
+  };
+  if(numRef){
+    numRef.transaction(n=>(n||0)+1).then(res=>{generaDoc(res.snapshot.val());}).catch(()=>generaDoc(Date.now().toString().slice(-4)));
+  }else{
+    generaDoc(Date.now().toString().slice(-4));
+  }
 }
 
 function popolaSelectFornitori(){
