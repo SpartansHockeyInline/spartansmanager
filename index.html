@@ -3149,7 +3149,7 @@ function renderSollecitiAbb(){
         <div>${badge}</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${email?`<button class="btn btn-p btn-sm" onclick="window.open('https://mail.google.com/mail/?authuser=spartanshockeyinline@gmail.com&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent('Rinnovo abbonamento — ASD Spartans Hockey Inline')}&body=${encodeURIComponent(testoEmail)}','_blank')">📧 Sollecita email</button>`:''}
+        ${email?`<button class="btn btn-p btn-sm" onclick="window.open('https://mail.google.com/mail/?authuser=${encodeURIComponent(DB.struttura.email||'')}&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent('Rinnovo abbonamento — '+(DB.struttura.nome||'ASD'))}&body=${encodeURIComponent(testoEmail)}','_blank')">📧 Sollecita email</button>`:''}
         ${tel?`<button class="btn btn-s btn-sm" onclick="window.open('https://wa.me/${(tel).replace(/\D/g,'')}?text=${encodeURIComponent(testoWa)}','_blank')">💬 Sollecita WhatsApp</button>`:''}
         ${!email&&!tel?'<span style="font-size:11px;color:var(--text3);">Nessun contatto disponibile</span>':''}
       </div>
@@ -4207,7 +4207,7 @@ function inviaEmail(){
   if(!destinatari.length){toast('Nessun destinatario ha un indirizzo email','error');return;}
   const{oggetto,full}=buildMessaggio();
   const bcc=destinatari.join(',');
-  const url=`https://mail.google.com/mail/?authuser=spartanshockeyinline@gmail.com&view=cm&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(full)}`;
+  const url=`https://mail.google.com/mail/?authuser=${encodeURIComponent(DB.struttura.email||'')}&view=cm&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(full)}`;
   window.open(url,'_blank');
   toast(`Email preparata per ${destinatari.length} destinatari — si apre Gmail`,'success');
 }
@@ -4926,8 +4926,8 @@ function renderAlertPresenze(){
         </div>
         <div style="font-size:20px;font-weight:700;color:var(--red);margin-right:12px;">${s.perc}%</div>
         <div style="display:flex;gap:6px;">
-          ${email?`<button class="btn btn-p btn-sm" onclick="window.open('https://mail.google.com/mail/?authuser=spartanshockeyinline@gmail.com&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent('Presenze: ti aspettiamo!')}&body=${encodeURIComponent('Caro '+s.nome+',\n\nAbbiamo notato che la tua frequenza agli allenamenti è bassa ('+s.perc+'%).\nTi aspettiamo!\n\nStaff ASD Spartans Hockey Inline')}','_blank')">📧</button>`:''}
-          ${tel?`<button class="btn btn-s btn-sm" onclick="window.open('https://wa.me/${(tel).replace(/\D/g,'')}?text=${encodeURIComponent('Ciao '+s.nome+'! Notiamo che manchi spesso agli allenamenti ('+s.perc+'% di presenze). Ti aspettiamo! — Staff Spartans Hockey Inline')}','_blank')">💬</button>`:''}
+          ${email?`<button class="btn btn-p btn-sm" onclick="window.open('https://mail.google.com/mail/?authuser=${encodeURIComponent(DB.struttura.email||'')}&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent('Presenze: ti aspettiamo!')}&body=${encodeURIComponent('Caro '+s.nome+',\n\nAbbiamo notato che la tua frequenza agli allenamenti è bassa ('+s.perc+'%).\nTi aspettiamo!\n\nStaff '+(DB.struttura.nome||'ASD')+'')}','_blank')">📧</button>`:''}
+          ${tel?`<button class="btn btn-s btn-sm" onclick="window.open('https://wa.me/${(tel).replace(/\D/g,'')}?text=${encodeURIComponent('Ciao '+s.nome+'! Notiamo che manchi spesso agli allenamenti ('+s.perc+'% di presenze). Ti aspettiamo! — Staff '+(DB.struttura.nome||'ASD'))}','_blank')">💬</button>`:''}
         </div>
       </div>`;
     }).join('')}</div>`;
@@ -5366,8 +5366,8 @@ function sollecitaEmail(atletaId){
   const email=s.email||s.g1Email||'';
   const stagione=getStagioneCorrente()?.label||'';
   const oggetto=`ASD Spartans Hockey Inline — Sollecito pagamento quote ${stagione}`;
-  const body=`Gentile ${s.nome} ${s.cognome},\n\nLa contattamo per ricordarLe che risultano ancora da saldare le seguenti quote:\n\n${quote.map(q=>`• ${q.descr}: €${parseFloat(q.importo).toFixed(2)} (scadenza ${formatDate(q.scadenza)})`).join('\n')}\n\nTotale dovuto: €${totDovuto.toFixed(2)}\n\nLa preghiamo di provvedere al pagamento al più presto.\n\nCordiali saluti,\nStaff ASD Spartans Hockey Inline`;
-  window.open(`https://mail.google.com/mail/?authuser=spartanshockeyinline@gmail.com&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(body)}`,'_blank');
+  const body=`Gentile ${s.nome} ${s.cognome},\n\nLa contattamo per ricordarLe che risultano ancora da saldare le seguenti quote:\n\n${quote.map(q=>`• ${q.descr}: €${parseFloat(q.importo).toFixed(2)} (scadenza ${formatDate(q.scadenza)})`).join('\n')}\n\nTotale dovuto: €${totDovuto.toFixed(2)}\n\nLa preghiamo di provvedere al pagamento al più presto.\n\nCordiali saluti,\nStaff ${DB.struttura.nome||'ASD'}`;
+  window.open(`https://mail.google.com/mail/?authuser=${encodeURIComponent(DB.struttura.email||'')}&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(body)}`,'_blank');
 }
 
 function sollecitaWhatsApp(atletaId){
@@ -5457,7 +5457,7 @@ const GUIDA_VOCI=[
   {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa.',tag:'ricevuta pagamento documento generare'},
   {cat:'📄 Documenti',titolo:'Generare la certificazione per il 730',testo:'Vai su Genera Documenti → Certificazione quota (730). Seleziona l\'atleta e il documento si pre-compila con i dati anagrafici, la tessera ASD e i dati del genitore. Stampalo e firmalo.',tag:'730 certificazione fiscale documento'},
   {cat:'📄 Documenti',titolo:'Generare la giustificazione scolastica',testo:'Vai su Genera Documenti → Giustificazione scolastica. Seleziona l\'atleta, inserisci il nome dell\'evento e le date di assenza. Il documento viene pre-compilato con i dati dell\'atleta e del genitore.',tag:'giustificazione scuola assenza documento'},
-  {cat:'✉️ Comunicazioni',titolo:'Inviare una email a tutti gli atleti',testo:'Vai su Comunicazioni → seleziona i destinatari (o clicca "Seleziona tutti") → scrivi oggetto e messaggio → clicca "📧 Apri Gmail (BCC)". Si apre Gmail con tutti i destinatari in copia nascosta dall\'account spartanshockeyinline@gmail.com.',tag:'email comunicazione atleti gmail inviare'},
+  {cat:'✉️ Comunicazioni',titolo:'Inviare una email a tutti gli atleti',testo:'Vai su Comunicazioni → seleziona i destinatari (o clicca "Seleziona tutti") → scrivi oggetto e messaggio → clicca "📧 Apri Gmail (BCC)". Si apre Gmail con tutti i destinatari in copia nascosta usando l\'account email configurato in "La mia struttura".',tag:'email comunicazione atleti gmail inviare'},
   {cat:'✉️ Comunicazioni',titolo:'Inviare un messaggio WhatsApp',testo:'Vai su Comunicazioni → seleziona un destinatario con numero di telefono → clicca "💬 WhatsApp". Si apre WhatsApp Web con il testo precompilato.',tag:'whatsapp messaggio comunicazione'},
   {cat:'🏭 Fornitori',titolo:'Aggiungere un fornitore',testo:'Vai su Fornitori → "+ Nuovo fornitore". Compila ragione sociale, CF/P.IVA, indirizzo, referente, categoria. Una volta salvato, appare nel campo "Fornitore" quando crei una nuova uscita in Amministrazione.',tag:'fornitore aggiungere nuovo'},
   {cat:'⚙️ Impostazioni',titolo:'Fare un backup dei dati',testo:'Vai su Impostazioni → Backup dati → clicca l\'icona di esportazione. Viene scaricato un file JSON con tutti i dati. Conservalo in un posto sicuro. Puoi reimportarlo in caso di necessità.',tag:'backup dati esportare json impostazioni'},
