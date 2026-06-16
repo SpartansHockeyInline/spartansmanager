@@ -24,11 +24,13 @@
 - **Documenti struttura con link Drive** — la tab Documenti di "La mia struttura" ora permette di allegare data e link al file per ogni documento
 - **Rimossa tab Sport** da "La mia struttura" (non utilizzata)
 - **Scadenza CI Presidente** — aggiunto campo data di scadenza della carta d'identità del Presidente/Legale rappresentante
-- **Guida aggiornata** — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor e modalità demo
+- **Lettera di incarico** — nuovo documento in Genera documenti per membri dello staff: incarico per prestazioni sportive dilettantistiche (art. 67/69 D.P.R. 917/1986), con mansione presa automaticamente dal ruolo, periodo e compenso personalizzabili, pronta per la doppia firma
+- **Guida aggiornata** — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor, lettera di incarico e modalità demo
 
 ### File aggiunti
 - `modulo_fattura_sponsor.html`
 - `modulo_contratto_sponsor.html`
+- `modulo_incarico.html`
 
 ---
 

@@ -1072,6 +1072,18 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('volontariato')">📄 Genera documento</button>
         </div>
         <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">📜</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Lettera di incarico</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Incarico per prestazioni sportive dilettantistiche (art. 67/69 D.P.R. 917/1986). Per membri dello staff.</div>
+          <select class="fsel" id="doc-incarico-staff" style="margin-bottom:8px;"><option value="">— Seleziona membro staff —</option></select>
+          <div class="fg" style="margin-bottom:8px;">
+            <input class="fi" id="doc-incarico-dal" type="date" placeholder="Data inizio">
+            <input class="fi" id="doc-incarico-al" type="date" placeholder="Data fine">
+          </div>
+          <input class="fi" id="doc-incarico-compenso" placeholder="Compenso (€, lasciare vuoto se a titolo gratuito)" style="margin-bottom:8px;">
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('incarico')">📄 Genera documento</button>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
           <div style="font-size:20px;margin-bottom:8px;">🧾</div>
           <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Ricevuta pagamento</div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Ricevuta di avvenuto pagamento quota/abbonamento/attrezzatura.</div>
@@ -1600,7 +1612,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Rimossa tab Sport</strong> da "La mia struttura" (non utilizzata)</div>
         <div class="cl-item"><strong>Scadenza CI Presidente</strong> — aggiunto campo data di scadenza della carta d'identità del Presidente/Legale rappresentante</div>
         <div class="cl-item"><strong>Fix contratto sponsor</strong> — corretto il Codice Fiscale dell'ASD (mostrava erroneamente quello del Presidente) e il campo "Luogo" in epigrafe (mostrava il numero civico invece della città)</div>
-        <div class="cl-item"><strong>Guida aggiornata</strong> — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor e modalità demo</div>
+        <div class="cl-item"><strong>Lettera di incarico</strong> — nuovo documento in Genera documenti per membri dello staff: incarico per prestazioni sportive dilettantistiche (art. 67/69 D.P.R. 917/1986), con mansione presa automaticamente dal ruolo, periodo e compenso personalizzabili, pronta per la doppia firma</div>
+        <div class="cl-item"><strong>Guida aggiornata</strong> — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor, lettera di incarico e modalità demo</div>
       </div>
 
       <div class="cl-entry">
@@ -4642,10 +4655,12 @@ function initGeneraDocumenti(){
       DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
       .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
   });
-  const selSt=document.getElementById('doc-volont-staff');
-  if(selSt)selSt.innerHTML='<option value="">— Seleziona membro staff —</option>'+
-    (DB.staff||[]).filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
-    .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome} (${s.ruolo||''})</option>`).join('');
+  ['doc-volont-staff','doc-incarico-staff'].forEach(id=>{
+    const selSt=document.getElementById(id);
+    if(selSt)selSt.innerHTML='<option value="">— Seleziona membro staff —</option>'+
+      (DB.staff||[]).filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
+      .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome} (${s.ruolo||''})</option>`).join('');
+  });
 }
 
 function apriDocumento(tipo){
@@ -4699,6 +4714,28 @@ function apriDocumento(tipo){
       ore:document.getElementById('doc-volont-ore').value||'',
       compenso:document.getElementById('doc-volont-compenso').value||'',dataDoc:oggi,...ps});
     window.open(`${BASE_URL}modulo_volontariato.html?${p}`,'_blank');
+  }
+  else if(tipo==='incarico'){
+    const id=document.getElementById('doc-incarico-staff').value;
+    if(!id){toast('Seleziona un membro staff','error');return;}
+    const s=(DB.staff||[]).find(x=>x.id===id);if(!s)return;
+    const mansioneMap={
+      'dirigente':'Dirigente Sportivo','tecnico':'Tecnico Sportivo','presidente':'Presidente',
+      'vice-presidente':'Vice-Presidente','segretario':'Segretario','tesoriere':'Tesoriere',
+      'attrezzista':'Attrezzista','cronometrista':'Cronometrista','segnapunti':'Segnapunti'
+    };
+    const dal=document.getElementById('doc-incarico-dal').value;
+    const al=document.getElementById('doc-incarico-al').value;
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,nascita:s.nascita?formatDate(s.nascita):'',
+      luogo:s.luogo||'',cf:s.cf||'',indirizzo:s.indirizzo||'',
+      mansione:mansioneMap[s.ruolo]||s.ruolo||'Collaboratore',
+      dal:dal?formatDate(dal):'',al:al?formatDate(al):'',
+      compenso:document.getElementById('doc-incarico-compenso').value||'',
+      asdEmail:st.email||'',asdWeb:st.web||st.sito||'',
+      asdCitta:st.citta||'',
+      presidente:st.presidente||'',
+      dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_incarico.html?${p}`,'_blank');
   }
   else if(tipo==='certIscrizione'){
     const id=document.getElementById('doc-certiscr-atleta').value;
@@ -5451,6 +5488,7 @@ const GUIDA_VOCI=[
 
   {cat:'🔍 Ricerca',titolo:'Cercare uno sponsor',testo:'La barra di ricerca globale in alto cerca anche tra gli sponsor: ragione sociale, categoria, referente e descrizione del contratto. Cliccando sul risultato si apre direttamente la scheda dello sponsor.',tag:'ricerca globale sponsor cercare'},
   {cat:'⚙️ Impostazioni',titolo:'Modalità demo',testo:'L\'accesso con l\'utente demo mostra dati dimostrativi (atleti, eventi, presenze, valutazioni) su un nodo Firebase separato dai dati reali, ed è in sola lettura: ogni tentativo di salvare o eliminare mostra un avviso. Utile per mostrare l\'app a terzi senza rischi.',tag:'demo modalità sola lettura dimostrativo'},
+  {cat:'📄 Documenti',titolo:'Generare una lettera di incarico per lo staff',testo:'Vai su Genera Documenti → Lettera di incarico. Seleziona il membro dello staff, le date di inizio e fine dell\'incarico e, se previsto, il compenso. La mansione viene presa automaticamente dal ruolo assegnato nella scheda Staff (es. Dirigente Sportivo, Tecnico Sportivo). Il documento è basato sull\'art. 67/69 del D.P.R. 917/1986 ed è pronto per la doppia firma (Presidente e incaricato).',tag:'lettera incarico staff dirigente tecnico documento'},
 ];
 
 function initGuida(){

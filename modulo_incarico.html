@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lettera di incarico — ASD Spartans Hockey Inline</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap');
+:root{--red:#c0392b;--gold:#d4a017;--dark:#1a1a1a;--border:#ddd;--radius:4px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);background:#fff;line-height:1.6;}
+.page{max-width:210mm;margin:0 auto;padding:12mm 16mm;}
+.header{display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--red);padding-bottom:10px;margin-bottom:16px;}
+.ht{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;line-height:1.1;}
+.hs{font-size:11px;color:#666;margin-top:2px;}
+.hcontact{font-size:10px;color:#888;margin-top:4px;line-height:1.5;}
+.section{margin-bottom:14px;break-inside:avoid;}
+.st{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:#fff;background:var(--red);padding:5px 10px;margin-bottom:8px;border-radius:var(--radius) var(--radius) 0 0;}
+.st.gold{background:var(--gold);}.st.dark{background:var(--dark);}
+.grid{display:grid;gap:6px 10px;}.g2{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:1px;}
+.field label{font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.5px;}
+.fval{border-bottom:1px solid var(--border);min-height:20px;padding:2px 0;font-size:12px;font-weight:600;}
+.firma-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px;}
+.firma-box{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.firma-line{width:100%;border-bottom:1px solid var(--dark);height:40px;}
+.firma-label{font-size:10px;color:#666;text-align:center;}
+.firma-label strong{display:block;font-size:11px;color:var(--dark);margin-bottom:2px;}
+.footer{border-top:1px solid var(--border);padding-top:8px;margin-top:14px;font-size:10px;color:#999;text-align:center;}
+.corpo-doc p{font-size:12.5px;color:#333;text-align:justify;line-height:1.75;margin-bottom:10px;}
+.corpo-doc strong{color:var(--dark);}
+.corpo-doc .nota{font-size:11.5px;font-style:italic;color:#555;}
+.destinatario{font-size:13px;line-height:1.7;margin-bottom:14px;}
+@media print{body{font-size:11.5px;}.page{padding:8mm 10mm;}.no-print{display:none;}@page{size:A4;margin:0;}}
+@media screen{body{background:#eee;}.page{background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.15);margin:20px auto;}
+.print-btn{position:fixed;bottom:24px;right:24px;background:var(--red);color:#fff;border:none;padding:12px 24px;border-radius:30px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(192,57,43,.4);letter-spacing:1px;z-index:100;}
+.print-btn:hover{background:#a93226;}}</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">🖨️ STAMPA / SALVA PDF</button>
+<div class="page">
+  <div class="header">
+    <div style="flex:1;">
+      <div class="ht" id="f-asd-nome-head">ASD Spartans Hockey Inline</div>
+      <div class="hcontact" id="f-asd-contatti"></div>
+    </div>
+    <div style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--gold);text-align:right;flex-shrink:0;">
+      Data<br><strong id="f-data-doc">_______</strong>
+    </div>
+  </div>
+
+  <div class="hs" style="text-align:center;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dark);margin-bottom:16px;">
+    Lettera di incarico per prestazioni sportive dilettantistiche
+  </div>
+
+  <div class="destinatario">
+    Egregio/Gentile Sig./Sig.ra <strong id="f-nome-dest"></strong><br>
+    <span id="f-indirizzo-dest"></span><br>
+    Codice Fiscale <span id="f-cf-dest"></span>
+  </div>
+
+  <div class="corpo-doc">
+    <p>
+      Facendo seguito agli accordi intercorsi e ringraziandola per la disponibilità offerta, le comunichiamo la nostra proposta di incarico per le prestazioni in oggetto in qualità di <strong id="f-mansione1"></strong>, ai sensi dell'art. 67, comma 1, lett. m) del D.P.R. 917 del 1986.
+    </p>
+    <p>
+      L'incarico avrà ad oggetto il ruolo di <strong id="f-mansione2"></strong> per l'<strong id="f-asd-nome2">ASD Spartans Hockey Inline</strong>. Per lo svolgimento dell'incarico, potrà utilizzare le nostre strutture.
+    </p>
+    <p>
+      L'incarico sarà da lei svolto con assoluta autonomia ed indipendenza quanto alle modalità e ai criteri di esecuzione della prestazione, senza alcun vincolo di subordinazione.
+    </p>
+    <p>
+      Il rapporto di collaborazione inizierà il <strong id="f-dal"></strong> e terminerà il <strong id="f-al"></strong>.
+    </p>
+    <p id="f-compenso-paragrafo"></p>
+    <p>
+      Il compenso sarà assoggettato fiscalmente alla disciplina dell'art. 69, comma 2, del D.P.R. 917 del 1986, il quale considera esenti da imposizione le indennità, i rimborsi forfettari, i premi e i compensi che non superino, nel periodo d'imposta, i 7.500 euro.
+    </p>
+    <p class="nota">
+      Preventivamente ad ogni richiesta di pagamento dovrà pervenirci apposita autocertificazione obbligatoria dei compensi per attività sportiva ricevuti da altri enti o società sportive, attestante il superamento o meno, da parte sua, di tale franchigia.
+    </p>
+    <p>
+      Sulla parte eccedente verrà applicata la ritenuta fiscale attualmente prevista su tale tipo di compenso.
+    </p>
+    <p class="nota">
+      In assenza della suddetta autocertificazione, non si procederà al pagamento delle somme.
+    </p>
+    <p>
+      Con la sottoscrizione della presente, inoltre, lei dichiara che la suddetta attività non costituisce oggetto della sua attività professionale abituale e che il compenso eventualmente previsto a suo beneficio dalla presente lettera di incarico non costituisce né l'unica, né la prevalente fonte di reddito personale nell'anno di riferimento.
+    </p>
+    <p>
+      Il collaboratore, con la firma, prende atto che il committente, in relazione all'incarico conferito, ai fini del rispetto delle norme sulla privacy, si attiene a quanto previsto dal Regolamento (UE) 2016/679 e dalla normativa nazionale applicabile in materia di protezione dei dati personali. Il collaboratore è tenuto alla comunicazione tempestiva di eventuali variazioni dei dati anagrafici e fiscali dichiarati.
+    </p>
+  </div>
+
+  <div style="font-size:12px;margin:18px 0 6px;">
+    Lì <span id="f-luogo-firma" style="font-weight:600;"></span>, <span id="f-data-firma" style="font-weight:600;"></span>
+  </div>
+
+  <div class="firma-row">
+    <div class="firma-box">
+      <div class="firma-line"></div>
+      <div class="firma-label"><strong>Il Presidente</strong><span id="f-presidente"></span></div>
+    </div>
+    <div class="firma-box">
+      <div class="firma-line"></div>
+      <div class="firma-label"><strong>Per conferma e accettazione</strong><span id="f-nome-dest2"></span></div>
+    </div>
+  </div>
+
+  <div class="firma-row" style="margin-top:18px;">
+    <div class="firma-box"><div id="timbro-box" style="display:flex;align-items:center;justify-content:center;min-height:105px;"></div></div>
+    <div></div>
+  </div>
+
+  <div class="footer">ASD Spartans Hockey Inline · spartanshockeyinline@gmail.com · Documento generato da Spartans Manager</div>
+</div>
+<script>
+(function(){
+  const p=new URLSearchParams(window.location.search);
+  const get=k=>p.get(k)||'';
+  const set=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=get(key)||'\u00a0';};
+
+  function generaTimbro(){
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="90" viewBox="0 0 200 90">'
+      +'<rect x="2" y="2" width="196" height="86" rx="6" ry="6" fill="none" stroke="#1a3a6e" stroke-width="2.5"/>'
+      +'<text x="100" y="20" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#1a3a6e">ASD SPARTANS HOCKEY INLINE</text>'
+      +'<text x="100" y="35" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">Via Generale Rocco Maffei, 34</text>'
+      +'<text x="100" y="48" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">70028 - Sannicandro di Bari</text>'
+      +'<text x="100" y="61" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">Tel. +39 320 964 6207</text>'
+      +'<text x="100" y="74" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">C.F. e P.IVA: 09179390720</text>'
+      +'</svg>';
+  }
+
+  // Testata ASD
+  set('f-asd-nome-head','asdNome');
+  set('f-asd-nome2','asdNome');
+  set('f-data-doc','dataDoc');
+
+  const contattiParts=[];
+  if(get('asdTel'))contattiParts.push('Tel. '+get('asdTel'));
+  if(get('asdEmail'))contattiParts.push(get('asdEmail'));
+  if(get('asdWeb'))contattiParts.push(get('asdWeb'));
+  if(get('asdIndirizzo'))contattiParts.push(get('asdIndirizzo'));
+  if(get('asdCf'))contattiParts.push('C.F. '+get('asdCf'));
+  if(get('asdPiva'))contattiParts.push('P.IVA '+get('asdPiva'));
+  document.getElementById('f-asd-contatti').textContent=contattiParts.join(' · ');
+
+  // Destinatario
+  const nomeCompleto=(get('nome')+' '+get('cognome')).trim();
+  document.getElementById('f-nome-dest').textContent=nomeCompleto||'\u00a0';
+  document.getElementById('f-nome-dest2').textContent=nomeCompleto||'\u00a0';
+  const indirizzoDest=[get('indirizzo'),get('luogo')].filter(Boolean).join(', ');
+  document.getElementById('f-indirizzo-dest').textContent=indirizzoDest||'\u00a0';
+  set('f-cf-dest','cf');
+
+  // Mansione
+  set('f-mansione1','mansione');
+  set('f-mansione2','mansione');
+
+  // Durata
+  set('f-dal','dal');
+  set('f-al','al');
+
+  // Compenso
+  const compenso=get('compenso');
+  const compensoEl=document.getElementById('f-compenso-paragrafo');
+  if(compenso&&parseFloat(compenso)>0){
+    compensoEl.innerHTML='Per le sue prestazioni le sarà corrisposto un compenso forfettario di <strong>\u20ac '+parseFloat(compenso).toFixed(2).replace('.',',')+'</strong>, secondo gli accordi presi presso la nostra sede in presenza del Presidente e dei soggetti inerenti l\'associazione.';
+  }else{
+    compensoEl.innerHTML='Per le sue prestazioni non sarà corrisposto alcun compenso, come da accordi presi presso la nostra sede in presenza del Presidente e dei soggetti inerenti l\'associazione.';
+  }
+
+  // Luogo e data firma
+  document.getElementById('f-luogo-firma').textContent=get('asdCitta')||'\u00a0';
+  document.getElementById('f-data-firma').textContent=get('dataDoc')||'\u00a0';
+
+  // Presidente
+  set('f-presidente','presidente');
+
+  const tb=document.getElementById('timbro-box');
+  if(tb)tb.innerHTML=generaTimbro();
+})();
+</script>
+</body></html>
