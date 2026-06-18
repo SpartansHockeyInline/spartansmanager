@@ -5579,6 +5579,26 @@ const FISR_STAGIONI = {
 };
 // Proxy CORS per bypassare le restrizioni CORS del sito FISR
 const CORS_PROXY = 'https://corsproxy.io/?';
+const CORS_PROXY_FALLBACK = 'https://api.allorigins.win/raw?url=';
+
+// Scarica l'HTML di una pagina FISR provando il proxy principale, e in caso di
+// fallimento (errore di rete o nessun comunicato individuato) un proxy di riserva.
+// Il cache-buster nella query forza i proxy a non restituire una risposta cachata.
+async function fetchFisrHtml(url){
+  const cacheBuster = (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+  const targetUrl = url + cacheBuster;
+  try{
+    const r = await fetch(CORS_PROXY + encodeURIComponent(targetUrl), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const html = await r.text();
+    if(parseComunicatiFisr(html).length) return html;
+    throw new Error('Nessun comunicato trovato con il proxy principale');
+  }catch(e){
+    const r2 = await fetch(CORS_PROXY_FALLBACK + encodeURIComponent(targetUrl), {cache:'no-store'});
+    if(!r2.ok) throw new Error('HTTP ' + r2.status);
+    return await r2.text();
+  }
+}
 
 function initComunicatiFisr(){
   // Controlla se ci sono nuovi CU e aggiorna il badge
@@ -5608,10 +5628,7 @@ async function loadComunicatiFisr(){
   const cont = document.getElementById('fisr-list');
   cont.innerHTML = '<div class="empty"><div class="ei">⏳</div><h3>Caricamento comunicati...</h3></div>';
   try{
-    const proxyUrl = CORS_PROXY + encodeURIComponent(url);
-    const r = await fetch(proxyUrl);
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const html = await r.text();
+    const html = await fetchFisrHtml(url);
     const comunicati = parseComunicatiFisr(html);
     if(!comunicati.length) throw new Error('Nessun comunicato trovato');
     // Salva in localStorage
@@ -5737,9 +5754,7 @@ async function checkNuoviComunicatiFisr(){
   try{
     const stagione = '2025-26';
     const url = FISR_STAGIONI[stagione];
-    const r = await fetch(CORS_PROXY + encodeURIComponent(url));
-    if(!r.ok) return;
-    const html = await r.text();
+    const html = await fetchFisrHtml(url);
     const comunicati = parseComunicatiFisr(html);
     localStorage.setItem('fisr_comunicati', JSON.stringify(comunicati));
     localStorage.setItem('fisr_last_fetch', new Date().toISOString());
