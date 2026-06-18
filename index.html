@@ -5678,14 +5678,32 @@ function parseComunicatiFisr(html){
     const matchNum = testo.match(/[Cc][Uu]\.?\s*n?°?\s*(\d+)/i) || testo.match(/n[°\.]?\s*(\d+)/i);
     const num = matchNum ? matchNum[1].padStart(3,'0') : '000';
     let data = '';
-    const parent = link.closest('li, div, p, td, tr') || link.parentElement;
-    if(parent){
-      const dataMatch = parent.textContent.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
-      if(dataMatch){
-        const mesi={'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12};
-        const mese = mesi[dataMatch[2].toLowerCase()];
-        if(mese) data = `${dataMatch[3]}-${String(mese).padStart(2,'0')}-${dataMatch[1].padStart(2,'0')}`;
+    // Sul sito FISR la struttura è piatta: link-titolo → testo-data → link-Download.
+    // La data si trova nel nodo di testo (o nodo elemento) immediatamente successivo al link titolo.
+    // NON usiamo parent.textContent perché il parent comune potrebbe includere tutti i CU della pagina.
+    const mesiMap = {'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,
+                     'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12};
+    function estraiData(testo){
+      const m = testo.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
+      if(!m) return '';
+      const mese = mesiMap[m[2].toLowerCase()];
+      return mese ? `${m[3]}-${String(mese).padStart(2,'0')}-${m[1].padStart(2,'0')}` : '';
+    }
+    // Cerca nei nodi successivi (testo o elemento) ma non nel titolo stesso
+    let cursore = link.nextSibling;
+    let tentativi = 0;
+    while(cursore && tentativi < 6 && !data){
+      const testoNodo = cursore.textContent || cursore.nodeValue || '';
+      // Salta il nodo se contiene lo stesso testo del titolo (siamo ancora sul link titolo stesso)
+      if(testoNodo.trim() && testoNodo.trim() !== testo){
+        const candidata = estraiData(testoNodo);
+        // Accettiamo la data solo se non è già contenuta nel titolo (evita false date da titoli)
+        if(candidata && !testo.includes(testoNodo.trim().substring(0,10))){
+          data = candidata;
+        }
       }
+      cursore = cursore.nextSibling;
+      tentativi++;
     }
     comunicati.push({id:num, titolo:testo, url:urlCompleto, data});
   });
