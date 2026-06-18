@@ -5662,51 +5662,69 @@ async function loadComunicatiFisr(){
 }
 
 function parseComunicatiFisr(html){
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
   const comunicati = [];
-  const links = doc.querySelectorAll('a[href*="download"], a[href*=".pdf"]');
-  links.forEach(link => {
-    const href = link.getAttribute('href') || '';
-    const testo = link.textContent.trim();
-    if(!testo || testo.length < 3) return;
-    if(!href.includes('download') && !href.includes('.pdf')) return;
-    // Filtra contenuti non pertinenti all'hockey inline
+  const mesiMap = {'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,
+                   'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12};
+
+  // Strategia: lavoriamo sull'HTML grezzo con regex, più affidabile della traversata DOM
+  // perché Joomla può wrappare titolo e data in elementi diversi non prevedibili.
+  // Per ogni link di download, estraiamo titolo e cerchiamo la data di pubblicazione
+  // nell'HTML immediatamente precedente (entro ~300 caratteri) — sul sito FISR la data
+  // appare subito dopo il titolo e prima del link "Download".
+
+  // Trova tutti i link che contengono "download" nell'href
+  const linkRegex = /<a\s[^>]*href="([^"]*download[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+  let match;
+  const visti = new Set();
+
+  while((match = linkRegex.exec(html)) !== null){
+    const href = match[1];
+    const testo = match[2].replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+
+    // Salta link "Download" (testo breve senza numero CU) e duplicati
+    if(!testo || testo.length < 10 || testo.toLowerCase() === 'download') continue;
+    if(visti.has(href)) continue;
+    visti.add(href);
+
+    // Filtri pertinenza
     const testoLower = testo.toLowerCase();
-    if(testoLower.includes('monitoraggio') || testoLower.includes('legislat') || testoLower.includes('circo')) return;
-    const urlCompleto = href.startsWith('http') ? href : 'https://www.fisr.it' + href;
-    const matchNum = testo.match(/[Cc][Uu]\.?\s*n?°?\s*(\d+)/i) || testo.match(/n[°\.]?\s*(\d+)/i);
+    if(testoLower.includes('monitoraggio') || testoLower.includes('legislat') || testoLower.includes('circo')) continue;
+
+    // Numero CU
+    const matchNum = testo.match(/[Cc][Uu]\.?\s*[Oo]?\s*n?°?\s*(\d+)/i) || testo.match(/n[°\.]?\s*(\d+)/i);
     const num = matchNum ? matchNum[1].padStart(3,'0') : '000';
+
+    // URL completo
+    const urlCompleto = href.startsWith('http') ? href : 'https://www.fisr.it' + href;
+
+    // Data: cerca nell'HTML subito dopo la posizione del match corrente (~500 chars),
+    // escludendo le date che compaiono dentro il titolo stesso.
     let data = '';
-    // Sul sito FISR la struttura è piatta: link-titolo → testo-data → link-Download.
-    // La data si trova nel nodo di testo (o nodo elemento) immediatamente successivo al link titolo.
-    // NON usiamo parent.textContent perché il parent comune potrebbe includere tutti i CU della pagina.
-    const mesiMap = {'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,
-                     'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12};
-    function estraiData(testo){
-      const m = testo.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
-      if(!m) return '';
-      const mese = mesiMap[m[2].toLowerCase()];
-      return mese ? `${m[3]}-${String(mese).padStart(2,'0')}-${m[1].padStart(2,'0')}` : '';
+    const posizioneFine = match.index + match[0].length;
+    const contestoSuccessivo = html.substring(posizioneFine, posizioneFine + 500);
+
+    // Estrai tutte le date nel contesto successivo
+    const dateRegex = /(\d{1,2})\s+([a-zA-Zà]+)\s+(\d{4})/g;
+    let dataMatch;
+    while((dataMatch = dateRegex.exec(contestoSuccessivo)) !== null){
+      const mese = mesiMap[dataMatch[2].toLowerCase()];
+      if(!mese) continue;
+      const candidata = `${dataMatch[3]}-${String(mese).padStart(2,'0')}-${dataMatch[1].padStart(2,'0')}`;
+      // Verifica che questa data non sia già contenuta nel titolo (evita false date da titoli tipo "10/12 Luglio 2026")
+      const dataTestuale = `${dataMatch[1]} ${dataMatch[2]} ${dataMatch[3]}`.toLowerCase();
+      if(testo.toLowerCase().includes(dataTestuale)) continue;
+      // Ulteriore controllo: la data deve comparire prima del prossimo link titolo CU
+      const posDataInContesto = dataMatch.index;
+      const prossimoLinkIdx = contestoSuccessivo.indexOf('<a ', posDataInContesto);
+      if(prossimoLinkIdx !== -1 && posDataInContesto > prossimoLinkIdx) continue;
+      data = candidata;
+      break;
     }
-    // Cerca nei nodi successivi (testo o elemento) ma non nel titolo stesso
-    let cursore = link.nextSibling;
-    let tentativi = 0;
-    while(cursore && tentativi < 6 && !data){
-      const testoNodo = cursore.textContent || cursore.nodeValue || '';
-      // Salta il nodo se contiene lo stesso testo del titolo (siamo ancora sul link titolo stesso)
-      if(testoNodo.trim() && testoNodo.trim() !== testo){
-        const candidata = estraiData(testoNodo);
-        // Accettiamo la data solo se non è già contenuta nel titolo (evita false date da titoli)
-        if(candidata && !testo.includes(testoNodo.trim().substring(0,10))){
-          data = candidata;
-        }
-      }
-      cursore = cursore.nextSibling;
-      tentativi++;
-    }
+
     comunicati.push({id:num, titolo:testo, url:urlCompleto, data});
-  });
+  }
+
+  // Deduplica e ordina per numero decrescente
   const seen = new Set();
   return comunicati.filter(c=>{if(seen.has(c.url))return false;seen.add(c.url);return true;});
 }
