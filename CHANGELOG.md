@@ -28,6 +28,8 @@
 - **Formazione Safeguarding per lo staff** — nuovi campi in Anagrafica → Staff (data formazione, scadenza, attestato) ai sensi del Regolamento FISR per la Tutela dei Tesserati; badge di stato in tabella (✓ valida, ⚠ scaduta, ✗ mancante) e alert in dashboard per le scadenze imminenti
 - **Nomina Duty Officer Safeguarding** — nuovo documento in Genera documenti per formalizzare la nomina del responsabile Safeguarding della società (artt. 17-18 Regolamento FISR), con elenco dei compiti e doppia firma
 - **Informativa Safeguarding nel modulo di iscrizione** — il modulo di iscrizione ai corsi include ora una seconda pagina con il riepilogo delle politiche di tutela dei tesserati adottate dall'ASD, in conformità al Regolamento FISR, con dichiarazione di presa visione da firmare
+- **Comunicati Campionati FISR** — nuova tab in Comunicati FISR, affiancata a quella esistente, con i comunicati ufficiali relativi ai campionati di hockey inline (11 stagioni storiche disponibili)
+- **Fix proxy CORS Comunicati FISR** — risolto un bug per cui i comunicati più recenti non comparivano a causa della cache del servizio proxy esterno; aggiunto cache-busting e un proxy di riserva automatico
 - **Guida aggiornata** — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor, lettera di incarico, Safeguarding e modalità demo
 
 ### File aggiunti

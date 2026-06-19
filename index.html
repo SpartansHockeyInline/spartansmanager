@@ -1173,22 +1173,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 
     <!-- ═══ COMUNICATI FISR ═══ -->
     <div class="page" id="page-comunicati-fisr">
+      <div class="tabs" style="margin-bottom:14px;">
+        <button class="tab-btn active" id="fisr-tab-generali" onclick="setFisrCategoria('generali')">📋 Comunicati Generali</button>
+        <button class="tab-btn" id="fisr-tab-campionati" onclick="setFisrCategoria('campionati')">🏆 Comunicati Campionati</button>
+      </div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-        <select class="fsel" id="fisr-stagione" onchange="loadComunicatiFisr()" style="max-width:180px;">
-          <option value="2025-26">Stagione 2025/2026</option>
-          <option value="2024-25">Stagione 2024/2025</option>
-          <option value="2023-24">Stagione 2023/2024</option>
-          <option value="2022-23">Stagione 2022/2023</option>
-          <option value="2021-22">Stagione 2021/2022</option>
-          <option value="2020-21">Stagione 2020/2021</option>
-          <option value="2019-20">Stagione 2019/2020</option>
-          <option value="2018-19">Stagione 2018/2019</option>
-          <option value="2017-18">Stagione 2017/2018</option>
-          <option value="2016-17">Stagione 2016/2017</option>
-          <option value="2015-16">Stagione 2015/2016</option>
-          <option value="2014-15">Stagione 2014/2015</option>
-          <option value="2013-14">Stagione 2013/2014</option>
-        </select>
+        <select class="fsel" id="fisr-stagione" onchange="loadComunicatiFisr()" style="max-width:180px;"></select>
         <button class="btn btn-s btn-sm" onclick="loadComunicatiFisr()">🔄 Aggiorna</button>
         <span id="fisr-last-check" style="font-size:11px;color:var(--text2);"></span>
       </div>
@@ -1626,6 +1616,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Formazione Safeguarding per lo staff</strong> — nuovi campi in Anagrafica → Staff (data formazione, scadenza, attestato) ai sensi del Regolamento FISR per la Tutela dei Tesserati; badge di stato in tabella (✓ valida, ⚠ scaduta, ✗ mancante) e alert in dashboard per le scadenze imminenti</div>
         <div class="cl-item"><strong>Nomina Duty Officer Safeguarding</strong> — nuovo documento in Genera documenti per formalizzare la nomina del responsabile Safeguarding della società (artt. 17-18 Regolamento FISR), con elenco dei compiti e doppia firma</div>
         <div class="cl-item"><strong>Informativa Safeguarding nel modulo di iscrizione</strong> — il modulo di iscrizione ai corsi (<code>modulo_iscrizione_spartans.html</code>) include ora una seconda pagina con il riepilogo delle politiche di tutela dei tesserati adottate dall'ASD in conformità al Regolamento FISR, con dichiarazione di presa visione da firmare</div>
+        <div class="cl-item"><strong>Comunicati Campionati FISR</strong> — nuova tab in Comunicati FISR, affiancata a quella esistente, con i comunicati ufficiali relativi ai campionati di hockey inline (11 stagioni storiche disponibili)</div>
         <div class="cl-item"><strong>Guida aggiornata</strong> — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor, lettera di incarico e modalità demo</div>
       </div>
 
@@ -5530,6 +5521,7 @@ const GUIDA_VOCI=[
   {cat:'🛡️ Safeguarding',titolo:'Registrare la formazione Safeguarding dello staff',testo:'Apri la scheda di un membro staff → sezione "🛡️ Formazione Safeguarding". Inserisci la data in cui ha completato la formazione, la relativa scadenza/validità e, se disponibile, il link all\'attestato. In tabella Staff compare un badge di stato: ✓ se la formazione è valida, ⚠ se scaduta, ✗ se mancante. Le scadenze imminenti compaiono anche in Dashboard.',tag:'safeguarding formazione staff fisr tutela tesserati'},
   {cat:'🛡️ Safeguarding',titolo:'Generare la nomina del Duty Officer',testo:'Vai su Genera Documenti → Nomina Duty Officer Safeguarding. Seleziona il membro dello staff da nominare responsabile Safeguarding della società e la data di nomina: il documento riporta i compiti previsti dal Regolamento FISR (artt. 17-18) ed è pronto per la doppia firma (Presidente e nominato).',tag:'duty officer nomina safeguarding fisr responsabile'},
   {cat:'🛡️ Safeguarding',titolo:'Informativa Safeguarding nel modulo di iscrizione',testo:'Il modulo di iscrizione generato per ogni atleta (Anagrafiche → scheda atleta → "Genera link iscrizione") include automaticamente una seconda pagina con il riepilogo delle politiche di tutela dei tesserati adottate dall\'ASD, in conformità al Regolamento FISR, con una dichiarazione di presa visione da firmare insieme al resto del modulo.',tag:'safeguarding iscrizione informativa modulo famiglia'},
+  {cat:'📋 Comunicati FISR',titolo:'Consultare i Comunicati Campionati',testo:'La sezione Comunicati FISR ha due tab: "Comunicati Generali" (di default) e "Comunicati Campionati". Quest\'ultima raccoglie i comunicati ufficiali relativi allo svolgimento dei campionati di hockey inline, con 11 stagioni storiche disponibili dal menu a tendina. Il funzionamento è identico alla tab Generali: si seleziona la stagione e si clicca Aggiorna per scaricare l\'elenco aggiornato.',tag:'comunicati campionati fisr stagioni tab'},
 ];
 
 function initGuida(){
@@ -5577,6 +5569,22 @@ const FISR_STAGIONI = {
   '2014-15': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/category/66-2014-15.html',
   '2013-14': 'https://www.fisr.it/hockey-inline/comunicati-ufficiali/2013.html',
 };
+const FISR_STAGIONI_CAMPIONATI = {
+  '2025-26': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/588-2025-26.html',
+  '2024-25': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/558-2024-25.html',
+  '2023-24': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/517-2023-24.html',
+  '2022-23': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/471-hil-22-23.html',
+  '2021-22': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/445-comunicati-ufficiali-hil-campionati-2021-22.html',
+  '2020-21': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/404-2020-21.html',
+  '2019-20': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/370-2019-20.html',
+  '2018-19': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/321-2018-2019.html',
+  '2017-18': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/258-2017-18.html',
+  '2016-17': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/216-2016-17.html',
+  '2015-16': 'https://www.fisr.it/hockey-inline/comunicati-uff-campionati/category/186-2015-16.html',
+};
+// Categoria attualmente selezionata: 'generali' o 'campionati'
+let fisrCategoriaAttiva = 'generali';
+function fisrStagioniAttive(){ return fisrCategoriaAttiva==='campionati' ? FISR_STAGIONI_CAMPIONATI : FISR_STAGIONI; }
 // Proxy CORS per bypassare le restrizioni CORS del sito FISR
 const CORS_PROXY = 'https://corsproxy.io/?';
 const CORS_PROXY_FALLBACK = 'https://api.allorigins.win/raw?url=';
@@ -5600,12 +5608,37 @@ async function fetchFisrHtml(url){
   }
 }
 
+// Chiavi di storage distinte per categoria (generali vs campionati), per non sovrascrivere i dati dell'altra tab
+function fisrKey(base){ return fisrCategoriaAttiva==='campionati' ? base+'_campionati' : base; }
+
+function populateFisrStagioniSelect(){
+  const sel = document.getElementById('fisr-stagione');
+  if(!sel) return;
+  const stagioni = fisrStagioniAttive();
+  const valorePrecedente = sel.value;
+  sel.innerHTML = Object.keys(stagioni).map(s=>{
+    const label = 'Stagione ' + s.replace('-','/20');
+    return `<option value="${s}">${label}</option>`;
+  }).join('');
+  // Mantieni la stagione selezionata se disponibile anche nella nuova categoria, altrimenti la più recente
+  if(stagioni[valorePrecedente]) sel.value = valorePrecedente;
+}
+
+function setFisrCategoria(categoria){
+  fisrCategoriaAttiva = categoria;
+  document.getElementById('fisr-tab-generali').classList.toggle('active', categoria==='generali');
+  document.getElementById('fisr-tab-campionati').classList.toggle('active', categoria==='campionati');
+  populateFisrStagioniSelect();
+  initComunicatiFisr();
+}
+
 function initComunicatiFisr(){
+  populateFisrStagioniSelect();
   // Controlla se ci sono nuovi CU e aggiorna il badge
-  const lastSeen = localStorage.getItem('fisr_last_seen') || '';
-  const lastFetch = localStorage.getItem('fisr_last_fetch');
+  const lastFetch = localStorage.getItem(fisrKey('fisr_last_fetch'));
   const el = document.getElementById('fisr-last-check');
   if(lastFetch && el) el.textContent = 'Ultimo aggiornamento: ' + new Date(lastFetch).toLocaleString('it-IT');
+  else if(el) el.textContent = '';
   // Carica automaticamente se non caricato oggi
   const oggi = new Date().toISOString().slice(0,10);
   const lastFetchDate = lastFetch ? new Date(lastFetch).toISOString().slice(0,10) : '';
@@ -5614,7 +5647,7 @@ function initComunicatiFisr(){
 }
 
 function renderComunicatiSalvati(){
-  const saved = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
+  const saved = JSON.parse(localStorage.getItem(fisrKey('fisr_comunicati')) || '[]');
   if(!saved.length){
     document.getElementById('fisr-list').innerHTML = '<div class="empty"><div class="ei">📋</div><h3>Clicca Aggiorna per caricare i comunicati</h3></div>';
     return;
@@ -5624,22 +5657,18 @@ function renderComunicatiSalvati(){
 
 async function loadComunicatiFisr(){
   const stagione = document.getElementById('fisr-stagione')?.value || '2025-26';
-  const url = FISR_STAGIONI[stagione];
+  const url = fisrStagioniAttive()[stagione];
   const cont = document.getElementById('fisr-list');
   cont.innerHTML = '<div class="empty"><div class="ei">⏳</div><h3>Caricamento comunicati...</h3></div>';
   try{
     const html = await fetchFisrHtml(url);
-    // DEBUG TEMPORANEO: log del frammento HTML attorno al primo download link
-    const _di = html.indexOf('download=');
-    if(_di>=0) console.log('[FISR DEBUG] Contesto primo link:', JSON.stringify(html.substring(Math.max(0,_di-30),_di+400)));
-    else console.log('[FISR DEBUG] Nessun download= trovato. Lunghezza HTML:', html.length, 'Inizio:', html.substring(0,200));
     const comunicati = parseComunicatiFisr(html);
     if(!comunicati.length) throw new Error('Nessun comunicato trovato');
-    // Salva in localStorage
-    localStorage.setItem('fisr_comunicati', JSON.stringify(comunicati));
-    localStorage.setItem('fisr_last_fetch', new Date().toISOString());
+    // Salva in localStorage (chiave distinta per categoria generali/campionati)
+    localStorage.setItem(fisrKey('fisr_comunicati'), JSON.stringify(comunicati));
+    localStorage.setItem(fisrKey('fisr_last_fetch'), new Date().toISOString());
     // Aggiorna badge nuovi CU
-    const lastSeen = localStorage.getItem('fisr_last_seen_id') || '';
+    const lastSeen = localStorage.getItem(fisrKey('fisr_last_seen_id')) || '';
     const nuovi = lastSeen ? comunicati.filter(c => c.id > lastSeen).length : 0;
     aggiornaBadgeFisr(nuovi);
     // Aggiorna timestamp
@@ -5651,10 +5680,10 @@ async function loadComunicatiFisr(){
     cont.innerHTML = `<div class="card" style="border:1px solid var(--red);">
       <div style="color:var(--red);font-weight:600;margin-bottom:8px;">⚠️ Impossibile caricare i comunicati</div>
       <p style="font-size:12px;color:var(--text2);">Il sito FISR potrebbe essere temporaneamente non raggiungibile o la struttura della pagina è cambiata.</p>
-      <a href="${FISR_STAGIONI[stagione]}" target="_blank" class="btn btn-s btn-sm" style="margin-top:8px;">🔗 Apri direttamente su fisr.it</a>
+      <a href="${url}" target="_blank" class="btn btn-s btn-sm" style="margin-top:8px;">🔗 Apri direttamente su fisr.it</a>
     </div>`;
     // Mostra i comunicati salvati precedentemente se disponibili
-    const saved = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
+    const saved = JSON.parse(localStorage.getItem(fisrKey('fisr_comunicati')) || '[]');
     if(saved.length){
       cont.innerHTML += '<div style="margin-top:12px;font-size:12px;color:var(--text2);">Mostrando i comunicati dell\'ultimo aggiornamento disponibile:</div>';
       const listDiv = document.createElement('div');
@@ -5734,7 +5763,7 @@ function parseComunicatiFisr(html){
 }
 
 function renderComunicati(comunicati, containerId='fisr-list'){
-  const lastSeenId = localStorage.getItem('fisr_last_seen_id') || '';
+  const lastSeenId = localStorage.getItem(fisrKey('fisr_last_seen_id')) || '';
   const cont = document.getElementById(containerId);
   if(!comunicati.length){
     cont.innerHTML = '<div class="empty"><div class="ei">📋</div><h3>Nessun comunicato trovato</h3></div>';
@@ -5761,9 +5790,9 @@ function renderComunicati(comunicati, containerId='fisr-list'){
 }
 
 function segnaVistiFisr(){
-  const comunicati = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
+  const comunicati = JSON.parse(localStorage.getItem(fisrKey('fisr_comunicati')) || '[]');
   if(comunicati.length){
-    localStorage.setItem('fisr_last_seen_id', comunicati[0].id);
+    localStorage.setItem(fisrKey('fisr_last_seen_id'), comunicati[0].id);
   }
   aggiornaBadgeFisr(0);
   renderComunicati(comunicati);
@@ -5779,6 +5808,8 @@ function aggiornaBadgeFisr(n){
 
 // Verifica giornaliera nuovi CU (chiamata all'apertura dell'app)
 async function checkNuoviComunicatiFisr(){
+  // Il controllo automatico all'avvio riguarda sempre i Comunicati Generali
+  // (i Comunicati Campionati si aggiornano solo quando l'utente apre quella tab)
   const lastFetch = localStorage.getItem('fisr_last_fetch');
   const oggi = new Date().toISOString().slice(0,10);
   const lastFetchDate = lastFetch ? new Date(lastFetch).toISOString().slice(0,10) : '';
