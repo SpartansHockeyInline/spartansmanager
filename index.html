@@ -1617,6 +1617,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Nomina Duty Officer Safeguarding</strong> — nuovo documento in Genera documenti per formalizzare la nomina del responsabile Safeguarding della società (artt. 17-18 Regolamento FISR), con elenco dei compiti e doppia firma</div>
         <div class="cl-item"><strong>Informativa Safeguarding nel modulo di iscrizione</strong> — il modulo di iscrizione ai corsi (<code>modulo_iscrizione_spartans.html</code>) include ora una seconda pagina con il riepilogo delle politiche di tutela dei tesserati adottate dall'ASD in conformità al Regolamento FISR, con dichiarazione di presa visione da firmare</div>
         <div class="cl-item"><strong>Comunicati Campionati FISR</strong> — nuova tab in Comunicati FISR, affiancata a quella esistente, con i comunicati ufficiali relativi ai campionati di hockey inline (11 stagioni storiche disponibili)</div>
+        <div class="cl-item"><strong>Fix numerazione Comunicati Campionati</strong> — i comunicati con prefisso "CUC" (es. CUC 039) ora mostrano correttamente il proprio numero invece di "000"</div>
+        <div class="cl-item"><strong>Lettura comunicati FISR per utente</strong> — lo stato "letto/nuovo" dei comunicati ora è sincronizzato su Firebase per ogni account, invece che salvato solo sul singolo dispositivo: ogni utente vede chi altro nello staff ha già letto i comunicati, e fino a quale numero</div>
         <div class="cl-item"><strong>Guida aggiornata</strong> — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor, lettera di incarico e modalità demo</div>
       </div>
 
@@ -2202,7 +2204,8 @@ let DB = {
   macrogruppi:[], // livello superiore ai corsi
   piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],
   quoteAtleti:[], // quote collegate alle singole anagrafiche
-  valutazioni:{}
+  valutazioni:{},
+  fisrLetture:{}  // tracciamento lettura comunicati FISR per utente: {generali:{uid:{ultimoIdLetto,nome,ts}}, campionati:{...}}
 };
 let currentPage='dashboard', editingId=null, movTipo='entrata', eventoTipo='gara', convEventoId=null;
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
@@ -5522,6 +5525,7 @@ const GUIDA_VOCI=[
   {cat:'🛡️ Safeguarding',titolo:'Generare la nomina del Duty Officer',testo:'Vai su Genera Documenti → Nomina Duty Officer Safeguarding. Seleziona il membro dello staff da nominare responsabile Safeguarding della società e la data di nomina: il documento riporta i compiti previsti dal Regolamento FISR (artt. 17-18) ed è pronto per la doppia firma (Presidente e nominato).',tag:'duty officer nomina safeguarding fisr responsabile'},
   {cat:'🛡️ Safeguarding',titolo:'Informativa Safeguarding nel modulo di iscrizione',testo:'Il modulo di iscrizione generato per ogni atleta (Anagrafiche → scheda atleta → "Genera link iscrizione") include automaticamente una seconda pagina con il riepilogo delle politiche di tutela dei tesserati adottate dall\'ASD, in conformità al Regolamento FISR, con una dichiarazione di presa visione da firmare insieme al resto del modulo.',tag:'safeguarding iscrizione informativa modulo famiglia'},
   {cat:'📋 Comunicati FISR',titolo:'Consultare i Comunicati Campionati',testo:'La sezione Comunicati FISR ha due tab: "Comunicati Generali" (di default) e "Comunicati Campionati". Quest\'ultima raccoglie i comunicati ufficiali relativi allo svolgimento dei campionati di hockey inline, con 11 stagioni storiche disponibili dal menu a tendina. Il funzionamento è identico alla tab Generali: si seleziona la stagione e si clicca Aggiorna per scaricare l\'elenco aggiornato.',tag:'comunicati campionati fisr stagioni tab'},
+  {cat:'📋 Comunicati FISR',titolo:'Chi ha letto i comunicati FISR',testo:'Cliccando "Segna tutti come visti" in Comunicati FISR, il tuo account registra fino a quale comunicato hai letto: questa informazione è condivisa su Firebase, quindi è visibile a tutti gli account che accedono alla stessa associazione (mostrata sotto la tabella come "Letto anche da..."), ed è coerente anche se accedi da dispositivi diversi. Le due tab (Generali e Campionati) hanno uno stato di lettura indipendente.',tag:'comunicati letti utente account sincronizzato firebase'},
 ];
 
 function initGuida(){
@@ -5611,6 +5615,13 @@ async function fetchFisrHtml(url){
 // Chiavi di storage distinte per categoria (generali vs campionati), per non sovrascrivere i dati dell'altra tab
 function fisrKey(base){ return fisrCategoriaAttiva==='campionati' ? base+'_campionati' : base; }
 
+// Ultimo ID di comunicato letto dall'utente corrente, per una data categoria (generali/campionati)
+function getUltimoIdLetto(categoria){
+  if(!fbUser || !DB.fisrLetture) return '';
+  const l = DB.fisrLetture[categoria]?.[fbUser.uid];
+  return l ? l.ultimoIdLetto : '';
+}
+
 function populateFisrStagioniSelect(){
   const sel = document.getElementById('fisr-stagione');
   if(!sel) return;
@@ -5668,7 +5679,7 @@ async function loadComunicatiFisr(){
     localStorage.setItem(fisrKey('fisr_comunicati'), JSON.stringify(comunicati));
     localStorage.setItem(fisrKey('fisr_last_fetch'), new Date().toISOString());
     // Aggiorna badge nuovi CU
-    const lastSeen = localStorage.getItem(fisrKey('fisr_last_seen_id')) || '';
+    const lastSeen = getUltimoIdLetto(fisrCategoriaAttiva);
     const nuovi = lastSeen ? comunicati.filter(c => c.id > lastSeen).length : 0;
     aggiornaBadgeFisr(nuovi);
     // Aggiorna timestamp
@@ -5723,8 +5734,8 @@ function parseComunicatiFisr(html){
     const testoLower = testo.toLowerCase();
     if(testoLower.includes('monitoraggio') || testoLower.includes('legislat') || testoLower.includes('circo')) continue;
 
-    // Numero CU
-    const matchNum = testo.match(/[Cc][Uu]\.?\s*[Oo]?\s*n?°?\s*(\d+)/i) || testo.match(/n[°\.]?\s*(\d+)/i);
+    // Numero CU (supporta sia "CU 074" dei comunicati generali, sia "CUC 039" dei comunicati campionati)
+    const matchNum = testo.match(/[Cc][Uu][Cc]?\.?\s*[Oo]?\s*n?°?\s*(\d+)/i) || testo.match(/n[°\.]?\s*(\d+)/i);
     const num = matchNum ? matchNum[1].padStart(3,'0') : '000';
 
     // URL completo
@@ -5763,12 +5774,20 @@ function parseComunicatiFisr(html){
 }
 
 function renderComunicati(comunicati, containerId='fisr-list'){
-  const lastSeenId = localStorage.getItem(fisrKey('fisr_last_seen_id')) || '';
+  if(!DB.fisrLetture)DB.fisrLetture={};
+  const categoria = fisrCategoriaAttiva;
+  const letture = DB.fisrLetture[categoria] || {};
+  const mieLetture = fbUser ? (letture[fbUser.uid]||null) : null;
+  const lastSeenId = mieLetture ? mieLetture.ultimoIdLetto : '';
   const cont = document.getElementById(containerId);
   if(!comunicati.length){
     cont.innerHTML = '<div class="empty"><div class="ei">📋</div><h3>Nessun comunicato trovato</h3></div>';
     return;
   }
+  // Elenco di chi ha letto fino a dove, per mostrare un riepilogo "letto da"
+  const altriLettori = Object.entries(letture)
+    .filter(([uid])=>uid !== fbUser?.uid)
+    .map(([uid,l])=>l);
   cont.innerHTML = `<div class="tw"><table>
     <thead><tr><th>N°</th><th>Titolo</th><th>Data</th><th>Azioni</th></tr></thead>
     <tbody>
@@ -5784,16 +5803,24 @@ function renderComunicati(comunicati, containerId='fisr-list'){
     }).join('')}
     </tbody>
   </table></div>
-  <div style="margin-top:10px;text-align:right;">
+  <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <span style="font-size:11.5px;color:var(--text2);">${altriLettori.length ? '👥 Letto anche da: ' + altriLettori.map(l=>`${l.nome} (CU ${l.ultimoIdLetto}, ${new Date(l.ts).toLocaleDateString('it-IT')})`).join(' · ') : ''}</span>
     <button class="btn btn-s btn-sm" onclick="segnaVistiFisr()">✓ Segna tutti come visti</button>
   </div>`;
 }
 
 function segnaVistiFisr(){
   const comunicati = JSON.parse(localStorage.getItem(fisrKey('fisr_comunicati')) || '[]');
-  if(comunicati.length){
-    localStorage.setItem(fisrKey('fisr_last_seen_id'), comunicati[0].id);
-  }
+  if(!comunicati.length || !fbUser) return;
+  if(!DB.fisrLetture)DB.fisrLetture={};
+  const categoria = fisrCategoriaAttiva;
+  if(!DB.fisrLetture[categoria])DB.fisrLetture[categoria]={};
+  DB.fisrLetture[categoria][fbUser.uid] = {
+    ultimoIdLetto: comunicati[0].id,
+    nome: fbUser.email,
+    ts: Date.now()
+  };
+  saveDB();
   aggiornaBadgeFisr(0);
   renderComunicati(comunicati);
   toast('Tutti i comunicati segnati come visti','success');
@@ -5816,7 +5843,7 @@ async function checkNuoviComunicatiFisr(){
   if(lastFetchDate === oggi) {
     // Già controllato oggi — aggiorna solo il badge
     const saved = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
-    const lastSeenId = localStorage.getItem('fisr_last_seen_id') || '';
+    const lastSeenId = getUltimoIdLetto('generali');
     const nuovi = lastSeenId && saved.length ? saved.filter(c=>c.id>lastSeenId).length : 0;
     aggiornaBadgeFisr(nuovi);
     return;
@@ -5829,7 +5856,7 @@ async function checkNuoviComunicatiFisr(){
     const comunicati = parseComunicatiFisr(html);
     localStorage.setItem('fisr_comunicati', JSON.stringify(comunicati));
     localStorage.setItem('fisr_last_fetch', new Date().toISOString());
-    const lastSeenId = localStorage.getItem('fisr_last_seen_id') || '';
+    const lastSeenId = getUltimoIdLetto('generali');
     const nuovi = lastSeenId ? comunicati.filter(c=>c.id>lastSeenId).length : 0;
     aggiornaBadgeFisr(nuovi);
     if(nuovi > 0) toast(`📋 ${nuovi} nuovo/i comunicato/i FISR disponibile/i`, 'info');
@@ -5890,7 +5917,7 @@ function fbInit(){
           // Pulizia completa dopo sessione demo
           fbListenerActive=false;
           localStorage.removeItem('spartans_db');
-          DB={struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},soci:[],staff:[],macrogruppi:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],quoteAtleti:[],valutazioni:{}};
+          DB={struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},soci:[],staff:[],macrogruppi:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],quoteAtleti:[],valutazioni:{},fisrLetture:{}};
           const banner=document.getElementById('demo-banner');if(banner)banner.remove();
         }
         driveSetStatus('','Non connesso');
