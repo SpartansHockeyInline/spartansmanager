@@ -5629,6 +5629,10 @@ async function loadComunicatiFisr(){
   cont.innerHTML = '<div class="empty"><div class="ei">⏳</div><h3>Caricamento comunicati...</h3></div>';
   try{
     const html = await fetchFisrHtml(url);
+    // DEBUG TEMPORANEO: log del frammento HTML attorno al primo download link
+    const _di = html.indexOf('download=');
+    if(_di>=0) console.log('[FISR DEBUG] Contesto primo link:', JSON.stringify(html.substring(Math.max(0,_di-30),_di+400)));
+    else console.log('[FISR DEBUG] Nessun download= trovato. Lunghezza HTML:', html.length, 'Inizio:', html.substring(0,200));
     const comunicati = parseComunicatiFisr(html);
     if(!comunicati.length) throw new Error('Nessun comunicato trovato');
     // Salva in localStorage
