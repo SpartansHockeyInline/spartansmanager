@@ -12,7 +12,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
 .ht{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;line-height:1.1;}
 .hs{font-size:11px;color:#666;margin-top:2px;}
 .section{margin-bottom:14px;break-inside:avoid;}
-."ding:5px 10px;margin-bottom:8px;border-radius:var(--radius) var(--radius) 0 0;}
+.st{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:#fff;background:var(--red);padding:5px 10px;margin-bottom:8px;border-radius:var(--radius) var(--radius) 0 0;}
 .st.gold{background:var(--gold);}.st.dark{background:var(--dark);}
 .grid{display:grid;gap:6px 10px;}.g2{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr 1fr;}
 .field{display:flex;flex-direction:column;gap:1px;}
@@ -78,7 +78,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
     <div class="parti-box">
       <span class="label-parte">Lo Sponsor</span>
       La Società <strong><span id="f-sponsor-nome2"></span></strong> con sede legale in <span id="f-sponsor-indirizzo2"></span>,
-      Partita IVA / Codice Fiscale <span id="f-sponsor-piva2"></span>, nella persona del suo Legale Rappresentante
+      Partita IVA / Codice Fiscale <span id="f-sponsor-piva2"></span>, nella qualità del suo legale rappresentante
       <strong><span id="f-lr-nome"></span></strong>, nato/a il <span id="f-lr-nascita"></span> a <span id="f-lr-luogo-nascita"></span>,
       residente in <span id="f-lr-residenza"></span>, Carta d'Identità n. <span id="f-lr-ci"></span>,
       Codice Fiscale <span id="f-lr-cf"></span>
@@ -189,7 +189,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
     <div></div>
   </div>
 
-  <div class="footer">ASD Spartans Hockey Inline · spartanshockeyinline@gmail.com · Documento generato da Spartans Manager</div>
+  <div class="footer"><span id="f-asd-nome-footer">ASD Spartans Hockey Inline</span> · <span id="f-asd-email-footer">spartanshockeyinline@gmail.com</span> · Documento generato da {{APP_NOME}}</div>
 </div>
 <script>
 (function(){
@@ -247,6 +247,8 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   set('f-asd-nome-head','asdNome');
   set('f-stagione-head','stagione');
   set('f-data-doc','dataDoc');
+  set('f-asd-nome-footer','asdNome');
+  set('f-asd-email-footer','asdEmail');
 
   // Dati ASD
   set('f-asd-nome','asdNome');set('f-asd-nome2','asdNome');
