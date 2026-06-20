@@ -18,8 +18,8 @@ if('serviceWorker' in navigator){
   }
 }
 </script>
-<title>{{APP_NOME}}</title>
-<meta name="application-name" content="{{APP_NOME}}">
+<title>Spartans Manager</title>
+<meta name="application-name" content="Spartans Manager">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Spartans">
@@ -402,7 +402,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="llogo" style="background:none;padding:4px;">
       <img src="logo.svg" alt="Spartans" id="login-logo-img" style="width:52px;height:52px;object-fit:contain;filter:invert(1);">
     </div>
-    <div class="ltitle">{{APP_NOME}}</div>
+    <div class="ltitle">Spartans Manager</div>
     <div class="lsub">Accedi per sincronizzare i dati in tempo reale.</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
       <input class="fi" id="login-email" type="email" placeholder="Email" autocomplete="email">
@@ -1189,7 +1189,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">{{APP_NOME}} · v4.4.0 · Giugno 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.4.0 · Giugno 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1611,7 +1611,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <!-- MODAL CHANGELOG -->
 <div class="mo" id="modal-changelog">
   <div class="modal wide">
-    <div class="mh"><div class="mt">📋 Changelog — {{APP_NOME}}</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
+    <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
@@ -3829,7 +3829,7 @@ function renderAgenda(){
 function esportaIcal(){
   const eventi=_evFiltrati().filter(e=>e.data);
   if(!eventi.length){toast('Nessun evento da esportare','error');return;}
-  let ical='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//'+(DB.struttura?.nome||'{{APP_NOME}}')+'//{{APP_NOME}}//IT\r\nCALSCALE:GREGORIAN\r\n';
+  let ical='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//'+(DB.struttura?.nome||'Spartans Manager')+'//Spartans Manager//IT\r\nCALSCALE:GREGORIAN\r\n';
   eventi.forEach(e=>{
     const dt=e.data.replace(/-/g,'');
     const dtStart=e.ora?`${dt}T${e.ora.replace(':','')}00`:`${dt}`;
@@ -4626,7 +4626,7 @@ function generaH2HTML(ev,convocati){
       <div style="border:1px solid #000;padding:8px;"><strong>Il Dirigente Accompagnatore</strong><br><br>Firma: _______________</div>
       <div style="border:1px solid #000;padding:8px;"><strong>Il Medico Sociale</strong><br><br>Firma: _______________</div>
     </div>
-    <div style="margin-top:12px;font-size:10px;color:#666;text-align:center;">Documento generato da ${DB.struttura?.nome||'{{APP_NOME}}'} il ${now.toLocaleDateString('it-IT')}</div>
+    <div style="margin-top:12px;font-size:10px;color:#666;text-align:center;">Documento generato da ${DB.struttura?.nome||'Spartans Manager'} il ${now.toLocaleDateString('it-IT')}</div>
   </div>`;
 }
 
