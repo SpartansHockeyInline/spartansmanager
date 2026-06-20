@@ -1180,6 +1180,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
         <select class="fsel" id="fisr-stagione" onchange="loadComunicatiFisr()" style="max-width:180px;"></select>
         <button class="btn btn-s btn-sm" onclick="loadComunicatiFisr()">🔄 Aggiorna</button>
+        <button class="btn btn-s btn-sm" onclick="apriGestioneFisrStagioni()" title="Aggiungi o correggi il link di una stagione">⚙️ Gestisci stagioni</button>
         <span id="fisr-last-check" style="font-size:11px;color:var(--text2);"></span>
       </div>
       <div id="fisr-list">
@@ -1360,6 +1361,25 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </div>
     </div>
     <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-piano')">Annulla</button><button class="btn btn-p" onclick="savePiano()">💾 Salva</button></div>
+  </div>
+</div>
+
+<!-- GESTIONE STAGIONI FISR -->
+<div class="mo" id="modal-fisr-stagioni">
+  <div class="modal">
+    <div class="mh"><div class="mt">Gestisci stagioni — <span id="fisr-stagioni-modal-categoria"></span></div><button class="mc" onclick="closeModal('modal-fisr-stagioni')">✕</button></div>
+    <div class="mb">
+      <p style="font-size:12.5px;color:var(--text2);margin-bottom:14px;">Aggiungi qui il link di una nuova stagione non ancora disponibile nell'app (es. quando esce la prossima annata sul sito FISR), oppure correggi un link che non funziona più.</p>
+      <div id="fisr-stagioni-custom-list" style="margin-bottom:16px;"></div>
+      <div style="border-top:1px solid var(--border);padding-top:14px;">
+        <div class="fg">
+          <div class="fgroup"><label>Stagione (formato AAAA-AA)</label><input class="fi" id="fisr-new-stagione" placeholder="es. 2026-27"></div>
+          <div class="fgroup s2"><label>Link alla pagina FISR</label><input class="fi" id="fisr-new-url" placeholder="https://www.fisr.it/..."></div>
+        </div>
+        <button class="btn btn-s btn-sm" style="margin-top:8px;" onclick="aggiungiFisrStagioneCustom()">➕ Aggiungi / Aggiorna</button>
+      </div>
+    </div>
+    <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-fisr-stagioni')">Chiudi</button></div>
   </div>
 </div>
 
@@ -1619,6 +1639,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Comunicati Campionati FISR</strong> — nuova tab in Comunicati FISR, affiancata a quella esistente, con i comunicati ufficiali relativi ai campionati di hockey inline (11 stagioni storiche disponibili)</div>
         <div class="cl-item"><strong>Fix numerazione Comunicati Campionati</strong> — i comunicati con prefisso "CUC" (es. CUC 039) ora mostrano correttamente il proprio numero invece di "000"</div>
         <div class="cl-item"><strong>Lettura comunicati FISR per utente</strong> — lo stato "letto/nuovo" dei comunicati ora è sincronizzato su Firebase per ogni account, invece che salvato solo sul singolo dispositivo: ogni utente vede chi altro nello staff ha già letto i comunicati, e fino a quale numero</div>
+        <div class="cl-item"><strong>Gestione manuale stagioni FISR</strong> — nuovo pulsante "⚙️ Gestisci stagioni" in Comunicati FISR per aggiungere il link di una nuova annata sportiva non ancora presente nell'app, o correggere un link non più funzionante, senza dover attendere un aggiornamento dell'app</div>
         <div class="cl-item"><strong>Guida aggiornata</strong> — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor, lettera di incarico e modalità demo</div>
       </div>
 
@@ -2205,7 +2226,8 @@ let DB = {
   piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],
   quoteAtleti:[], // quote collegate alle singole anagrafiche
   valutazioni:{},
-  fisrLetture:{}  // tracciamento lettura comunicati FISR per utente: {generali:{uid:{ultimoIdLetto,nome,ts}}, campionati:{...}}
+  fisrLetture:{},  // tracciamento lettura comunicati FISR per utente: {generali:{uid:{ultimoIdLetto,nome,ts}}, campionati:{...}}
+  fisrStagioniCustom:{generali:{}, campionati:{}}  // stagioni aggiunte manualmente dall'utente (es. nuovo anno sportivo non ancora hardcoded)
 };
 let currentPage='dashboard', editingId=null, movTipo='entrata', eventoTipo='gara', convEventoId=null;
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
@@ -5526,6 +5548,7 @@ const GUIDA_VOCI=[
   {cat:'🛡️ Safeguarding',titolo:'Informativa Safeguarding nel modulo di iscrizione',testo:'Il modulo di iscrizione generato per ogni atleta (Anagrafiche → scheda atleta → "Genera link iscrizione") include automaticamente una seconda pagina con il riepilogo delle politiche di tutela dei tesserati adottate dall\'ASD, in conformità al Regolamento FISR, con una dichiarazione di presa visione da firmare insieme al resto del modulo.',tag:'safeguarding iscrizione informativa modulo famiglia'},
   {cat:'📋 Comunicati FISR',titolo:'Consultare i Comunicati Campionati',testo:'La sezione Comunicati FISR ha due tab: "Comunicati Generali" (di default) e "Comunicati Campionati". Quest\'ultima raccoglie i comunicati ufficiali relativi allo svolgimento dei campionati di hockey inline, con 11 stagioni storiche disponibili dal menu a tendina. Il funzionamento è identico alla tab Generali: si seleziona la stagione e si clicca Aggiorna per scaricare l\'elenco aggiornato.',tag:'comunicati campionati fisr stagioni tab'},
   {cat:'📋 Comunicati FISR',titolo:'Chi ha letto i comunicati FISR',testo:'Cliccando "Segna tutti come visti" in Comunicati FISR, il tuo account registra fino a quale comunicato hai letto: questa informazione è condivisa su Firebase, quindi è visibile a tutti gli account che accedono alla stessa associazione (mostrata sotto la tabella come "Letto anche da..."), ed è coerente anche se accedi da dispositivi diversi. Le due tab (Generali e Campionati) hanno uno stato di lettura indipendente.',tag:'comunicati letti utente account sincronizzato firebase'},
+  {cat:'📋 Comunicati FISR',titolo:'Aggiungere una nuova stagione sportiva',testo:'Quando il sito FISR pubblica una nuova annata (es. 2026/2027) non ancora disponibile nel menu a tendina dell\'app, clicca "⚙️ Gestisci stagioni" in Comunicati FISR. Inserisci l\'anno nel formato AAAA-AA (es. 2026-27) e il link alla pagina FISR di quella stagione, poi clicca "Aggiungi". La nuova stagione comparirà subito nel menu a tendina. Lo stesso pannello permette anche di correggere un link che FISR ha cambiato.',tag:'nuova stagione fisr aggiungi link personalizzato annata'},
 ];
 
 function initGuida(){
@@ -5588,7 +5611,13 @@ const FISR_STAGIONI_CAMPIONATI = {
 };
 // Categoria attualmente selezionata: 'generali' o 'campionati'
 let fisrCategoriaAttiva = 'generali';
-function fisrStagioniAttive(){ return fisrCategoriaAttiva==='campionati' ? FISR_STAGIONI_CAMPIONATI : FISR_STAGIONI; }
+function fisrStagioniAttive(){
+  const base = fisrCategoriaAttiva==='campionati' ? FISR_STAGIONI_CAMPIONATI : FISR_STAGIONI;
+  const custom = DB.fisrStagioniCustom?.[fisrCategoriaAttiva] || {};
+  // Le stagioni custom hanno priorità: permettono sia di aggiungere nuovi anni
+  // sia di correggere un link rotto senza aspettare un aggiornamento dell'app.
+  return {...base, ...custom};
+}
 // Proxy CORS per bypassare le restrizioni CORS del sito FISR
 const CORS_PROXY = 'https://corsproxy.io/?';
 const CORS_PROXY_FALLBACK = 'https://api.allorigins.win/raw?url=';
@@ -5627,12 +5656,70 @@ function populateFisrStagioniSelect(){
   if(!sel) return;
   const stagioni = fisrStagioniAttive();
   const valorePrecedente = sel.value;
-  sel.innerHTML = Object.keys(stagioni).map(s=>{
+  // Ordina le stagioni dalla più recente alla più vecchia (es. "2026-27" prima di "2025-26"),
+  // indipendentemente dall'ordine di inserimento (utile per le stagioni aggiunte manualmente).
+  const stagioniOrdinate = Object.keys(stagioni).sort((a,b)=>b.localeCompare(a));
+  sel.innerHTML = stagioniOrdinate.map(s=>{
     const label = 'Stagione ' + s.replace('-','/20');
-    return `<option value="${s}">${label}</option>`;
+    const isCustom = DB.fisrStagioniCustom?.[fisrCategoriaAttiva]?.[s] && !FISR_STAGIONI[s] && !FISR_STAGIONI_CAMPIONATI[s];
+    return `<option value="${s}">${label}${isCustom?' ✏️':''}</option>`;
   }).join('');
   // Mantieni la stagione selezionata se disponibile anche nella nuova categoria, altrimenti la più recente
   if(stagioni[valorePrecedente]) sel.value = valorePrecedente;
+}
+
+function apriGestioneFisrStagioni(){
+  document.getElementById('fisr-stagioni-modal-categoria').textContent =
+    fisrCategoriaAttiva==='campionati' ? '🏆 Comunicati Campionati' : '📋 Comunicati Generali';
+  document.getElementById('fisr-new-stagione').value = '';
+  document.getElementById('fisr-new-url').value = '';
+  renderFisrStagioniCustomList();
+  document.getElementById('modal-fisr-stagioni').classList.add('open');
+}
+
+function renderFisrStagioniCustomList(){
+  const cont = document.getElementById('fisr-stagioni-custom-list');
+  const custom = DB.fisrStagioniCustom?.[fisrCategoriaAttiva] || {};
+  const stagioni = Object.keys(custom).sort((a,b)=>b.localeCompare(a));
+  if(!stagioni.length){
+    cont.innerHTML = '<div style="font-size:12px;color:var(--text2);">Nessuna stagione personalizzata aggiunta per questa categoria.</div>';
+    return;
+  }
+  cont.innerHTML = stagioni.map(s=>{
+    const isOverride = !!(FISR_STAGIONI[s] || FISR_STAGIONI_CAMPIONATI[s]);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;">Stagione ${s.replace('-','/20')}${isOverride?' <span style="font-size:10px;color:var(--gold);">(sovrascrive link predefinito)</span>':''}</div>
+        <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${custom[s]}</div>
+      </div>
+      <button class="btn btn-d btn-sm" onclick="rimuoviFisrStagioneCustom('${s}')">🗑️</button>
+    </div>`;
+  }).join('');
+}
+
+function aggiungiFisrStagioneCustom(){
+  const stagione = document.getElementById('fisr-new-stagione').value.trim();
+  const url = document.getElementById('fisr-new-url').value.trim();
+  if(!/^\d{4}-\d{2}$/.test(stagione)){toast('Formato stagione non valido: usa AAAA-AA (es. 2026-27)','error');return;}
+  if(!url.startsWith('http')){toast('Inserisci un link valido (deve iniziare con http)','error');return;}
+  if(!DB.fisrStagioniCustom)DB.fisrStagioniCustom={generali:{},campionati:{}};
+  if(!DB.fisrStagioniCustom[fisrCategoriaAttiva])DB.fisrStagioniCustom[fisrCategoriaAttiva]={};
+  DB.fisrStagioniCustom[fisrCategoriaAttiva][stagione] = url;
+  saveDB();
+  document.getElementById('fisr-new-stagione').value = '';
+  document.getElementById('fisr-new-url').value = '';
+  renderFisrStagioniCustomList();
+  populateFisrStagioniSelect();
+  toast('Stagione salvata','success');
+}
+
+function rimuoviFisrStagioneCustom(stagione){
+  if(!DB.fisrStagioniCustom?.[fisrCategoriaAttiva]?.[stagione]) return;
+  delete DB.fisrStagioniCustom[fisrCategoriaAttiva][stagione];
+  saveDB();
+  renderFisrStagioniCustomList();
+  populateFisrStagioniSelect();
+  toast('Stagione rimossa','success');
 }
 
 function setFisrCategoria(categoria){
@@ -5917,7 +6004,7 @@ function fbInit(){
           // Pulizia completa dopo sessione demo
           fbListenerActive=false;
           localStorage.removeItem('spartans_db');
-          DB={struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},soci:[],staff:[],macrogruppi:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],quoteAtleti:[],valutazioni:{},fisrLetture:{}};
+          DB={struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},soci:[],staff:[],macrogruppi:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],quoteAtleti:[],valutazioni:{},fisrLetture:{},fisrStagioniCustom:{generali:{},campionati:{}}};
           const banner=document.getElementById('demo-banner');if(banner)banner.remove();
         }
         driveSetStatus('','Non connesso');

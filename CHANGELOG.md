@@ -31,6 +31,7 @@
 - **Comunicati Campionati FISR** — nuova tab in Comunicati FISR, affiancata a quella esistente, con i comunicati ufficiali relativi ai campionati di hockey inline (11 stagioni storiche disponibili)
 - **Fix numerazione Comunicati Campionati** — i comunicati con prefisso "CUC" (es. CUC 039) ora mostrano correttamente il proprio numero invece di "000"
 - **Lettura comunicati FISR per utente** — lo stato "letto/nuovo" dei comunicati ora è sincronizzato su Firebase per ogni account, invece che salvato solo sul singolo dispositivo: ogni utente vede chi altro nello staff ha già letto i comunicati, e fino a quale numero
+- **Gestione manuale stagioni FISR** — nuovo pulsante "⚙️ Gestisci stagioni" in Comunicati FISR per aggiungere il link di una nuova annata sportiva non ancora presente nell'app, o correggere un link non più funzionante, senza dover attendere un aggiornamento dell'app
 - **Fix proxy CORS Comunicati FISR** — risolto un bug per cui i comunicati più recenti non comparivano a causa della cache del servizio proxy esterno; aggiunto cache-busting e un proxy di riserva automatico
 - **Guida aggiornata** — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor, lettera di incarico, Safeguarding e modalità demo
 
