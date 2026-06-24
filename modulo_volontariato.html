@@ -84,15 +84,27 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   const set=(id,key)=>{const el=document.getElementById(id);if(el&&p.get(key))el.textContent=p.get(key);};
   
 function generaTimbro(){
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="90" viewBox="0 0 200 90">'
-    +'<rect x="2" y="2" width="196" height="86" rx="6" ry="6" fill="none" stroke="#1a3a6e" stroke-width="2.5"/>'
-    +'<text x="100" y="20" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#1a3a6e">ASD SPARTANS HOCKEY INLINE</text>'
-    +'<text x="100" y="35" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">Via Generale Rocco Maffei, 34</text>'
-    +'<text x="100" y="48" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">70028 - Sannicandro di Bari</text>'
-    +'<text x="100" y="61" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">Tel. +39 320 964 6207</text>'
-    +'<text x="100" y="74" text-anchor="middle" font-family="Arial" font-size="9" fill="#1a3a6e">C.F. e P.IVA: 09179390720</text>'
-    +'</svg>';
-}
+    const g = k => p.get(k)||'';
+    const nome = g('asdNome') ? g('asdNome').toUpperCase() : '';
+    const indirizzo = g('asdIndirizzo') || '';
+    const tel = g('asdTel') ? 'Tel. ' + g('asdTel') : '';
+    const cfpiva = (g('asdCf') || g('asdPiva')) ?
+      'C.F.' + (g('asdCf') ? ' ' + g('asdCf') : '') +
+      (g('asdPiva') && g('asdPiva') !== g('asdCf') ? ' · P.IVA ' + g('asdPiva') : '')
+      : '';
+    const righe = [nome, indirizzo, tel, cfpiva].filter(r => r.trim() !== '');
+    const svgH = 24 + righe.length * 16;
+    let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="' + svgH + '" viewBox="0 0 200 ' + svgH + '">';
+    svg += '<rect x="2" y="2" width="196" height="' + (svgH - 4) + '" rx="6" ry="6" fill="none" stroke="#1a3a6e" stroke-width="2.5"/>';
+    righe.forEach((r, i) => {
+      const y = 20 + i * 16;
+      const bold = i === 0 ? ' font-weight="bold"' : '';
+      const size = i === 0 ? '10' : '8.5';
+      svg += '<text x="100" y="' + y + '" text-anchor="middle" font-family="Arial" font-size="' + size + '"' + bold + ' fill="#1a3a6e">' + r + '</text>';
+    });
+    svg += '</svg>';
+    return svg;
+  }
 
   set('f-nome','nome');set('f-cognome','cognome');set('f-nascita','nascita');
   set('f-cf','cf');set('f-indirizzo','indirizzo');set('f-ruolo','ruolo');

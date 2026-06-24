@@ -161,7 +161,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:13px;color:var(--dark);bac
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:8px;border-top:1px solid var(--border);">
       <div class="field" style="width:200px;"><label>Luogo e Data</label><div class="field-val">&nbsp;</div></div>
-      <div class="field" style="width:200px;"><label>Timbro e firma ASD Spartans</label><div style="height:40px;border:1px dashed var(--border);border-radius:4px;"></div></div>
+      <div class="field" style="width:200px;"><label>Timbro e firma ASD</label><div id="timbro-box" style="display:flex;align-items:center;justify-content:center;min-height:80px;"></div></div>
     </div>
   </div>
 
@@ -257,6 +257,32 @@ body{font-family:'Source Sans 3',sans-serif;font-size:13px;color:var(--dark);bac
   set('f-g2-nome','g2Nome');set('f-g2-cognome','g2Cognome');set('f-g2-rapporto','g2Rapporto');
   set('f-g2-cf','g2Cf');set('f-g2-tel','g2Tel');set('f-g2-email','g2Email');
   set('f-stagione','stagione');
+
+  // Timbro ASD dinamico
+  function generaTimbro(){
+    const g = k => p.get(k)||'';
+    const nome = g('asdNome') ? g('asdNome').toUpperCase() : '';
+    const indirizzo = g('asdIndirizzo') || '';
+    const tel = g('asdTel') ? 'Tel. ' + g('asdTel') : '';
+    const cfpiva = (g('asdCf') || g('asdPiva')) ?
+      'C.F.' + (g('asdCf') ? ' ' + g('asdCf') : '') +
+      (g('asdPiva') && g('asdPiva') !== g('asdCf') ? ' · P.IVA ' + g('asdPiva') : '')
+      : '';
+    const righe = [nome, indirizzo, tel, cfpiva].filter(r => r.trim() !== '');
+    const svgH = 24 + righe.length * 16;
+    let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="' + svgH + '" viewBox="0 0 200 ' + svgH + '">';
+    svg += '<rect x="2" y="2" width="196" height="' + (svgH - 4) + '" rx="6" ry="6" fill="none" stroke="#1a3a6e" stroke-width="2.5"/>';
+    righe.forEach((r, i) => {
+      const y = 20 + i * 16;
+      const bold = i === 0 ? ' font-weight="bold"' : '';
+      const size = i === 0 ? '10' : '8.5';
+      svg += '<text x="100" y="' + y + '" text-anchor="middle" font-family="Arial" font-size="' + size + '"' + bold + ' fill="#1a3a6e">' + r + '</text>';
+    });
+    svg += '</svg>';
+    return svg;
+  }
+  const tb = document.getElementById('timbro-box');
+  if(tb) tb.innerHTML = generaTimbro();
 })();
 </script>
 </body>

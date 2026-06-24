@@ -2873,6 +2873,8 @@ function buildModuloParams(s){
   const stagione=getStagioneCorrente()?.label||'';
   const params=new URLSearchParams({
     asdNome:DB.struttura?.nome||'',asdEmail:DB.struttura?.email||'',
+    asdTel:DB.struttura?.telefono||'',asdCf:DB.struttura?.cf||'',
+    asdPiva:DB.struttura?.piva||'',asdIndirizzo:DB.struttura?.indirizzo||'',
     nome:s.nome||'',cognome:s.cognome||'',
     nascita:s.nascita?formatDate(s.nascita):'',
     luogo:s.luogo||'',sesso:s.sesso||'',cf:s.cf||'',
@@ -5216,7 +5218,7 @@ function generaFatturaSponsor(id){
   const curr=getStagioneCorrente?getStagioneCorrente():null;
   const stagione=curr?curr.label:'';
   const oggi=new Date().toISOString().slice(0,10);
-  const ps=DB.struttura?{asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',asdEmail:DB.struttura.email||''}:{};
+  const ps=DB.struttura?{asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||'',asdTel:DB.struttura.telefono||'',asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',asdEmail:DB.struttura.email||''}:{};
   const numRef=fbDb?fbDb.ref('spartans/contatori/fatture'):null;
   const generaDoc=(numFattura)=>{
     const p=new URLSearchParams({
