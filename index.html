@@ -2875,6 +2875,7 @@ function buildModuloParams(s){
     asdNome:DB.struttura?.nome||'',asdEmail:DB.struttura?.email||'',
     asdTel:DB.struttura?.telefono||'',asdCf:DB.struttura?.cf||'',
     asdPiva:DB.struttura?.piva||'',asdIndirizzo:DB.struttura?.indirizzo||'',
+    asdCap:DB.struttura?.cap||'',asdCitta:DB.struttura?.citta||'',
     nome:s.nome||'',cognome:s.cognome||'',
     nascita:s.nascita?formatDate(s.nascita):'',
     luogo:s.luogo||'',sesso:s.sesso||'',cf:s.cf||'',
@@ -4712,7 +4713,9 @@ function apriDocumento(tipo){
   const st=DB.struttura;
   const ps={
     asdNome:st.nome||'',
-    asdIndirizzo:((st.indirizzo||'')+(st.indirizzo&&st.citta?', ':'')+(st.citta||'')).trim(),
+    asdIndirizzo:st.indirizzo||'',
+    asdCap:st.cap||'',
+    asdCitta:st.citta||'',
     asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''
   };
   if(tipo==='730'){
@@ -5218,7 +5221,7 @@ function generaFatturaSponsor(id){
   const curr=getStagioneCorrente?getStagioneCorrente():null;
   const stagione=curr?curr.label:'';
   const oggi=new Date().toISOString().slice(0,10);
-  const ps=DB.struttura?{asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||'',asdTel:DB.struttura.telefono||'',asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',asdEmail:DB.struttura.email||''}:{};
+  const ps=DB.struttura?{asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||'',asdTel:DB.struttura.telefono||'',asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',asdCap:DB.struttura.cap||'',asdCitta:DB.struttura.citta||'',asdEmail:DB.struttura.email||''}:{};
   const numRef=fbDb?fbDb.ref('spartans/contatori/fatture'):null;
   const generaDoc=(numFattura)=>{
     const p=new URLSearchParams({
