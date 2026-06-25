@@ -103,26 +103,29 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   }
   function setFmt(id,key){const el=document.getElementById(id);if(el)el.textContent=fmtDate(get(key))||'\u00a0';}
   function generaTimbro(){
-    const nome = get('asdNome') ? get('asdNome').toUpperCase() : '';
-    const indirizzo = get('asdIndirizzo') || '';
-    const tel = get('asdTel') ? 'Tel. ' + get('asdTel') : '';
-    const cfpiva = (get('asdCf') || get('asdPiva')) ?
-      'C.F.' + (get('asdCf') ? ' ' + get('asdCf') : '') +
-      (get('asdPiva') && get('asdPiva') !== get('asdCf') ? ' · P.IVA ' + get('asdPiva') : '')
-      : '';
-    const righe = [nome, indirizzo, tel, cfpiva].filter(r => r.trim() !== '');
-    const svgH = 24 + righe.length * 16;
-    let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="' + svgH + '" viewBox="0 0 200 ' + svgH + '">';
-    svg += '<rect x="2" y="2" width="196" height="' + (svgH - 4) + '" rx="6" ry="6" fill="none" stroke="#1a3a6e" stroke-width="2.5"/>';
-    righe.forEach((r, i) => {
-      const y = 20 + i * 16;
-      const bold = i === 0 ? ' font-weight="bold"' : '';
-      const size = i === 0 ? '10' : '8.5';
-      svg += '<text x="100" y="' + y + '" text-anchor="middle" font-family="Arial" font-size="' + size + '"' + bold + ' fill="#1a3a6e">' + r + '</text>';
+    const nome    = get('asdNome')     ? get('asdNome').toUpperCase() : '';
+    const via     = get('asdIndirizzo')|| '';
+    const capCitta= (get('asdCap')||get('asdCitta'))
+                    ? (get('asdCap') ? get('asdCap')+' - ' : '') + get('asdCitta')
+                    : '';
+    const tel     = get('asdTel')  ? 'Tel. ' + get('asdTel')  : '';
+    const cfpiva  = (get('asdCf')||get('asdPiva'))
+                    ? 'C.F. e P.IVA: '+(get('asdCf')||get('asdPiva'))
+                    : '';
+    const righe = [nome, via, capCitta, tel, cfpiva].filter(r=>r.trim()!=='');
+    const svgH  = 16 + righe.length * 13 + 10;
+    let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="'+svgH+'" viewBox="0 0 200 '+svgH+'">';
+    svg += '<rect x="2" y="2" width="196" height="'+(svgH-4)+'" rx="5" ry="5" fill="none" stroke="#1a3a6e" stroke-width="2"/>';
+    righe.forEach((r,i)=>{
+      const y = 15 + i*13;
+      const bold  = i===0 ? ' font-weight="bold"' : '';
+      const size  = i===0 ? '10' : '8.5';
+      svg += '<text x="100" y="'+y+'" text-anchor="middle" font-family="Arial" font-size="'+size+'"'+bold+' fill="#1a3a6e">'+r+'</text>';
     });
     svg += '</svg>';
     return svg;
   }
+
   set('f-nome','nome'); set('f-cognome','cognome'); set('f-nascita','nascita'); set('f-luogo','luogo');
   set('f-cf','cf'); set('f-tessera-asd','tesseraAsd'); set('f-corso','corsoNome');
   set('f-cf-asd','asdCf'); set('f-cf-asd2','asdCf');

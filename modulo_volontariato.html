@@ -82,29 +82,31 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
 (function(){
   const p=new URLSearchParams(window.location.search);
   const set=(id,key)=>{const el=document.getElementById(id);if(el&&p.get(key))el.textContent=p.get(key);};
-  
 function generaTimbro(){
-    const g = k => p.get(k)||'';
-    const nome = g('asdNome') ? g('asdNome').toUpperCase() : '';
-    const indirizzo = g('asdIndirizzo') || '';
-    const tel = g('asdTel') ? 'Tel. ' + g('asdTel') : '';
-    const cfpiva = (g('asdCf') || g('asdPiva')) ?
-      'C.F.' + (g('asdCf') ? ' ' + g('asdCf') : '') +
-      (g('asdPiva') && g('asdPiva') !== g('asdCf') ? ' · P.IVA ' + g('asdPiva') : '')
-      : '';
-    const righe = [nome, indirizzo, tel, cfpiva].filter(r => r.trim() !== '');
-    const svgH = 24 + righe.length * 16;
-    let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="' + svgH + '" viewBox="0 0 200 ' + svgH + '">';
-    svg += '<rect x="2" y="2" width="196" height="' + (svgH - 4) + '" rx="6" ry="6" fill="none" stroke="#1a3a6e" stroke-width="2.5"/>';
-    righe.forEach((r, i) => {
-      const y = 20 + i * 16;
-      const bold = i === 0 ? ' font-weight="bold"' : '';
-      const size = i === 0 ? '10' : '8.5';
-      svg += '<text x="100" y="' + y + '" text-anchor="middle" font-family="Arial" font-size="' + size + '"' + bold + ' fill="#1a3a6e">' + r + '</text>';
-    });
-    svg += '</svg>';
-    return svg;
-  }
+  const g = k=>p.get(k)||'';
+  const nome    = g('asdNome')     ? g('asdNome').toUpperCase() : '';
+  const via     = g('asdIndirizzo')|| '';
+  const capCitta= (g('asdCap')||g('asdCitta'))
+                  ? (g('asdCap') ? g('asdCap')+' - ' : '') + g('asdCitta')
+                  : '';
+  const tel     = g('asdTel')  ? 'Tel. ' + g('asdTel')  : '';
+  const cfpiva  = (g('asdCf')||g('asdPiva'))
+                  ? 'C.F. e P.IVA: '+(g('asdCf')||g('asdPiva'))
+                  : '';
+  const righe = [nome, via, capCitta, tel, cfpiva].filter(r=>r.trim()!=='');
+  const svgH  = 16 + righe.length * 13 + 10;
+  let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="'+svgH+'" viewBox="0 0 200 '+svgH+'">';
+  svg += '<rect x="2" y="2" width="196" height="'+(svgH-4)+'" rx="5" ry="5" fill="none" stroke="#1a3a6e" stroke-width="2"/>';
+  righe.forEach((r,i)=>{
+    const y = 15 + i*13;
+    const bold  = i===0 ? ' font-weight="bold"' : '';
+    const size  = i===0 ? '10' : '8.5';
+    svg += '<text x="100" y="'+y+'" text-anchor="middle" font-family="Arial" font-size="'+size+'"'+bold+' fill="#1a3a6e">'+r+'</text>';
+  });
+  svg += '</svg>';
+  return svg;
+}
+
 
   set('f-nome','nome');set('f-cognome','cognome');set('f-nascita','nascita');
   set('f-cf','cf');set('f-indirizzo','indirizzo');set('f-ruolo','ruolo');

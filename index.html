@@ -5249,7 +5249,8 @@ function generaContrattoSponsor(id){
   const oggi=new Date().toISOString().slice(0,10);
   const ps=DB.struttura?{
     asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||DB.struttura.cf||'',
-    asdIndirizzo:[DB.struttura.indirizzo,DB.struttura.citta].filter(Boolean).join(', ')||DB.struttura.descr||'',
+    asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',
+    asdCap:DB.struttura.cap||'',
     asdCitta:DB.struttura.citta||'',
     asdPresidente:DB.struttura.presidente||'',asdPresidenteNascita:DB.struttura.presidenteNascita||'',
     asdPresidenteLuogoNascita:DB.struttura.presidenteLuogoNascita||'',asdPresidenteCf:DB.struttura.presidenteCf||'',
