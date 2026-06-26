@@ -58,10 +58,14 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
     <div class="art-text">Si chiede di voler giustificare l'assenza. Ringraziando per la collaborazione, cordiali saluti.</div>
   </div>
   <div class="firma-row" style="margin-top:20px;">
-    <div class="firma-box"><div class="firma-line"></div><div class="firma-label">Il Presidente / Responsabile tecnico<br>ASD Spartans Hockey Inline</div></div>
+    <div class="firma-box">
+      <div id="timbro-box" style="display:flex;align-items:center;justify-content:center;min-height:80px;width:100%;"></div>
+      <div class="firma-line"></div>
+      <div class="firma-label">Il Presidente / Responsabile tecnico</div>
+    </div>
     <div class="firma-box"><div class="firma-line"></div><div class="firma-label">Firma del genitore/tutore<br><span id="f-g1-nome"></span> <span id="f-g1-cognome"></span></div></div>
   </div>
-  <div class="footer">ASD Spartans Hockey Inline · spartanshockeyinline@gmail.com · Documento generato da Spartans Manager</div>
+  <div class="footer"><span id="f-asd-nome-footer">ASD Spartans Hockey Inline</span> · <span id="f-asd-email-footer">spartanshockeyinline@gmail.com</span> · Documento generato da Spartans Manager</div>
 </div>
 <script>
 (function(){
@@ -98,6 +102,8 @@ function generaTimbro(){
   set('f-classe','classe');set('f-date-assenza','dateAssenza');set('f-evento','evento');
   set('f-luogo-evento','luogoEvento');set('f-scuola','scuola');set('f-data-doc','dataDoc');
   set('f-g1-nome','g1Nome');set('f-g1-cognome','g1Cognome');
+  set('f-asd-nome-footer','asdNome');
+  set('f-asd-email-footer','asdEmail');
   const tb=document.getElementById('timbro-box');
   if(tb)tb.innerHTML=generaTimbro();
 })();
