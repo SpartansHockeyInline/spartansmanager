@@ -6,6 +6,7 @@
 
 ### Nuove funzionalità
 - **Accesso automatico tramite query string** — Login diretto lanciando l'app con parametri URL `?demo=1&email=...&pwd=...` per test rapidi e dimostrazioni senza interazione manuale
+- **Autologout dopo inattività** — Disconnessione automatica dopo 15 minuti di inattività per maggiore sicurezza
 
 ## v4.4.0 · Giugno 2026
 

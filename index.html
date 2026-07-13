@@ -1618,12 +1618,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-ver">v4.4.1 · Luglio 2026</div>
         <div class="cl-section">Accesso automatico demo</div>
         <div class="cl-item"><strong>Accesso automatico tramite query string</strong> — login diretto lanciando l'app con parametri URL ?demo=1&email=...&pwd=... per test rapidi e dimostrazioni senza interazione manuale</div>
-      </div>
-
-      <div class="cl-entry">
-        <div class="cl-ver">v4.4.1 · Luglio 2026</div>
-        <div class="cl-section">Accesso automatico demo</div>
-        <div class="cl-item"><strong>Accesso automatico tramite query string</strong> — login diretto lanciando l'app con parametri URL ?demo=1&email=...&pwd=... per test rapidi e dimostrazioni senza interazione manuale</div>
+        <div class="cl-item"><strong>Autologout dopo inattività</strong> — disconnessione automatica dopo 15 minuti di inattività per maggiore sicurezza</div>
       </div>
 
       <div class="cl-entry">
@@ -6007,6 +6002,26 @@ function fbInit(){
         }
       }
 
+      // Inactivity auto-logout (15 minutes)
+      const INACTIVITY_MS = 15 * 60 * 1000;
+      let inactivityTimer;
+      const resetInactivityTimer = () => {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+          fbSignOut();
+        }, INACTIVITY_MS);
+      };
+      const enableInactivityListeners = () => {
+        ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'].forEach(evt => {
+          document.addEventListener(evt, resetInactivityTimer, true);
+        });
+      };
+      const disableInactivityListeners = () => {
+        ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'].forEach(evt => {
+          document.removeEventListener(evt, resetInactivityTimer, true);
+        });
+      };
+
       if(user){
         fbUser=user;
         _isDemo=(user.uid===DEMO_UID);
@@ -6029,10 +6044,16 @@ function fbInit(){
         }
         driveSetStatus('connected',_isDemo?'🎭 DEMO · demo@spartansmanager.app':'✓ Connesso · '+user.email);
         if(_isDemo)setTimeout(showDemoBanner,500);
+        // Start inactivity timer
+        resetInactivityTimer();
+        enableInactivityListeners();
       }else{
         const wasDemo=_isDemo;
         fbUser=null;
         _isDemo=false;
+        // Stop inactivity timer and listeners
+        clearTimeout(inactivityTimer);
+        disableInactivityListeners();
         if(wasDemo){
           // Pulizia completa dopo sessione demo
           fbListenerActive=false;
