@@ -1189,7 +1189,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     </div>
 
   </div><!-- /content -->
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.4.0 · Giugno 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.4.1 · Luglio 2026 ℹ️</div>
 </div><!-- /main -->
 <!-- ═══ MODALI ═══ -->
 
@@ -1613,6 +1613,18 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v4.4.1 · Luglio 2026</div>
+        <div class="cl-section">Accesso automatico demo</div>
+        <div class="cl-item"><strong>Accesso automatico tramite query string</strong> — login diretto lanciando l'app con parametri URL ?demo=1&email=...&pwd=... per test rapidi e dimostrazioni senza interazione manuale</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v4.4.1 · Luglio 2026</div>
+        <div class="cl-section">Accesso automatico demo</div>
+        <div class="cl-item"><strong>Accesso automatico tramite query string</strong> — login diretto lanciando l'app con parametri URL ?demo=1&email=...&pwd=... per test rapidi e dimostrazioni senza interazione manuale</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v4.4.0 · Giugno 2026</div>
@@ -6085,7 +6097,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='4.0.0';
+    const CURRENT_VER='4.4.1';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
