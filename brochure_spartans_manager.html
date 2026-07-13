@@ -401,7 +401,7 @@ footer .foot-links a:hover{color:var(--white);}
 <header class="hero">
   <div class="container hero-grid">
     <div>
-      <div class="hero-eyebrow">Gestionale per ASD · v4.4.0</div>
+      <div class="hero-eyebrow">Gestionale per ASD · v4.4.1</div>
       <h1>Tutto il tuo<br>club <span class="accent">in pista.</span><br>Un solo file.</h1>
       <p class="lead">
         Anagrafiche, presenze, abbonamenti, amministrazione, documenti e comunicazioni.
@@ -715,19 +715,49 @@ footer .foot-links a:hover{color:var(--white);}
 
       <div class="cl-entry">
         <div>
+          <div class="cl-version"><span class="v-prefix">v</span>4.4.1</div>
+          <div class="cl-date">Luglio 2026</div>
+        </div>
+        <div>
+          <h4>Accesso automatico demo</h4>
+          <ul>
+            <li><strong>Accesso automatico tramite query string</strong> — login diretto lanciando l'app con parametri URL ?demo=1&email=...&pwd=... per test rapidi e dimostrazioni senza interazione manuale</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cl-entry">
+        <div>
           <div class="cl-version"><span class="v-prefix">v</span>4.4.0</div>
           <div class="cl-date">Giugno 2026</div>
         </div>
         <div>
           <h4>Gestione sponsor, incarichi e Safeguarding</h4>
           <ul>
-            <li><strong>Nuova sezione Sponsor</strong> — anagrafica completa con categoria, contatti, referente e logo</li>
-            <li><strong>Contratto di sponsorizzazione</strong> — importo, periodicità, scadenza e stato pagamento</li>
-            <li><strong>Integrazione con Amministrazione</strong> — entrate generate e aggiornate automaticamente dal contratto</li>
-            <li><strong>Fattura sponsor</strong> generabile con numerazione progressiva e timbro digitale</li>
-            <li><strong>Lettera di incarico</strong> per membri dello staff, con mansione automatica dal ruolo</li>
-            <li><strong>Conformità Safeguarding FISR</strong> — tracciamento formazione obbligatoria dello staff con badge di stato (valida/scaduta/mancante) e nomina del Duty Officer in un documento pronto per la firma</li>
-            <li><strong>Alert scadenza</strong> in dashboard per contratti, tessere e formazione</li>
+            <li><strong>Nuova sezione Sponsor</strong> — anagrafica completa (ragione sociale, CF/P.IVA, referente, contatti, logo, categoria: main sponsor, sponsor tecnico, sponsor ufficiale, fornitore-sponsor)</li>
+            <li><strong>Contratto di sponsorizzazione</strong> — descrizione, importo, periodicità (una tantum / annuale / mensile), data inizio e scadenza, stato pagamento</li>
+            <li><strong>Integrazione con Amministrazione</strong> — al contrassegno "Incassato" il contratto genera automaticamente un'entrata collegata, identificata in tabella con il badge 🤝 sponsor; aggiornamenti e cancellazioni si propagano automaticamente</li>
+            <li><strong>Fattura sponsor</strong> — documento generabile dalla tabella sponsor con numerazione progressiva, dati ASD e sponsor, dettaglio contratto e timbro digitale</li>
+            <li><strong>Alert scadenza contratti</strong> — i contratti sponsor in scadenza entro 60 giorni compaiono nelle Scadenze imminenti della dashboard</li>
+            <li><strong>Oggetto della sponsorizzazione</strong> — nuovo campo per descrivere le controprestazioni dell'ASD (es. apposizione marchio su divise, banner, social)</li>
+            <li><strong>Contratto di sponsorizzazione generabile</strong> — documento completo con dati ASD, dati sponsor, legale rappresentante di entrambe le parti, oggetto, durata e corrispettivo, pronto per la doppia firma</li>
+            <li><strong>Dati Presidente/Legale rappresentante ASD</strong> — nuova sezione in "La mia struttura" per inserire i dati anagrafici del presidente, riutilizzati automaticamente nei contratti</li>
+            <li><strong>Allegato contratto firmato</strong> — campo per archiviare il link al contratto firmato e scansionato (es. Google Drive) nella scheda sponsor</li>
+            <li><strong>Ricerca globale</strong> — gli sponsor sono ora indicizzati nella ricerca globale (ragione sociale, categoria, referente, descrizione contratto)</li>
+            <li><strong>Contratto sponsor</strong> — corretto il Codice Fiscale dell'ASD (mostrava erroneamente quello del Presidente) e il campo "Luogo" in epigrafe (mostrava il numero civico invece della città)</li>
+            <li><strong>Documento d'identità in anagrafica</strong> — nuovi campi tipo, numero e scadenza documento per atleti, utili per gare e procedure FISR</li>
+            <li><strong>Documenti struttura con link Drive</strong> — la tab Documenti di "La mia struttura" ora permette di allegare data e link al file per ogni documento</li>
+            <li><strong>Rimossa tab Sport</strong> da "La mia struttura" (non utilizzata)</li>
+            <li><strong>Scadenza CI Presidente</strong> — aggiunto campo data di scadenza della carta d'identità del Presidente/Legale rappresentante</li>
+            <li><strong>Lettera di incarico</strong> — nuovo documento in Genera documenti per incarico per prestazioni sportive dilettantistiche (art. 67/69 D.P.R. 917/1986), con mansione presa automaticamente dal ruolo, periodo e compenso personalizzabili, pronta per la doppia firma</li>
+            <li><strong>Formazione Safeguarding per lo staff</strong> — nuovi campi in Anagrafica → Staff (data formazione, scadenza, attestato) ai sensi del Regolamento FISR per la Tutela dei Tesserati; badge di stato in tabella (✓ valido/scaduto/mancante) e alert in dashboard per le scadenze imminenti</li>
+            <li><strong>Nomina Duty Officer Safeguarding</strong> — nuovo documento in Genera documenti per formalizzare la nomina del responsabile Safeguarding della società (artt. 17-18 Regolamento FISR), con elenco dei compiti e doppia firma</li>
+            <li><strong>Informativa Safeguarding nel modulo di iscrizione</strong> — il modulo di iscrizione ai corsi include ora una seconda pagina con il riepilogo delle politiche di tutela dei tesserati adottate dall'ASD, in conformità al Regolamento FISR, con dichiarazione di presa visione da firmare</li>
+            <li><strong>Comunicati Campionati FISR</strong> — nuova tab in Comunicati FISR, affiancata a quella esistente, con i comunicati ufficiali relativi ai campionati di hockey inline (11 stagioni storiche disponibili)</li>
+            <li><strong>Fix numerazione Comunicati Campionati</strong> — i comunicati con prefisso "CUC" (es. CUC 039) ora mostrano correttamente il proprio numero invece di "000"</li>
+            <li><strong>Lettura comunicati FISR per utente</strong> — lo stato "letto/nuovo" dei comunicati ora è sincronizzato su Firebase per ogni account, invece che salvato solo sul singolo dispositivo: ogni utente vede chi altro nello staff ha già letto i comunicati, e fino a quale numero</li>
+            <li><strong>Gestione manuale stagioni FISR</strong> — nuovo pulsante "⚙️ Gestisci stagioni" in Comunicati FISR per aggiungere il link di una nuova annata sportiva non ancora presente nell'app, o correggere un link non più funzionante, senza dover attendere un aggiornamento dell'app</li>
+            <li><strong>Fix proxy CORS Comunicati FISR</strong> — risolto un bug per cui i comunicati più recenti non comparivano a causa della cache del servizio proxy esterno; aggiunto cache-busting e un proxy di riserva automatico</li>
+            <li><strong>Guida aggiornata</strong> — nuove voci per documenti, checklist iscritto, archivio stagioni, compleanni, gestione sponsor, lettera di incarico, Safeguarding e modalità demo</li>
           </ul>
         </div>
       </div>
@@ -941,7 +971,7 @@ footer .foot-links a:hover{color:var(--white);}
   <div class="container">
     <div class="logo">SPARTANS <span>MANAGER</span></div>
     <div class="foot-links">
-      <span>v4.4.0</span>
+      <span>v4.4.1</span>
       <a href="#funzionalita">Funzionalità</a>
       <a href="#prezzo">Prezzo</a>
       <a href="#changelog">Changelog</a>

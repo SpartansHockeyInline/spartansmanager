@@ -2,6 +2,11 @@
 
 ---
 
+## v4.4.1 · Luglio 2026
+
+### Nuove funzionalità
+- **Accesso automatico tramite query string** — Login diretto lanciando l'app con parametri URL `?demo=1&email=...&pwd=...` per test rapidi e dimostrazioni senza interazione manuale
+
 ## v4.4.0 · Giugno 2026
 
 ### Nuove funzionalità

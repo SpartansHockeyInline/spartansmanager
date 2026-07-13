@@ -5981,6 +5981,20 @@ function fbInit(){
     fbDb=firebase.database();
     fbAuth=firebase.auth();
     fbAuth.onAuthStateChanged(user=>{
+      // Controlla se ci sono credenziali demo salvate per login automatico
+      if(!user){
+        const demoEmail=localStorage.getItem('sm_demo_login_email');
+        const demoPwd=localStorage.getItem('sm_demo_login_pwd');
+        if(demoEmail && demoPwd){
+          // Rimuovi le credenziali salvate per evitare riuso
+          localStorage.removeItem('sm_demo_login_email');
+          localStorage.removeItem('sm_demo_login_pwd');
+          // Tenta login automatico
+          firebaseSignIn(demoEmail, demoPwd);
+          return; // Aspetta il risultato tramite l'evento di stato auth
+        }
+      }
+
       if(user){
         fbUser=user;
         _isDemo=(user.uid===DEMO_UID);
@@ -6027,11 +6041,14 @@ function fbInit(){
   }
 }
 
-async function firebaseSignIn(){
-  const email=document.getElementById('login-email').value.trim();
-  const pwd=document.getElementById('login-password').value;
+async function firebaseSignIn(email=null, pwd=null){
+  // Se non vengono fornite credenziali, prendi quelli dal form
+  if(email===null || pwd===null){
+    email=document.getElementById('login-email').value.trim();
+    pwd=document.getElementById('login-password').value;
+  }
   const errEl=document.getElementById('login-error');
-  if(!email||!pwd){errEl.textContent='Inserisci email e password';errEl.style.display='';return;}
+  if(!email||!pwd){errEl.textContent='Inserisci email e password';errel.style.display='';return;}
   try{
     errEl.style.display='none';
     await fbAuth.signInWithEmailAndPassword(email,pwd);
@@ -6161,6 +6178,23 @@ async function recuperaDatiVecchiaVersione(){toast('Funzione disponibile solo co
     driveSetStatus('','Solo locale');
     loadDB();loadTheme();saveBackup();renderAll();
   }
+
+  // Controlla parametri di query per login automatico demo
+  const urlParams=new URLSearchParams(window.location.search);
+  const demoParam=urlParams.get('demo');
+  const emailParam=urlParams.get('email');
+  const pwdParam=urlParams.get('pwd');
+
+  // Se sono presenti parametri per il login demo, tenta l'accesso automatico
+  if(demoParam==='1' && emailParam && pwdParam){
+    // Salva le credenziali temporarily per usarle dopo l'inizializzazione Firebase
+    localStorage.setItem('sm_demo_login_email', emailParam);
+    localStorage.setItem('sm_demo_login_pwd', pwdParam);
+    // Rimuovi i parametri dall'URL per evitare problemi di reload
+    const newUrl=window.location.origin+window.location.pathname+window.location.hash;
+    window.history.replaceState({}, document.title, newUrl);
+  }
+
   // Tenta di inizializzare Firebase con retry
   let attempts=0;
   function tryFirebase(){
