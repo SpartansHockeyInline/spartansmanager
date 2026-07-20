@@ -5,8 +5,10 @@
 ## v4.4.1 · Luglio 2026
 
 ### Nuove funzionalità
-- **Accesso automatico tramite query string** — Login diretto lanciando l'app con parametri URL `?demo=1&email=...&pwd=...` per test rapidi e dimostrazioni senza interazione manuale
-- **Autologout dopo inattività** — Disconnessione automatica dopo 15 minuti di inattività per maggiore sicurezza
+- **Auto-login demo via link** — aggiunto supporto al parametro `?demo=1` nell'URL: aprendo il link diretto alla demo l'app accede automaticamente con le credenziali demo senza inserirle manualmente. Utile per link condivisi su social e materiali promozionali.
+- **Importazione Google Sheets — merge atleti esistenti** — l'importazione CSV non salta più gli atleti già presenti in anagrafica, ma ne aggiorna i campi vuoti con i dati presenti nel foglio. Il toast finale mostra il dettaglio: quanti aggiunti, quanti aggiornati, quanti saltati (già completi).
+
+---
 
 ## v4.4.0 · Giugno 2026
 

@@ -1616,9 +1616,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 
       <div class="cl-entry">
         <div class="cl-ver">v4.4.1 · Luglio 2026</div>
-        <div class="cl-section">Accesso automatico demo</div>
-        <div class="cl-item"><strong>Accesso automatico tramite query string</strong> — login diretto lanciando l'app con parametri URL ?demo=1&email=...&pwd=... per test rapidi e dimostrazioni senza interazione manuale</div>
-        <div class="cl-item"><strong>Autologout dopo inattività</strong> — disconnessione automatica dopo 15 minuti di inattività per maggiore sicurezza</div>
+        <div class="cl-section">Link demo</div>
+        <div class="cl-item"><strong>Auto-login demo via link</strong> — aggiunto supporto al parametro <code>?demo=1</code> nell'URL: aprendo il link diretto alla demo l'app accede automaticamente con le credenziali demo, senza bisogno di inserirle manualmente. Utile per link condivisi su social e materiali promozionali.</div>
+        <div class="cl-item"><strong>Importazione Google Sheets — merge atleti esistenti</strong> — l'importazione CSV non salta più gli atleti già presenti in anagrafica, ma ne aggiorna i campi vuoti con i dati presenti nel foglio. Il toast finale mostra il dettaglio: quanti aggiunti, quanti aggiornati, quanti saltati (già completi).</div>
       </div>
 
       <div class="cl-entry">
@@ -3121,7 +3121,7 @@ function importFromCSV(){
   const rapportoIdx=headers.reduce((arr,h,i)=>{if(h.includes('rapporto'))arr.push(i);return arr;},[]);
   const g=(cols,key,fallback='')=>{const i=idx[key];return i>=0?(cols[i]||fallback):fallback;};
 
-  let added=0,skipped=0;
+  let added=0,skipped=0,merged=0;
   lines.slice(1).forEach(line=>{
     // Parse CSV rispettando le virgolette
     const cols=[];let cur='',inQ=false;
@@ -3130,9 +3130,35 @@ function importFromCSV(){
 
     const nome=g(cols,'nome'),cognome=g(cols,'cognome');
     if(!nome||!cognome){skipped++;return;}
-    // Evita duplicati
-    const exists=DB.soci.find(s=>s.nome===nome&&s.cognome===cognome&&s.nascita===g(cols,'nascita'));
-    if(exists){skipped++;return;}
+
+    // Cerca atleta esistente (nome + cognome + data nascita)
+    const existing=DB.soci.find(s=>s.nome===nome&&s.cognome===cognome&&s.nascita===g(cols,'nascita'));
+    if(existing){
+      // Merge: aggiorna solo i campi vuoti nell'anagrafica esistente
+      const campiMerge={
+        luogo:g(cols,'luogo'),sesso:g(cols,'sesso'),cf:g(cols,'cf'),
+        indirizzo:g(cols,'indirizzo'),tel:g(cols,'tel'),email:g(cols,'email'),
+        corsoNome:g(cols,'corsoNome'),maglia:g(cols,'maglia'),
+        visitaTipo:g(cols,'visitaTipo'),visitaScad:g(cols,'visitaScad'),
+        visitaMedico:g(cols,'visitaMedico'),
+        allergie:g(cols,'allergie'),farmaci:g(cols,'farmaci'),
+        altezza:g(cols,'altezza'),peso:g(cols,'peso'),
+        tAbbigliamento:g(cols,'tAbbigliamento'),tPattini:g(cols,'tPattini'),
+        tGuanti:g(cols,'tGuanti'),tGinocchiere:g(cols,'tGinocchiere'),tGomitiere:g(cols,'tGomitiere'),
+        g1Nome:g(cols,'g1Nome'),g1Cognome:g(cols,'g1Cognome'),
+        g1Rapporto:rapportoIdx[0]>=0?(cols[rapportoIdx[0]]||''):'',
+        g1Cf:g(cols,'g1Cf'),g1Tel:g(cols,'g1Tel'),g1Email:g(cols,'g1Email'),
+        g2Nome:g(cols,'g2Nome'),g2Cognome:g(cols,'g2Cognome'),
+        g2Rapporto:rapportoIdx[1]>=0?(cols[rapportoIdx[1]]||''):'',
+        g2Cf:g(cols,'g2Cf'),g2Tel:g(cols,'g2Tel'),g2Email:g(cols,'g2Email'),
+      };
+      let aggiornato=false;
+      Object.entries(campiMerge).forEach(([k,v])=>{
+        if(v&&!existing[k]){existing[k]=v;aggiornato=true;}
+      });
+      if(aggiornato)merged++;else skipped++;
+      return;
+    }
 
     DB.soci.push({
       id:uid(),nome,cognome,
@@ -3162,7 +3188,8 @@ function importFromCSV(){
     added++;
   });
   saveDB();closeModal('modal-import-sheets');renderSoci();updateBadges();renderDashboard();
-  toast(`${added} atleti importati${skipped?` · ${skipped} saltati`:''}`, 'success');
+  const parts=[added?`${added} aggiunti`:'',merged?`${merged} aggiornati`:'',skipped?`${skipped} saltati`:''].filter(Boolean);
+  toast(parts.join(' · ')||'Nessuna modifica', 'success');
 }
 
 // ═══ PIANI ════════════════════════════════════════════════
@@ -5987,41 +6014,24 @@ function fbInit(){
     fbApp=firebase.initializeApp(FB_CONFIG);
     fbDb=firebase.database();
     fbAuth=firebase.auth();
-    fbAuth.onAuthStateChanged(user=>{
-      // Controlla se ci sono credenziali demo salvate per login automatico
-      if(!user){
-        const demoEmail=localStorage.getItem('sm_demo_login_email');
-        const demoPwd=localStorage.getItem('sm_demo_login_pwd');
-        if(demoEmail && demoPwd){
-          // Rimuovi le credenziali salvate per evitare riuso
-          localStorage.removeItem('sm_demo_login_email');
-          localStorage.removeItem('sm_demo_login_pwd');
-          // Tenta login automatico
-          firebaseSignIn(demoEmail, demoPwd);
-          return; // Aspetta il risultato tramite l'evento di stato auth
-        }
+
+    // Auto-login via query string: ?demo=1 usa le credenziali demo predefinite,
+    // oppure ?email=...&pwd=... usa credenziali personalizzate.
+    // Utile per link diretti alla demo (es. dagli spot social) senza dover inserire le credenziali.
+    (async()=>{
+      const _qs=new URLSearchParams(window.location.search);
+      const _autoEmail=_qs.get('demo')==='1'?'demo@spartansmanager.app':(_qs.get('email')||'');
+      const _autoPwd=_qs.get('demo')==='1'?'spartans':(_qs.get('pwd')||'');
+      if(_autoEmail&&_autoPwd&&!fbAuth.currentUser){
+        try{
+          await fbAuth.signInWithEmailAndPassword(_autoEmail,_autoPwd);
+          // Pulisce i parametri dall'URL senza ricaricare la pagina
+          const _clean=window.location.pathname;
+          window.history.replaceState({},'',_clean);
+        }catch(e){}
       }
-
-      // Inactivity auto-logout (15 minutes)
-      const INACTIVITY_MS = 15 * 60 * 1000;
-      let inactivityTimer;
-      const resetInactivityTimer = () => {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-          fbSignOut();
-        }, INACTIVITY_MS);
-      };
-      const enableInactivityListeners = () => {
-        ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'].forEach(evt => {
-          document.addEventListener(evt, resetInactivityTimer, true);
-        });
-      };
-      const disableInactivityListeners = () => {
-        ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'].forEach(evt => {
-          document.removeEventListener(evt, resetInactivityTimer, true);
-        });
-      };
-
+    })();
+    fbAuth.onAuthStateChanged(user=>{
       if(user){
         fbUser=user;
         _isDemo=(user.uid===DEMO_UID);
@@ -6044,16 +6054,10 @@ function fbInit(){
         }
         driveSetStatus('connected',_isDemo?'🎭 DEMO · demo@spartansmanager.app':'✓ Connesso · '+user.email);
         if(_isDemo)setTimeout(showDemoBanner,500);
-        // Start inactivity timer
-        resetInactivityTimer();
-        enableInactivityListeners();
       }else{
         const wasDemo=_isDemo;
         fbUser=null;
         _isDemo=false;
-        // Stop inactivity timer and listeners
-        clearTimeout(inactivityTimer);
-        disableInactivityListeners();
         if(wasDemo){
           // Pulizia completa dopo sessione demo
           fbListenerActive=false;
@@ -6074,14 +6078,11 @@ function fbInit(){
   }
 }
 
-async function firebaseSignIn(email=null, pwd=null){
-  // Se non vengono fornite credenziali, prendi quelli dal form
-  if(email===null || pwd===null){
-    email=document.getElementById('login-email').value.trim();
-    pwd=document.getElementById('login-password').value;
-  }
+async function firebaseSignIn(){
+  const email=document.getElementById('login-email').value.trim();
+  const pwd=document.getElementById('login-password').value;
   const errEl=document.getElementById('login-error');
-  if(!email||!pwd){errEl.textContent='Inserisci email e password';errel.style.display='';return;}
+  if(!email||!pwd){errEl.textContent='Inserisci email e password';errEl.style.display='';return;}
   try{
     errEl.style.display='none';
     await fbAuth.signInWithEmailAndPassword(email,pwd);
@@ -6118,7 +6119,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='4.4.1';
+    const CURRENT_VER='4.0.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
@@ -6211,23 +6212,6 @@ async function recuperaDatiVecchiaVersione(){toast('Funzione disponibile solo co
     driveSetStatus('','Solo locale');
     loadDB();loadTheme();saveBackup();renderAll();
   }
-
-  // Controlla parametri di query per login automatico demo
-  const urlParams=new URLSearchParams(window.location.search);
-  const demoParam=urlParams.get('demo');
-  const emailParam=urlParams.get('email');
-  const pwdParam=urlParams.get('pwd');
-
-  // Se sono presenti parametri per il login demo, tenta l'accesso automatico
-  if(demoParam==='1' && emailParam && pwdParam){
-    // Salva le credenziali temporarily per usarle dopo l'inizializzazione Firebase
-    localStorage.setItem('sm_demo_login_email', emailParam);
-    localStorage.setItem('sm_demo_login_pwd', pwdParam);
-    // Rimuovi i parametri dall'URL per evitare problemi di reload
-    const newUrl=window.location.origin+window.location.pathname+window.location.hash;
-    window.history.replaceState({}, document.title, newUrl);
-  }
-
   // Tenta di inizializzare Firebase con retry
   let attempts=0;
   function tryFirebase(){
