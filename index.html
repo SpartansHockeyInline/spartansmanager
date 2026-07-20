@@ -3131,8 +3131,14 @@ function importFromCSV(){
     const nome=g(cols,'nome'),cognome=g(cols,'cognome');
     if(!nome||!cognome){skipped++;return;}
 
-    // Cerca atleta esistente (nome + cognome + data nascita)
-    const existing=DB.soci.find(s=>s.nome===nome&&s.cognome===cognome&&s.nascita===g(cols,'nascita'));
+    // Cerca atleta esistente per nome + cognome (case-insensitive, trim)
+    // Non usiamo la data di nascita come criterio perché il formato nel CSV
+    // potrebbe differire da quello salvato in DB (es. 01/01/2010 vs 2010-01-01)
+    const nomeLow=nome.trim().toLowerCase(), cognomeLow=cognome.trim().toLowerCase();
+    const existing=DB.soci.find(s=>
+      (s.nome||'').trim().toLowerCase()===nomeLow &&
+      (s.cognome||'').trim().toLowerCase()===cognomeLow
+    );
     if(existing){
       // Merge: aggiorna solo i campi vuoti nell'anagrafica esistente
       const campiMerge={
