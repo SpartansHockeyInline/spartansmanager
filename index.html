@@ -3080,8 +3080,20 @@ function filterSoci(v=''){renderSoci(v);}
 // ═══ IMPORT CSV / SHEETS ══════════════════════════════════
 async function fetchSheetsCSV(){
   const url=document.getElementById('sheets-url').value.trim();if(!url){toast('Inserisci URL','error');return;}
-  try{const r=await fetch(url);const text=await r.text();document.getElementById('sheets-csv').value=text;toast('CSV caricato','success');}
-  catch(e){toast('Errore caricamento. Verifica che il foglio sia pubblico.','error');}
+  try{
+    const r=await fetch(url);
+    const text=await r.text();
+    // Verifica che sia davvero CSV e non una pagina HTML (login, consenso, link "condividi" invece dell'export diretto)
+    const t=text.trim().toLowerCase();
+    if(t.startsWith('<!doctype')||t.startsWith('<html')||t.includes('<html ')||t.includes('<head>')){
+      toast('Il link non restituisce un CSV valido (sembra una pagina HTML). Usa il link di export diretto: File → Condividi → Pubblica sul web → formato CSV.','error');
+      console.warn('[importCSV] Risposta non-CSV ricevuta dal link:', text.slice(0,500));
+      return;
+    }
+    document.getElementById('sheets-csv').value=text;
+    toast('CSV caricato','success');
+  }
+  catch(e){toast('Errore caricamento. Verifica che il foglio sia pubblico.','error');console.error('[importCSV] fetch fallita:',e);}
 }
 function importFromCSV(){
   const csv=document.getElementById('sheets-csv').value.trim();if(!csv){toast('Nessun CSV da importare','error');return;}
@@ -3123,19 +3135,33 @@ function importFromCSV(){
   // Calcola indici colonne una volta sola
   const idx={};
   Object.entries(MAP).forEach(([k,v])=>{idx[k]=col(v);});
+  // Controllo esplicito: se le colonne chiave non vengono trovate nell'intestazione,
+  // TUTTE le righe risulterebbero saltate senza un motivo visibile. Meglio fermarsi
+  // subito con un errore chiaro (capita tipicamente se il CSV caricato non è in
+  // realtà un CSV valido, es. una pagina HTML arrivata da un link sbagliato).
+  if(idx.nome<0||idx.cognome<0){
+    toast('CSV non valido: colonne "Nome"/"Cognome" non trovate nell\'intestazione. Verifica il file o il link.','error');
+    console.warn('[importCSV] Intestazioni lette:', headers);
+    return;
+  }
   // I due campi "Rapporto" hanno lo stesso nome — il primo è per G1, il secondo per G2
   const rapportoIdx=headers.reduce((arr,h,i)=>{if(h.includes('rapporto'))arr.push(i);return arr;},[]);
   const g=(cols,key,fallback='')=>{const i=idx[key];return i>=0?(cols[i]||fallback):fallback;};
 
   let added=0,skipped=0,merged=0;
-  lines.slice(1).forEach(line=>{
+  const skippedDetails=[];
+  lines.slice(1).forEach((line,li)=>{
     // Parse CSV rispettando le virgolette
     const cols=[];let cur='',inQ=false;
     for(const ch of line){if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}
     cols.push(cur.trim());
 
     const nome=g(cols,'nome'),cognome=g(cols,'cognome');
-    if(!nome||!cognome){skipped++;return;}
+    if(!nome||!cognome){
+      skipped++;
+      skippedDetails.push({riga:li+2,nome,cognome,contenuto:line.slice(0,120)});
+      return;
+    }
 
     // Cerca atleta esistente per nome + cognome (case-insensitive, trim)
     // Non usiamo la data di nascita come criterio perché il formato nel CSV
@@ -3211,6 +3237,10 @@ function importFromCSV(){
   saveDB();closeModal('modal-import-sheets');renderSoci();updateBadges();renderDashboard();
   const parts=[added?`${added} aggiunti`:'',merged?`${merged} aggiornati`:'',skipped?`${skipped} saltati`:''].filter(Boolean);
   toast(parts.join(' · ')||'Nessuna modifica', 'success');
+  if(skipped){
+    console.warn(`[importCSV] ${skipped} righe saltate (nome o cognome mancante):`);
+    console.table(skippedDetails);
+  }
 }
 
 // ═══ PIANI ════════════════════════════════════════════════
