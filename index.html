@@ -3085,7 +3085,7 @@ async function fetchSheetsCSV(){
 }
 function importFromCSV(){
   const csv=document.getElementById('sheets-csv').value.trim();if(!csv){toast('Nessun CSV da importare','error');return;}
-  const lines=csv.split('\n').filter(l=>l.trim());
+  const lines=csv.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
   if(lines.length<2){toast('CSV vuoto o non valido','error');return;}
   const headers=lines[0].split(',').map(c=>c.trim().replace(/^"|"$/g,'').replace(/\s+/g,' ').toLowerCase().trim());
   const col=(name)=>{
