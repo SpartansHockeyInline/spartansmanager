@@ -130,9 +130,10 @@ nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 8px 60px;scrollbar-widt
 .fta{resize:vertical;min-height:75px;}
 
 /* TABLE */
-.tw{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+.tw{overflow:auto;max-height:calc(100vh - 300px);border-radius:var(--radius);border:1px solid var(--border);}
+.tw table thead th{position:sticky;top:0;background:var(--surface2);z-index:3;}
 .tw table th:last-child,.tw table td:last-child{position:sticky;right:0;}
-.tw table th:last-child{background:var(--surface2);z-index:2;}
+.tw table th:last-child{background:var(--surface2);z-index:4;}
 .tw table td:last-child{background:var(--surface);z-index:1;box-shadow:-6px 0 8px -6px rgba(0,0,0,.18);}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead th{background:var(--surface2);padding:10px 13px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
@@ -365,11 +366,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   .card-title{font-size:13px;}
   #drive-bar .dacts button:nth-child(n+3){display:none;}
   /* Card view per tabelle su mobile */
+  .tw{max-height:none;overflow:visible;}
   .tw table{display:block;}
   .tw table thead{display:none;}
   .tw table tbody{display:block;}
   .tw table tr{display:block;margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);}
-  .tw table td{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px;gap:8px;}
+  .tw table td{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px;gap:8px;position:static!important;}
   .tw table td:last-child{border-bottom:none;}
   /* Ricerca globale mobile */
   #global-search{font-size:13px;padding:6px 10px;}
