@@ -3140,29 +3140,38 @@ function importFromCSV(){
       (s.cognome||'').trim().toLowerCase()===cognomeLow
     );
     if(existing){
-      // Merge: aggiorna solo i campi vuoti nell'anagrafica esistente
-      const campiMerge={
-        luogo:g(cols,'luogo'),sesso:g(cols,'sesso'),cf:g(cols,'cf'),
-        indirizzo:g(cols,'indirizzo'),tel:g(cols,'tel'),email:g(cols,'email'),
-        corsoNome:g(cols,'corsoNome'),maglia:g(cols,'maglia'),
-        visitaTipo:g(cols,'visitaTipo'),visitaScad:g(cols,'visitaScad'),
-        visitaMedico:g(cols,'visitaMedico'),
-        allergie:g(cols,'allergie'),farmaci:g(cols,'farmaci'),
-        altezza:g(cols,'altezza'),peso:g(cols,'peso'),
-        tAbbigliamento:g(cols,'tAbbigliamento'),tPattini:g(cols,'tPattini'),
-        tGuanti:g(cols,'tGuanti'),tGinocchiere:g(cols,'tGinocchiere'),tGomitiere:g(cols,'tGomitiere'),
-        g1Nome:g(cols,'g1Nome'),g1Cognome:g(cols,'g1Cognome'),
-        g1Rapporto:rapportoIdx[0]>=0?(cols[rapportoIdx[0]]||''):'',
-        g1Cf:g(cols,'g1Cf'),g1Tel:g(cols,'g1Tel'),g1Email:g(cols,'g1Email'),
-        g2Nome:g(cols,'g2Nome'),g2Cognome:g(cols,'g2Cognome'),
-        g2Rapporto:rapportoIdx[1]>=0?(cols[rapportoIdx[1]]||''):'',
-        g2Cf:g(cols,'g2Cf'),g2Tel:g(cols,'g2Tel'),g2Email:g(cols,'g2Email'),
+      // Sovrascrittura totale dal CSV: il form è la fonte più aggiornata.
+      // Vengono preservati solo i campi interni dell'app che il CSV non conosce.
+      const preserva={
+        id:existing.id, stato:existing.stato,
+        tesseraAsd:existing.tesseraAsd, tesseraAsdScad:existing.tesseraAsdScad,
+        tesseraFisr:existing.tesseraFisr, tesseraFisrScad:existing.tesseraFisrScad,
+        documenti:existing.documenti, note:existing.note,
+        docTipo:existing.docTipo, docNumero:existing.docNumero, docScadenza:existing.docScadenza,
+        quoteVersate:existing.quoteVersate, linkModulo:existing.linkModulo,
       };
-      let aggiornato=false;
-      Object.entries(campiMerge).forEach(([k,v])=>{
-        if(v&&!existing[k]){existing[k]=v;aggiornato=true;}
-      });
-      if(aggiornato)merged++;else skipped++;
+      const aggiornato={
+        ...preserva,
+        nome, cognome,
+        nascita:g(cols,'nascita'), luogo:g(cols,'luogo'), sesso:g(cols,'sesso'), cf:g(cols,'cf'),
+        indirizzo:g(cols,'indirizzo'), tel:g(cols,'tel'), email:g(cols,'email'),
+        corsoNome:g(cols,'corsoNome'), maglia:g(cols,'maglia'),
+        visitaTipo:g(cols,'visitaTipo'), visitaScad:g(cols,'visitaScad'), visitaMedico:g(cols,'visitaMedico'),
+        allergie:g(cols,'allergie'), farmaci:g(cols,'farmaci'),
+        altezza:g(cols,'altezza'), peso:g(cols,'peso'),
+        tAbbigliamento:g(cols,'tAbbigliamento'), tPattini:g(cols,'tPattini'),
+        tGuanti:g(cols,'tGuanti'), tGinocchiere:g(cols,'tGinocchiere'), tGomitiere:g(cols,'tGomitiere'),
+        g1Nome:g(cols,'g1Nome'), g1Cognome:g(cols,'g1Cognome'),
+        g1Rapporto:rapportoIdx[0]>=0?(cols[rapportoIdx[0]]||''):'',
+        g1Cf:g(cols,'g1Cf'), g1Tel:g(cols,'g1Tel'), g1Email:g(cols,'g1Email'),
+        g2Nome:g(cols,'g2Nome'), g2Cognome:g(cols,'g2Cognome'),
+        g2Rapporto:rapportoIdx[1]>=0?(cols[rapportoIdx[1]]||''):'',
+        g2Cf:g(cols,'g2Cf'), g2Tel:g(cols,'g2Tel'), g2Email:g(cols,'g2Email'),
+      };
+      // Sostituisce l'oggetto nella lista mantenendo la stessa posizione
+      const idx2=DB.soci.indexOf(existing);
+      if(idx2>=0)DB.soci[idx2]=aggiornato;
+      merged++;
       return;
     }
 
