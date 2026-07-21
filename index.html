@@ -3101,6 +3101,19 @@ async function fetchSheetsCSV(){
   catch(e){toast('Errore caricamento. Verifica che il foglio sia pubblico.','error');console.error('[importCSV] fetch fallita:',e);}
 }
 function importFromCSV(){
+  // L'app salva le date internamente in formato ISO (AAAA-MM-GG): vedi formatDate(),
+  // getEtaAnagrafica() e tutti i punti che fanno s.nascita.slice(0,4) per l'anno.
+  // Il modulo Google esporta invece le date in formato italiano GG/MM/AAAA, che
+  // JS Date() e le funzioni sopra NON riescono a interpretare correttamente
+  // (causa età "NaN" e categoria FISR sbagliata). Le convertiamo qui in ISO.
+  const parseDataItalianaISO=(str)=>{
+    if(!str)return'';
+    str=str.trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(str))return str; // già ISO
+    const m=str.match(/^(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{4})$/);
+    if(m){const[,g,mese,anno]=m;return`${anno}-${mese.padStart(2,'0')}-${g.padStart(2,'0')}`;}
+    return str; // formato non riconosciuto: lascia invariato invece di perdere il dato
+  };
   const csv=document.getElementById('sheets-csv').value.trim();if(!csv){toast('Nessun CSV da importare','error');return;}
   const lines=csv.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
   if(lines.length<2){toast('CSV vuoto o non valido','error');return;}
@@ -3149,8 +3162,18 @@ function importFromCSV(){
     console.warn('[importCSV] Intestazioni lette:', headers);
     return;
   }
-  // I due campi "Rapporto" hanno lo stesso nome — il primo è per G1, il secondo per G2
-  const rapportoIdx=headers.reduce((arr,h,i)=>{if(h.includes('rapporto'))arr.push(i);return arr;},[]);
+  // I due campi "Rapporto" nel modulo Google hanno lo stesso identico nome colonna
+  // ("Rapporto ") — per distinguerli si usa la posizione (primo=G1, secondo=G2).
+  // Se in futuro le due domande sul form vengono rinominate in modo esplicito
+  // (es. "Rapporto genitore 1" / "Rapporto genitore 2"), il matching per nome
+  // ha la precedenza ed è più affidabile della sola posizione.
+  const rapportoTutti=headers.reduce((arr,h,i)=>{if(h.includes('rapporto'))arr.push(i);return arr;},[]);
+  const rapportoG1Nominale=headers.findIndex(h=>h.includes('rapporto')&&h.includes('genitore 1'));
+  const rapportoG2Nominale=headers.findIndex(h=>h.includes('rapporto')&&h.includes('genitore 2'));
+  const rapportoIdx=[
+    rapportoG1Nominale>=0?rapportoG1Nominale:rapportoTutti[0],
+    rapportoG2Nominale>=0?rapportoG2Nominale:rapportoTutti[1]
+  ];
   const g=(cols,key,fallback='')=>{const i=idx[key];return i>=0?(cols[i]||fallback):fallback;};
 
   let added=0,skipped=0,merged=0;
@@ -3190,10 +3213,10 @@ function importFromCSV(){
       const aggiornato={
         ...preserva,
         nome, cognome,
-        nascita:g(cols,'nascita'), luogo:g(cols,'luogo'), sesso:g(cols,'sesso'), cf:g(cols,'cf'),
+        nascita:parseDataItalianaISO(g(cols,'nascita')), luogo:g(cols,'luogo'), sesso:g(cols,'sesso'), cf:g(cols,'cf'),
         indirizzo:g(cols,'indirizzo'), tel:g(cols,'tel'), email:g(cols,'email'),
         corsoNome:g(cols,'corsoNome'), maglia:g(cols,'maglia'),
-        visitaTipo:g(cols,'visitaTipo'), visitaScad:g(cols,'visitaScad'), visitaMedico:g(cols,'visitaMedico'),
+        visitaTipo:g(cols,'visitaTipo'), visitaScad:parseDataItalianaISO(g(cols,'visitaScad')), visitaMedico:g(cols,'visitaMedico'),
         allergie:g(cols,'allergie'), farmaci:g(cols,'farmaci'),
         altezza:g(cols,'altezza'), peso:g(cols,'peso'),
         tAbbigliamento:g(cols,'tAbbigliamento'), tPattini:g(cols,'tPattini'),
@@ -3214,7 +3237,7 @@ function importFromCSV(){
 
     DB.soci.push({
       id:uid(),nome,cognome,
-      nascita:g(cols,'nascita'),luogo:g(cols,'luogo'),
+      nascita:parseDataItalianaISO(g(cols,'nascita')),luogo:g(cols,'luogo'),
       sesso:g(cols,'sesso'),cf:g(cols,'cf'),
       indirizzo:g(cols,'indirizzo'),tel:g(cols,'tel'),
       email:g(cols,'email'),
@@ -3222,7 +3245,7 @@ function importFromCSV(){
       corsoId:'',corsoNome:g(cols,'corsoNome'),
       maglia:g(cols,'maglia'),
       stato:'attivo',
-      visitaTipo:g(cols,'visitaTipo'),visitaScad:g(cols,'visitaScad'),
+      visitaTipo:g(cols,'visitaTipo'),visitaScad:parseDataItalianaISO(g(cols,'visitaScad')),
       visitaMedico:g(cols,'visitaMedico'),
       allergie:g(cols,'allergie'),farmaci:g(cols,'farmaci'),
       altezza:g(cols,'altezza'),peso:g(cols,'peso'),
