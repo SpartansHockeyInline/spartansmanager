@@ -3087,18 +3087,24 @@ function importFromCSV(){
   const csv=document.getElementById('sheets-csv').value.trim();if(!csv){toast('Nessun CSV da importare','error');return;}
   const lines=csv.split('\n').filter(l=>l.trim());
   if(lines.length<2){toast('CSV vuoto o non valido','error');return;}
-  const headers=lines[0].split(',').map(c=>c.trim().replace(/^"|"$/g,'').toLowerCase().trim());
+  const headers=lines[0].split(',').map(c=>c.trim().replace(/^"|"$/g,'').replace(/\s+/g,' ').toLowerCase().trim());
   const col=(name)=>{
     const n=name.toLowerCase().trim();
-    return headers.findIndex(h=>h===n||h.includes(n)||n.includes(h));
+    // Prima cerca corrispondenza esatta
+    let i=headers.findIndex(h=>h===n);
+    // Poi cerca includes solo se non trovata con esatta
+    if(i<0)i=headers.findIndex(h=>h.includes(n)&&!n.includes('nome')||h===n);
+    if(i<0)i=headers.findIndex(h=>h.includes(n));
+    return i;
   };
   // Mappa intestazioni reali del Google Form Spartans
+  // Le intestazioni vengono normalizzate (trim + lowercase) prima del confronto
   const MAP={
     nome:'nome',cognome:'cognome',
     nascita:'data di nascita',luogo:'luogo di nascita',
     sesso:'sesso',cf:'codice fiscale',
     indirizzo:'indirizzo di residenza',
-    tel:'telefono',email:'indirizzo email',
+    tel:'telefono',email:'email',
     tipologia:'tipologia',corsoNome:'corso / squadra',maglia:'n° maglia preferito',
     visitaTipo:'tipo visita medica',visitaScad:'scadenza visita medica',
     visitaMedico:'medico / struttura',
@@ -3108,7 +3114,7 @@ function importFromCSV(){
     tGuanti:'taglia guanti (pollici)',tGinocchiere:'taglia ginocchiere (pollici)',
     tGomitiere:'taglia gomitiere (pollici)',
     g1Nome:'nome genitore 1',g1Cognome:'cognome genitore 1',
-    g1Rapporto_:'rapporto',g1Cf:'codice fiscale genitore 1',
+    g1Cf:'codice fiscale genitore 1',
     g1Tel:'telefono genitore 1',g1Email:'email genitore 1',
     g2Nome:'nome genitore 2',g2Cognome:'cognome genitore 2',
     g2Cf:'codice fiscale genitore 2',
