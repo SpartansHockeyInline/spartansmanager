@@ -3143,16 +3143,22 @@ function importFromCSV(){
     tAbbigliamento:'taglia abbigliamento',tPattini:'n° pattini',
     tGuanti:'taglia guanti (pollici)',tGinocchiere:'taglia ginocchiere (pollici)',
     tGomitiere:'taglia gomitiere (pollici)',
-    g1Nome:'nome genitore 1',g1Cognome:'cognome genitore 1',
-    g1Cf:'codice fiscale genitore 1',
-    g1Tel:'telefono genitore 1',g1Email:'email genitore 1',
-    g2Nome:'nome genitore 2',g2Cognome:'cognome genitore 2',
-    g2Cf:'codice fiscale genitore 2',
-    g2Tel:'telefono genitore 2',g2Email:'email genitore 2',
   };
   // Calcola indici colonne una volta sola
   const idx={};
   Object.entries(MAP).forEach(([k,v])=>{idx[k]=col(v);});
+  // Campi Genitore/Tutore 1 e 2: matching dedicato e robusto, indipendente dal
+  // testo esatto della domanda (funziona sia con "Nome genitore 1" sia con
+  // "Nome genitore / tutore 1" o varianti simili) — basta che l'intestazione
+  // contenga "genitore" + il nome del campo, e finisca col numero 1 o 2.
+  const colGenitore=(campo,numero)=>{
+    const fine=new RegExp(`(^|[^0-9])${numero}$`);
+    return headers.findIndex(h=>h.includes('genitore')&&h.includes(campo)&&fine.test(h));
+  };
+  [['nome','Nome'],['cognome','Cognome'],['codice fiscale','Cf'],['telefono','Tel'],['email','Email']].forEach(([campo,suffisso])=>{
+    idx['g1'+suffisso]=colGenitore(campo,1);
+    idx['g2'+suffisso]=colGenitore(campo,2);
+  });
   // Controllo esplicito: se le colonne chiave non vengono trovate nell'intestazione,
   // TUTTE le righe risulterebbero saltate senza un motivo visibile. Meglio fermarsi
   // subito con un errore chiaro (capita tipicamente se il CSV caricato non è in
@@ -3162,17 +3168,11 @@ function importFromCSV(){
     console.warn('[importCSV] Intestazioni lette:', headers);
     return;
   }
-  // I due campi "Rapporto" nel modulo Google hanno lo stesso identico nome colonna
-  // ("Rapporto ") — per distinguerli si usa la posizione (primo=G1, secondo=G2).
-  // Se in futuro le due domande sul form vengono rinominate in modo esplicito
-  // (es. "Rapporto genitore 1" / "Rapporto genitore 2"), il matching per nome
-  // ha la precedenza ed è più affidabile della sola posizione.
+  // Rapporto di parentela genitore/tutore 1 e 2 — stesso matcher robusto sopra
   const rapportoTutti=headers.reduce((arr,h,i)=>{if(h.includes('rapporto'))arr.push(i);return arr;},[]);
-  const rapportoG1Nominale=headers.findIndex(h=>h.includes('rapporto')&&h.includes('genitore 1'));
-  const rapportoG2Nominale=headers.findIndex(h=>h.includes('rapporto')&&h.includes('genitore 2'));
   const rapportoIdx=[
-    rapportoG1Nominale>=0?rapportoG1Nominale:rapportoTutti[0],
-    rapportoG2Nominale>=0?rapportoG2Nominale:rapportoTutti[1]
+    (()=>{const i=colGenitore('rapporto',1);return i>=0?i:rapportoTutti[0];})(),
+    (()=>{const i=colGenitore('rapporto',2);return i>=0?i:rapportoTutti[1];})()
   ];
   const g=(cols,key,fallback='')=>{const i=idx[key];return i>=0?(cols[i]||fallback):fallback;};
 
