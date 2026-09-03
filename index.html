@@ -424,7 +424,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.4.1 · Luglio 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.4.2 · Agosto 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1092,6 +1092,23 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('incarico')">📄 Genera documento</button>
         </div>
         <div class="card" style="border:1px solid var(--border);">
+          <div style="font-size:20px;margin-bottom:8px;">🤝</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Contratto co.co.co. sportivo</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Collaborazione coordinata e continuativa nell'area del dilettantismo (art. 25, D.Lgs. 36/2021), per istruttori/tecnici. Sostituisce la vecchia disciplina art. 67/69 TUIR per il lavoro sportivo.</div>
+          <select class="fsel" id="doc-cocoo-staff" style="margin-bottom:8px;"><option value="">— Seleziona membro staff (istruttore) —</option></select>
+          <input class="fi" id="doc-cocoo-mansione" placeholder="Mansione (es. Istruttore Minihockey)" style="margin-bottom:8px;">
+          <div class="fg" style="margin-bottom:8px;">
+            <input class="fi" id="doc-cocoo-dal" type="date" placeholder="Data inizio">
+            <input class="fi" id="doc-cocoo-al" type="date" placeholder="Data fine">
+          </div>
+          <div class="fg" style="margin-bottom:8px;">
+            <input class="fi" id="doc-cocoo-compenso" placeholder="Compenso lordo annuo (€)">
+            <input class="fi" id="doc-cocoo-ore" type="number" placeholder="Ore settimanali (max 24)" max="24">
+          </div>
+          <input class="fi" id="doc-cocoo-rappresentante" placeholder="Firma per l'ASD (lasciare vuoto = Presidente; indicare il delegato se il collaboratore è il Presidente stesso)" style="margin-bottom:8px;">
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('cocoo')">📄 Genera documento</button>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
           <div style="font-size:20px;margin-bottom:8px;">🛡️</div>
           <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Nomina Duty Officer Safeguarding</div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Nomina del responsabile Safeguarding della società, ai sensi del Regolamento FISR per la Tutela dei Tesserati (art. 17-18).</div>
@@ -1618,6 +1635,25 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v4.4.2 · Agosto 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Contratto co.co.co. sportivo</strong> — nuovo documento in Genera documenti: collaborazione coordinata e continuativa nell'area del dilettantismo (art. 25, D.Lgs. 36/2021), con mansione, periodo, compenso e ore settimanali personalizzabili, campo per il firmatario ASD (utile quando il collaboratore è lo stesso Presidente e serve un delegato alla firma), avviso automatico se il compenso supera la soglia di esenzione IRPEF di 15.000 €/anno, pronto per la doppia firma.</div>
+        <div class="cl-section">Fix — Importazione Google Sheets</div>
+        <div class="cl-item"><strong>Validazione link CSV</strong> — se il link inserito restituisce una pagina HTML invece del CSV grezzo (es. link di condivisione anziché di export diretto), l'app lo segnala subito con un messaggio chiaro invece di tentare l'importazione e fallire silenziosamente.</div>
+        <div class="cl-item"><strong>Colonne Nome/Cognome non trovate</strong> — se l'intestazione del CSV non contiene le colonne obbligatorie l'importazione si ferma con un errore esplicito, invece di segnalare genericamente "N righe saltate" senza indicarne il motivo.</div>
+        <div class="cl-item"><strong>Log di debug righe saltate</strong> — le righe scartate durante l'importazione (nome o cognome mancante) vengono ora elencate in console con numero di riga e contenuto, per un controllo rapido.</div>
+        <div class="cl-item"><strong>Data di nascita e scadenza visita medica</strong> — corretta la conversione dal formato italiano (GG/MM/AAAA) usato dal modulo Google al formato interno dell'app; risolve l'età mostrata come "NaN" e la categoria FISR calcolata in modo errato per gli atleti importati.</div>
+        <div class="cl-item"><strong>Campi Genitore/Tutore 1 e 2</strong> — il riconoscimento delle colonne (nome, cognome, rapporto, CF, telefono, email) ora si basa sul contenuto dell'intestazione invece che su un testo fisso, quindi resta valido anche se le domande del modulo vengono rinominate (es. da "genitore" a "genitore / tutore").</div>
+        <div class="cl-item"><strong>Rapporto di parentela</strong> — il valore importato (es. "Padre", "Madre") viene normalizzato per essere riconosciuto correttamente dal menu a tendina nella scheda atleta.</div>
+        <div class="cl-item"><strong>Corso/Squadra</strong> — il testo libero del modulo viene ora confrontato con i corsi configurati in "Corsi e squadre" e collegato automaticamente se corrisponde; se non trova corrispondenza, l'app avvisa quali corsi vanno assegnati manualmente.</div>
+        <div class="cl-item"><strong>Istruzioni modale import CSV</strong> — aggiornate per riflettere il riconoscimento delle colonne per nome (non più per posizione fissa) e il formato reale del modulo Google di iscrizione Spartans.</div>
+        <div class="cl-section">Fix — Interfaccia</div>
+        <div class="cl-item"><strong>Colonna Azioni sempre visibile</strong> — resta agganciata a destra durante lo scroll orizzontale in tutte le tabelle dell'app.</div>
+        <div class="cl-item"><strong>Intestazioni tabella sempre visibili</strong> — tutte le tabelle ora hanno un'altezza massima con scroll interno: l'intestazione delle colonne resta agganciata in alto durante lo scroll verticale, e la barra di scorrimento orizzontale resta sempre raggiungibile senza dover scorrere fino in fondo a tabelle lunghe.</div>
+        <div class="cl-item"><strong>Footer versione</strong> — spostato dentro la barra di sincronizzazione in fondo alla pagina; risolto un difetto per cui il footer bloccava lo scroll orizzontale/verticale sopra le tabelle.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v4.4.1 · Luglio 2026</div>
@@ -4841,7 +4877,7 @@ function initGeneraDocumenti(){
       DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
       .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
   });
-  ['doc-volont-staff','doc-incarico-staff','doc-dutyofficer-staff'].forEach(id=>{
+  ['doc-volont-staff','doc-incarico-staff','doc-dutyofficer-staff','doc-cocoo-staff'].forEach(id=>{
     const selSt=document.getElementById(id);
     if(selSt)selSt.innerHTML='<option value="">— Seleziona membro staff —</option>'+
       (DB.staff||[]).filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
@@ -4924,6 +4960,25 @@ function apriDocumento(tipo){
       presidente:st.presidente||'',
       dataDoc:oggi,...ps});
     window.open(`${BASE_URL}modulo_incarico.html?${p}`,'_blank');
+  }
+  else if(tipo==='cocoo'){
+    const id=document.getElementById('doc-cocoo-staff').value;
+    if(!id){toast('Seleziona un membro staff','error');return;}
+    const s=(DB.staff||[]).find(x=>x.id===id);if(!s)return;
+    const dal=document.getElementById('doc-cocoo-dal').value;
+    const al=document.getElementById('doc-cocoo-al').value;
+    const compenso=document.getElementById('doc-cocoo-compenso').value||'';
+    if(parseFloat(compenso)>15000){toast('⚠ Compenso oltre 15.000 € annui: verifica la tassazione IRPEF sulla parte eccedente prima di generare il contratto','warning');}
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,nascita:s.nascita?formatDate(s.nascita):'',
+      luogo:s.luogo||'',cf:s.cf||'',indirizzo:s.indirizzo||'',
+      mansione:document.getElementById('doc-cocoo-mansione').value||'Istruttore sportivo',
+      dal:dal?formatDate(dal):'',al:al?formatDate(al):'',
+      compenso,ore:document.getElementById('doc-cocoo-ore').value||'',
+      rappresentante:document.getElementById('doc-cocoo-rappresentante').value||st.presidente||'',
+      asdEmail:st.email||'',asdCitta:st.citta||'',
+      presidente:st.presidente||'',
+      dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_cocoo_sportivo.html?${p}`,'_blank');
   }
   else if(tipo==='dutyOfficer'){
     const id=document.getElementById('doc-dutyofficer-staff').value;

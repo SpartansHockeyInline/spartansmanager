@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Contratto di Collaborazione Coordinata e Continuativa Sportiva</title>
+<style>
+  @page{size:A4;margin:2cm;}
+  *{box-sizing:border-box;}
+  body{font-family:'Times New Roman',Times,serif;font-size:12.5px;line-height:1.55;color:#111;max-width:800px;margin:0 auto;padding:30px;background:#fff;}
+  h1{font-size:15px;text-align:center;text-transform:uppercase;margin-bottom:4px;letter-spacing:.3px;}
+  h2{font-size:12.5px;text-align:center;font-weight:normal;margin-top:0;margin-bottom:22px;}
+  .parti{margin-bottom:16px;}
+  .parti p{margin:4px 0;}
+  h3{font-size:12.5px;margin-top:20px;margin-bottom:6px;text-decoration:underline;}
+  p{margin:6px 0;text-align:justify;}
+  .stamp{border:1px solid #999;padding:8px 12px;font-size:11px;line-height:1.4;width:260px;margin-bottom:18px;}
+  .stamp b{font-size:12px;}
+  .firme{display:flex;justify-content:space-between;margin-top:60px;}
+  .firma{width:45%;text-align:center;}
+  .firma .linea{border-top:1px solid #333;margin-top:50px;padding-top:4px;font-size:11px;}
+  .noprint{text-align:center;margin:20px 0;}
+  .noprint button{font-family:inherit;font-size:13px;padding:8px 20px;border-radius:6px;border:1px solid #333;background:#f5f5f5;cursor:pointer;}
+  .noprint button:hover{background:#eee;}
+  .box-priv{border:1px solid #999;padding:10px 14px;font-size:11.5px;margin-top:18px;background:#fafafa;}
+  small.nota{display:block;font-size:10px;color:#666;margin-top:2px;}
+  @media print{.noprint{display:none;}body{padding:0;}}
+</style>
+</head>
+<body>
+
+<div class="noprint"><button onclick="window.print()">🖨️ Stampa / Salva PDF</button></div>
+
+<h1>Contratto di collaborazione coordinata e continuativa<br>nell'area del dilettantismo</h1>
+<h2>(art. 25, D.Lgs. 28 febbraio 2021, n. 36 — Lavoro sportivo dilettantistico)</h2>
+
+<div id="stamp-container"></div>
+
+<div class="parti">
+  <p><strong>TRA</strong></p>
+  <p id="asd-riga">l'Associazione Sportiva Dilettantistica <span id="p-asdNome"></span>, con sede in <span id="p-asdIndirizzoCompleto"></span>, Codice Fiscale <span id="p-asdCf"></span><span id="p-asdPivaWrap"></span>, affiliata FISR, in persona del legale rappresentante/delegato <span id="p-rappresentante"></span>, di seguito denominata <strong>"Associazione"</strong>,</p>
+  <p><strong>E</strong></p>
+  <p id="collab-riga"><span id="p-nomeCompleto"></span>, nato/a a <span id="p-luogo"></span> il <span id="p-nascita"></span>, residente in <span id="p-indirizzo"></span>, Codice Fiscale <span id="p-cf"></span>, di seguito denominato/a <strong>"Collaboratore"</strong>,</p>
+  <p>si conviene e si stipula quanto segue.</p>
+</div>
+
+<h3>Art. 1 — Premesse e natura del rapporto</h3>
+<p>Le premesse formano parte integrante e sostanziale del presente contratto. Il presente accordo costituisce collaborazione coordinata e continuativa nell'area del dilettantismo ai sensi dell'art. 25, D.Lgs. 36/2021, e ha ad oggetto attività di lavoro sportivo svolta in favore dell'Associazione con carattere di continuità, coordinamento e assenza del vincolo di subordinazione. Il Collaboratore organizza autonomamente la propria attività nell'ambito del coordinamento stabilito di comune accordo con l'Associazione.</p>
+
+<h3>Art. 2 — Oggetto dell'incarico</h3>
+<p>Il Collaboratore svolge, in favore dell'Associazione, l'attività di <strong id="p-mansione"></strong>, che comprende in particolare: la conduzione degli allenamenti dei gruppi/corsi assegnati, la programmazione tecnica dell'attività sportiva, l'assistenza tecnica agli atleti tesserati durante allenamenti e manifestazioni sportive, la collaborazione con lo staff tecnico e dirigenziale dell'Associazione per il buon andamento dell'attività sportiva dilettantistica.</p>
+
+<h3>Art. 3 — Durata</h3>
+<p>Il presente contratto decorre dal <strong id="p-dal"></strong> e ha termine il <strong id="p-al"></strong>, fatta salva la facoltà di rinnovo alla scadenza previo accordo scritto tra le parti.</p>
+
+<h3>Art. 4 — Impegno orario</h3>
+<p>L'attività si svolge nel limite massimo di <strong id="p-ore"></strong> ore settimanali, nel rispetto del limite di 24 ore settimanali, riferito alla media di un periodo non superiore al trimestre, previsto per le collaborazioni coordinate e continuative nell'area del dilettantismo dall'art. 28, D.Lgs. 36/2021, salvo comprovate esigenze organizzative certificate dalle Federazioni Sportive Nazionali, Discipline Sportive Associate o Enti di Promozione Sportiva di riferimento.</p>
+
+<h3>Art. 5 — Corrispettivo</h3>
+<p>Per l'attività di cui al presente contratto, l'Associazione corrisponde al Collaboratore un compenso lordo annuo di <strong>€ <span id="p-compenso"></span></strong>, erogato con cadenza da concordarsi tra le parti, salvo applicazione delle ritenute di legge sulla parte eventualmente eccedente la soglia di esenzione IRPEF di € 15.000,00 annui prevista per i compensi da lavoro sportivo dilettantistico.</p>
+<p id="p-avviso-soglia" class="box-priv" style="display:none;">⚠ Il compenso pattuito supera la soglia di € 15.000,00 annui: sulla parte eccedente si applicano le ordinarie ritenute IRPEF a titolo di acconto, oltre agli adempimenti contributivi e assicurativi conseguenti. Si raccomanda la verifica con il proprio consulente fiscale prima della sottoscrizione.</p>
+
+<h3>Art. 6 — Tesseramento, copertura assicurativa e obblighi del Collaboratore</h3>
+<p>Il Collaboratore dichiara di essere / si impegna a essere regolarmente tesserato, per la durata del presente contratto, presso la Federazione Italiana Sport Rotellistici (FISR) in qualità di tecnico, e di essere in possesso dei requisiti tecnici e delle eventuali qualifiche richieste per lo svolgimento dell'incarico. L'Associazione provvede, ove dovuta, alla copertura assicurativa contro gli infortuni e le malattie connesse all'attività sportiva secondo la normativa vigente e i regolamenti federali.</p>
+
+<h3>Art. 7 — Assenza di vincolo di subordinazione</h3>
+<p>Resta espressamente inteso che il presente rapporto non costituisce, in alcun modo, rapporto di lavoro subordinato, né determina l'insorgere di alcun vincolo di dipendenza gerarchica tra le parti. Il Collaboratore non è tenuto ad osservare un orario di lavoro fisso, salvo il coordinamento necessario con il calendario delle attività sportive dell'Associazione.</p>
+
+<h3>Art. 8 — Recesso</h3>
+<p>Ciascuna delle parti può recedere dal presente contratto con un preavviso scritto di almeno 15 (quindici) giorni, salvo giusta causa che consenta il recesso immediato. In caso di gravi inadempienze agli obblighi tecnici, disciplinari o di tutela dei tesserati (Regolamento FISR Safeguarding), l'Associazione può risolvere il contratto con effetto immediato.</p>
+
+<h3>Art. 9 — Trattamento dei dati personali</h3>
+<p>Le parti dichiarano di essersi reciprocamente informate, ai sensi degli artt. 13-14 del Regolamento (UE) 2016/679, sulle modalità e finalità del trattamento dei dati personali connesso all'esecuzione del presente contratto.</p>
+
+<h3>Art. 10 — Foro competente</h3>
+<p>Per qualsiasi controversia relativa all'interpretazione, esecuzione o risoluzione del presente contratto è competente in via esclusiva il Foro del luogo in cui ha sede l'Associazione.</p>
+
+<p style="margin-top:24px;">Letto, confermato e sottoscritto.</p>
+<p>Luogo e data: <span id="p-asdCitta"></span>, <span id="p-dataDoc"></span></p>
+
+<div class="firme">
+  <div class="firma">
+    <div>Per l'Associazione</div>
+    <div class="linea" id="p-firma-asd"></div>
+  </div>
+  <div class="firma">
+    <div>Il Collaboratore</div>
+    <div class="linea" id="p-firma-collab"></div>
+  </div>
+</div>
+
+<script>
+const q=new URLSearchParams(window.location.search);
+const v=(k,fb='')=>q.get(k)||fb;
+
+function generaTimbro(){
+  const nome=v('asdNome'),ind=v('asdIndirizzo'),cap=v('asdCap'),citta=v('asdCitta'),
+        tel=v('asdTel'),cf=v('asdCf'),piva=v('asdPiva');
+  let html='<div class="stamp"><b>'+nome+'</b><br>'+ind+'<br>'+cap+' '+citta+'<br>';
+  if(tel)html+='Tel. '+tel+'<br>';
+  html+='C.F. '+cf+(piva?(' — P.IVA '+piva):'')+'</div>';
+  document.getElementById('stamp-container').innerHTML=html;
+}
+
+document.getElementById('p-asdNome').textContent=v('asdNome');
+document.getElementById('p-asdIndirizzoCompleto').textContent=v('asdIndirizzo')+', '+v('asdCap')+' '+v('asdCitta');
+document.getElementById('p-asdCf').textContent=v('asdCf');
+document.getElementById('p-asdPivaWrap').textContent=v('asdPiva')?(' — P.IVA '+v('asdPiva')):'';
+document.getElementById('p-rappresentante').textContent=v('rappresentante')||v('presidente');
+document.getElementById('p-nomeCompleto').textContent=(v('nome')+' '+v('cognome')).trim();
+document.getElementById('p-luogo').textContent=v('luogo');
+document.getElementById('p-nascita').textContent=v('nascita');
+document.getElementById('p-indirizzo').textContent=v('indirizzo');
+document.getElementById('p-cf').textContent=v('cf');
+document.getElementById('p-mansione').textContent=v('mansione','Istruttore sportivo');
+document.getElementById('p-dal').textContent=v('dal','________');
+document.getElementById('p-al').textContent=v('al','________');
+document.getElementById('p-ore').textContent=v('ore','________');
+document.getElementById('p-compenso').textContent=v('compenso','________');
+document.getElementById('p-asdCitta').textContent=v('asdCitta');
+document.getElementById('p-dataDoc').textContent=v('dataDoc');
+document.getElementById('p-firma-asd').textContent=v('rappresentante')||v('presidente');
+document.getElementById('p-firma-collab').textContent=(v('nome')+' '+v('cognome')).trim();
+
+const compensoNum=parseFloat(v('compenso','0').replace(',','.'));
+if(compensoNum>15000)document.getElementById('p-avviso-soglia').style.display='block';
+
+generaTimbro();
+document.title='Contratto co.co.co. sportivo - '+v('nome')+' '+v('cognome');
+</script>
+</body>
+</html>

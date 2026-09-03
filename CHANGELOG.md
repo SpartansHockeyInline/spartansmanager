@@ -2,6 +2,31 @@
 
 ---
 
+## v4.4.2 · Agosto 2026
+
+### Nuove funzionalità
+- **Contratto co.co.co. sportivo** — nuovo documento in Genera documenti: collaborazione coordinata e continuativa nell'area del dilettantismo (art. 25, D.Lgs. 36/2021), con mansione, periodo, compenso e ore settimanali personalizzabili, campo per il firmatario ASD (utile quando il collaboratore è lo stesso Presidente e serve un delegato alla firma), avviso automatico se il compenso supera la soglia di esenzione IRPEF di 15.000 €/anno, pronto per la doppia firma.
+
+### Fix — Importazione Google Sheets
+- **Validazione link CSV** — se il link inserito restituisce una pagina HTML invece del CSV grezzo (es. link di condivisione anziché di export diretto), l'app lo segnala subito con un messaggio chiaro invece di tentare l'importazione e fallire silenziosamente.
+- **Colonne Nome/Cognome non trovate** — se l'intestazione del CSV non contiene le colonne obbligatorie l'importazione si ferma con un errore esplicito, invece di segnalare genericamente "N righe saltate" senza indicarne il motivo.
+- **Log di debug righe saltate** — le righe scartate durante l'importazione (nome o cognome mancante) vengono ora elencate in console con numero di riga e contenuto, per un controllo rapido.
+- **Data di nascita e scadenza visita medica** — corretta la conversione dal formato italiano (GG/MM/AAAA) usato dal modulo Google al formato interno dell'app; risolve l'età mostrata come "NaN" e la categoria FISR calcolata in modo errato per gli atleti importati.
+- **Campi Genitore/Tutore 1 e 2** — il riconoscimento delle colonne (nome, cognome, rapporto, CF, telefono, email) ora si basa sul contenuto dell'intestazione invece che su un testo fisso, quindi resta valido anche se le domande del modulo vengono rinominate (es. da "genitore" a "genitore / tutore").
+- **Rapporto di parentela** — il valore importato (es. "Padre", "Madre") viene normalizzato per essere riconosciuto correttamente dal menu a tendina nella scheda atleta.
+- **Corso/Squadra** — il testo libero del modulo viene ora confrontato con i corsi configurati in "Corsi e squadre" e collegato automaticamente se corrisponde; se non trova corrispondenza, l'app avvisa quali corsi vanno assegnati manualmente.
+- **Istruzioni modale import CSV** — aggiornate per riflettere il riconoscimento delle colonne per nome (non più per posizione fissa) e il formato reale del modulo Google di iscrizione Spartans.
+
+### Fix — Interfaccia
+- **Colonna Azioni sempre visibile** — resta agganciata a destra durante lo scroll orizzontale in tutte le tabelle dell'app.
+- **Intestazioni tabella sempre visibili** — tutte le tabelle ora hanno un'altezza massima con scroll interno: l'intestazione delle colonne resta agganciata in alto durante lo scroll verticale, e la barra di scorrimento orizzontale resta sempre raggiungibile senza dover scorrere fino in fondo a tabelle lunghe.
+- **Footer versione** — spostato dentro la barra di sincronizzazione in fondo alla pagina; risolto un difetto per cui il footer bloccava lo scroll orizzontale/verticale sopra le tabelle.
+
+### File aggiunti
+- `modulo_cocoo_sportivo.html`
+
+---
+
 ## v4.4.1 · Luglio 2026
 
 ### Nuove funzionalità
