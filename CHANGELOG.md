@@ -2,6 +2,16 @@
 
 ---
 
+## v4.5.0 · Agosto 2026
+
+### ⚠ Fix critico
+- **Chiusura stagione azzerava entrate e uscite** — la funzione "Chiudi stagione" cancellava silenziosamente tutti i movimenti di Amministrazione (entrate/uscite), senza salvarne una copia da nessuna parte. Il bug contraddiceva quanto dichiarato fin dalla v4.2.0 (i dati finanziari dovevano restare esclusi dalla chiusura stagione) ed era presente dalla stessa versione, quindi ogni chiusura stagione eseguita da giugno 2026 in poi ha cancellato i dati finanziari. Ora la chiusura stagione non tocca più entrate/uscite: restano sempre visibili in Amministrazione, indipendentemente da quante stagioni vengono chiuse.
+
+### Nuove funzionalità
+- **Backup cloud automatico** — nuovo snapshot completo giornaliero salvato su Firebase (non solo in locale sul dispositivo/browser come il backup automatico esistente), consultabile e ripristinabile da Impostazioni → Backup automatico cloud, conservato per 90 giorni a rotazione. Pensato per proteggere da errori come quello descritto sopra: anche se un bug futuro dovesse cancellare dei dati, resta sempre disponibile una copia recente indipendente dal dispositivo usato.
+
+---
+
 ## v4.4.2 · Agosto 2026
 
 ### Nuove funzionalità

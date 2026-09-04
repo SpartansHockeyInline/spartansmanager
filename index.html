@@ -424,7 +424,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.4.2 · Agosto 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.5.0 · Agosto 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -978,10 +978,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         </div>
       </div>
       <div class="card" style="max-width:480px;margin-top:0;">
-        <div class="card-title">🗄️ Backup automatico</div>
-        <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Snapshot automatico ad ogni apertura. Ultimi 3 backup disponibili.</p>
+        <div class="card-title">🗄️ Backup automatico locale</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Snapshot automatico ad ogni apertura, salvato solo su questo dispositivo/browser. Ultimi 3 backup disponibili.</p>
         <div id="backup-list"></div>
         <button class="btn btn-s btn-sm" style="margin-top:9px;" onclick="renderBackupList()">🔄 Aggiorna</button>
+      </div>
+      <div class="card" style="max-width:480px;margin-top:0;border:1px solid rgba(59,130,246,.4);">
+        <div class="card-title">☁️ Backup automatico cloud</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Uno snapshot completo al giorno, salvato su Firebase (indipendente dal dispositivo/browser usato) — protegge da cancellazioni accidentali come quelle causate da bug dell'app. Conservati per 90 giorni.</p>
+        <div id="cloud-backup-list"></div>
+        <button class="btn btn-s btn-sm" style="margin-top:9px;" onclick="renderCloudBackupList()">🔄 Aggiorna</button>
       </div>
       <div class="card" style="max-width:480px;margin-top:0;border:1px solid rgba(212,160,23,.4);">
         <div class="card-title" style="color:var(--gold);">⚠️ Recupera dati da versione precedente</div>
@@ -1635,6 +1641,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v4.5.0 · Agosto 2026</div>
+        <div class="cl-section">⚠ Fix critico</div>
+        <div class="cl-item"><strong>Chiusura stagione azzerava entrate e uscite</strong> — la funzione "Chiudi stagione" cancellava silenziosamente tutti i movimenti di Amministrazione (entrate/uscite), senza salvarne una copia da nessuna parte. Il bug contraddiceva quanto dichiarato fin dalla v4.2.0 (i dati finanziari dovevano restare esclusi dalla chiusura stagione) ed era presente dalla stessa versione. Ora la chiusura stagione non tocca più entrate/uscite: restano sempre visibili in Amministrazione, indipendentemente da quante stagioni vengono chiuse.</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Backup cloud automatico</strong> — nuovo snapshot completo giornaliero salvato su Firebase (non solo in locale sul dispositivo/browser come il backup automatico esistente), consultabile e ripristinabile da Impostazioni → Backup automatico cloud, conservato per 90 giorni a rotazione. Pensato per proteggere da errori come quello descritto sopra: anche se un bug futuro dovesse cancellare dei dati, resta sempre disponibile una copia recente indipendente dal dispositivo usato.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v4.4.2 · Agosto 2026</div>
@@ -2377,6 +2391,7 @@ function showPage(page){
     const el=document.getElementById('settings-drive-status');
     if(el)el.textContent=fbUser?`Connesso come ${fbUser.email}`:'Non connesso';
     renderBackupList();
+    renderCloudBackupList();
   }
 }
 function topbarAdd(){const map={anagrafiche:()=>openModalSocio(),corsi:()=>openModal('modal-corso',''),impianti:()=>openModal('modal-impianto',''),maestri:()=>openModal('modal-maestro',''),calendario:()=>openModal('modal-evento','gara'),stagioni:()=>document.getElementById('card-nuova-stagione').scrollIntoView()};if(map[currentPage])map[currentPage]();else if(currentPage==='abbonamenti')openModal('modal-piano','');else if(currentPage==='amministrazione')openModal('modal-movimento','entrata');}
@@ -4108,7 +4123,10 @@ function chiudiStagione(){
   };
   DB.stagioniArchivio.push(arch);
   DB.stagioni=DB.stagioni.filter(s=>!s.attiva);
-  DB.eventi=[];DB.abbonamenti=[];DB.presenze={};DB.entrate=[];DB.uscite=[];
+  DB.eventi=[];DB.abbonamenti=[];DB.presenze={};
+  // NB: entrate/uscite NON vengono più azzerate qui — i dati finanziari sono
+  // indipendenti dalla stagione sportiva (vedi changelog v4.2.0) e restano
+  // visibili/filtrabili in Amministrazione per periodo, senza reset automatico.
   closeModal('modal-chiudi-stagione');saveDB();renderStagioni();renderDashboard();renderCalendar();
   toast(`Stagione "${arch.label}" archiviata con snapshot completo`,'success');
 }
@@ -4838,8 +4856,30 @@ async function driveBackupLoad(){
   // Backup Drive disabilitato — backup solo in localStorage
 }
 function renderBackupList(){const c=document.getElementById('backup-list'),bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]');if(!bk.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun backup disponibile</span>';return;}c.innerHTML=bk.map((b,i)=>`<div style="display:flex;align-items:center;gap:9px;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;"><span style="font-size:16px;">💾</span><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${b.label}</div><div style="font-size:11px;color:var(--text2);">${b.soci} soci · ${i===0?'Più recente':'Precedente'}</div></div><button class="btn btn-s btn-sm" onclick="openRestoreModal(${i})">♻️</button><button class="btn btn-s btn-sm" onclick="exportBackup(${i})">📤</button></div>`).join('');}
-function openRestoreModal(idx){restoreTargetIdx=idx;const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];document.getElementById('modal-backup-info').innerHTML=`<strong>Backup del:</strong> ${b.label}<br><strong>Soci:</strong> ${b.soci}`;document.getElementById('modal-backup').classList.add('open');}
-function confirmRestore(){if(restoreTargetIdx===null)return;const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[restoreTargetIdx];saveBackup();try{DB=Object.assign(DB,JSON.parse(b.data));riparaPresenzeOrphane();saveDB();renderAll();closeModal('modal-backup');toast('Dati ripristinati','success');renderBackupList();}catch(e){toast('Errore ripristino','error');}}
+function openRestoreModal(idx){restoreTargetIdx=idx;window._confirmRestoreIsCloud=false;restoreCloudTargetKey=null;const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];document.getElementById('modal-backup-info').innerHTML=`<strong>Backup del:</strong> ${b.label}<br><strong>Soci:</strong> ${b.soci}`;document.getElementById('modal-backup').classList.add('open');}
+async function confirmRestore(){
+  try{
+    let datiRipristino;
+    if(window._confirmRestoreIsCloud&&restoreCloudTargetKey){
+      const snap=await fbDb.ref('spartans/backupsAutomatici/'+restoreCloudTargetKey).get();
+      if(!snap.exists()){toast('Backup cloud non trovato','error');return;}
+      datiRipristino=snap.val().data;
+    }else{
+      if(restoreTargetIdx===null)return;
+      const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[restoreTargetIdx];
+      datiRipristino=JSON.parse(b.data);
+    }
+    saveBackup(); // backup di sicurezza dello stato attuale prima di sovrascrivere
+    DB=Object.assign(DB,datiRipristino);
+    riparaPresenzeOrphane();
+    saveDB();
+    renderAll();
+    closeModal('modal-backup');
+    toast('Dati ripristinati','success');
+    renderBackupList();
+    window._confirmRestoreIsCloud=false;restoreCloudTargetKey=null;restoreTargetIdx=null;
+  }catch(e){toast('Errore ripristino','error');console.error(e);}
+}
 function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b.data],{type:'application/json'}));a.download=`spartans_backup_${b.ts.slice(0,10)}.json`;a.click();}
 
 // ═══ RENDER ALL ═══════════════════════════════════════════
@@ -6317,11 +6357,88 @@ async function fbSaveNow(){
     await fbDb.ref('spartans/data').set(clean(DB));
     const now=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     driveSetStatus('connected',`✓ Sincronizzato · ${fbUser.email} · ${now}`);
+    cloudBackupAuto(); // fire-and-forget, throttlato internamente a 1 volta/giorno
   }catch(e){
     console.error('Firebase save error:',e);
     driveSetStatus('error','⚠ Errore salvataggio Firebase');
     toast('Salvataggio Firebase fallito','error');
   }
+}
+
+// ═══ BACKUP CLOUD AUTOMATICO (Firebase) ══════════════════════
+// Uno snapshot completo al giorno, indipendente da localStorage/dispositivo,
+// così un bug applicativo (es. azzeramento accidentale di un campo) resta
+// sempre recuperabile da una copia salvata altrove, non solo sul browser
+// che ha eseguito l'operazione. Conservazione: 90 giorni a rotazione.
+const CLOUD_BACKUP_RETENTION_DAYS=90;
+
+async function cloudBackupAuto(){
+  if(!fbUser||!fbDb||_isDemo)return;
+  const oggi=new Date().toISOString().slice(0,10);
+  if(localStorage.getItem('spartans_last_cloud_backup')===oggi)return; // già fatto oggi
+  try{
+    const clean=(obj)=>{
+      if(Array.isArray(obj))return obj.map(clean);
+      if(obj&&typeof obj==='object'){
+        const r={};
+        for(const k of Object.keys(obj)){if(obj[k]!==undefined)r[k]=clean(obj[k]);}
+        return r;
+      }
+      return obj??null;
+    };
+    await fbDb.ref('spartans/backupsAutomatici/'+oggi).set({
+      ts:new Date().toISOString(),
+      soci:(DB.soci||[]).length,
+      entrate:(DB.entrate||[]).length,
+      uscite:(DB.uscite||[]).length,
+      data:clean(DB)
+    });
+    localStorage.setItem('spartans_last_cloud_backup',oggi);
+    cloudBackupPrune();
+  }catch(e){console.error('[cloudBackupAuto] errore:',e);}
+}
+
+async function cloudBackupPrune(){
+  if(!fbDb)return;
+  try{
+    const snap=await fbDb.ref('spartans/backupsAutomatici').get();
+    if(!snap.exists())return;
+    const oggi=new Date(),daCancellare=[];
+    snap.forEach(child=>{
+      const giorni=(oggi-new Date(child.key))/(1000*60*60*24);
+      if(giorni>CLOUD_BACKUP_RETENTION_DAYS)daCancellare.push(child.key);
+    });
+    for(const k of daCancellare){await fbDb.ref('spartans/backupsAutomatici/'+k).remove();}
+  }catch(e){console.error('[cloudBackupPrune] errore:',e);}
+}
+
+async function renderCloudBackupList(){
+  const c=document.getElementById('cloud-backup-list');
+  if(!c)return;
+  if(!fbUser||!fbDb){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Accedi per vedere i backup cloud</span>';return;}
+  c.innerHTML='<span style="font-size:12px;color:var(--text3);">Caricamento…</span>';
+  try{
+    const snap=await fbDb.ref('spartans/backupsAutomatici').get();
+    if(!snap.exists()){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun backup cloud ancora — verrà creato automaticamente al prossimo salvataggio di oggi</span>';return;}
+    const items=[];
+    snap.forEach(child=>{const v=child.val();items.push({data:child.key,soci:v.soci,entrate:v.entrate,uscite:v.uscite});});
+    items.sort((a,b)=>b.data.localeCompare(a.data));
+    c.innerHTML=items.map(b=>`<div style="display:flex;align-items:center;gap:9px;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;"><span style="font-size:16px;">☁️</span><div style="flex:1;"><div style="font-size:12px;font-weight:500;">${b.data}</div><div style="font-size:11px;color:var(--text2);">${b.soci} soci · ${b.entrate} entrate · ${b.uscite} uscite</div></div><button class="btn btn-s btn-sm" onclick="openRestoreCloudModal('${b.data}')">♻️</button></div>`).join('');
+  }catch(e){c.innerHTML='<span style="font-size:12px;color:var(--red);">Errore caricamento backup cloud</span>';console.error(e);}
+}
+
+let restoreCloudTargetKey=null;
+async function openRestoreCloudModal(dateKey){
+  if(!fbDb)return;
+  restoreCloudTargetKey=dateKey;
+  window._confirmRestoreIsCloud=true;
+  try{
+    const snap=await fbDb.ref('spartans/backupsAutomatici/'+dateKey).get();
+    if(!snap.exists()){toast('Backup non trovato','error');return;}
+    const v=snap.val();
+    document.getElementById('modal-backup-info').innerHTML=`<strong>Backup cloud del:</strong> ${dateKey}<br><strong>Soci:</strong> ${v.soci} · <strong>Entrate:</strong> ${v.entrate} · <strong>Uscite:</strong> ${v.uscite}`;
+    document.getElementById('modal-backup').classList.add('open');
+  }catch(e){toast('Errore caricamento backup','error');}
 }
 
 function fbStartLiveSync(){
