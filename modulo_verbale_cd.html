@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Verbale Consiglio Direttivo</title>
+<style>
+  @page{size:A4;margin:2cm;}
+  *{box-sizing:border-box;}
+  body{font-family:'Times New Roman',Times,serif;font-size:12.5px;line-height:1.55;color:#111;max-width:800px;margin:0 auto;padding:30px;background:#fff;}
+  h1{font-size:15px;text-align:center;text-transform:uppercase;margin-bottom:4px;letter-spacing:.3px;}
+  h2{font-size:12.5px;text-align:center;font-weight:bold;margin-top:0;margin-bottom:22px;}
+  p{margin:8px 0;text-align:justify;}
+  .odg{font-weight:bold;text-align:center;margin:18px 0 10px;}
+  .delibera-header{font-weight:bold;text-align:center;margin:16px 0;}
+  .firme{display:flex;flex-wrap:wrap;gap:30px;justify-content:space-around;margin-top:50px;}
+  .firma{flex:1;min-width:180px;text-align:center;}
+  .firma .linea{border-top:1px solid #333;margin-top:45px;padding-top:4px;font-size:11px;}
+  .noprint{text-align:center;margin:20px 0;}
+  .noprint button{font-family:inherit;font-size:13px;padding:8px 20px;border-radius:6px;border:1px solid #333;background:#f5f5f5;cursor:pointer;}
+  .noprint button:hover{background:#eee;}
+  .err{color:#b00020;text-align:center;padding:40px;}
+  @media print{.noprint{display:none;}body{padding:0;}}
+</style>
+</head>
+<body>
+<div class="noprint"><button onclick="window.print()">🖨️ Stampa / Salva PDF</button></div>
+<div id="content"><p class="err">Caricamento…</p></div>
+
+<script>
+function esc(s){return (s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtData(iso){
+  if(!iso)return '________';
+  // già in formato "gg/mm/aaaa" (arriva già formattato dall'app)
+  return iso;
+}
+
+const TEMPLATES={
+  contoCorrente:(f,ctx)=>{
+    const operativi=ctx.membri.filter(m=>m.operativita).map(m=>`${m.nome} ${m.cognome}`);
+    const operativitaTxt=operativi.length?operativi.join(', '):'[da indicare]';
+    return {
+      odg:`Apertura di un conto corrente bancario intestato all'Associazione presso ${esc(f.banca)||'[istituto di credito]'}, e conferimento dei poteri di firma e operatività`,
+      corpo:`<p>Il Presidente espone al Consiglio la necessità, ai fini della gestione ordinaria dell'Associazione, di aprire un conto corrente bancario intestato a ${esc(ctx.asdNome)} presso ${esc(f.banca)||'[istituto di credito da individuare]'}.</p>
+      <p>Il Consiglio, dopo discussione,</p>
+      <div class="delibera-header">DELIBERA</div>
+      <p>all'unanimità dei presenti:</p>
+      <p>1) di aprire un conto corrente bancario intestato a ${esc(ctx.asdNome)} (C.F. ${esc(ctx.asdCf)}) presso ${esc(f.banca)||'[istituto di credito]'};</p>
+      <p>2) di conferire i poteri di firma e operatività sul conto (versamenti, prelievi, disposizioni di pagamento, servizi di home banking) a: <strong>${esc(operativitaTxt)}</strong>;</p>
+      <p>3) di autorizzare il Presidente a sottoscrivere, in nome e per conto dell'Associazione, la documentazione contrattuale necessaria con l'istituto di credito individuato.</p>`
+    };
+  },
+  cocoo:(f,ctx)=>{
+    const membro=ctx.membri.find(m=>m.id===f.membroId);
+    const nomeCompleto=membro?`${membro.nome} ${membro.cognome}`:'[collaboratore]';
+    const ruoloCarica=membro?membro.ruolo:'';
+    const delegato=membro&&membro.delegaA?ctx.membri.find(m=>m.id===membro.delegaA):null;
+    let notaRappresentanza='';
+    if(membro&&membro.interessato&&membro.rappresentanzaLegale){
+      notaRappresentanza=`<p>Ai sensi delle disposizioni statutarie in materia di rappresentanza legale, il/la ${esc(ruoloCarica)} non può sottoscrivere, in nome e per conto dell'Associazione, un contratto di cui sia egli/ella stesso/a controparte. Il Consiglio attribuisce pertanto${delegato?` al/alla ${esc(delegato.ruolo)} ${esc(delegato.nome)} ${esc(delegato.cognome)}`:' a un consigliere non interessato, da individuarsi in seduta,'} la rappresentanza dell'Associazione limitatamente alla sottoscrizione del contratto di cui al presente punto, ai sensi delle disposizioni statutarie applicabili in materia di delega e sostituzione.</p>`;
+    }
+    return {
+      odg:`Conferimento a ${esc(nomeCompleto)} dell'incarico di collaborazione coordinata e continuativa sportiva (co.co.co.), ai sensi dell'art. 25 D.Lgs. 36/2021${(membro&&membro.interessato&&membro.rappresentanzaLegale)?', e contestuale attribuzione della rappresentanza dell\'Associazione ai fini della sottoscrizione del relativo contratto':''}`,
+      corpo:`<p>Il Presidente espone al Consiglio la necessità di formalizzare un contratto di collaborazione coordinata e continuativa nell'area del dilettantismo, ai sensi dell'art. 25 D.Lgs. 36/2021, a favore di ${esc(nomeCompleto)}, per l'attività di <strong>${esc(f.mansione)||'istruttore'}</strong>, per il periodo dal ${fmtData(f.dal)} al ${fmtData(f.al)}, con impegno di ${esc(f.ore)||'___'} ore settimanali (nel rispetto del limite di 24 ore settimanali medie ex art. 28 D.Lgs. 36/2021) e compenso lordo annuo di € ${esc(f.compenso)||'________'}.</p>
+      ${notaRappresentanza}
+      <p>Il Consiglio, esaminata la proposta e ritenutala congrua rispetto ai parametri di riferimento del settore,</p>
+      <div class="delibera-header">DELIBERA</div>
+      <p>1) di conferire a ${esc(nomeCompleto)} l'incarico di collaborazione coordinata e continuativa sportiva sopra descritto, alle condizioni indicate in premessa;</p>
+      ${(membro&&membro.interessato&&membro.rappresentanzaLegale)?`<p>2) di attribuire${delegato?` al/alla ${esc(delegato.ruolo)} ${esc(delegato.nome)} ${esc(delegato.cognome)}`:' al consigliere individuato in seduta'} la rappresentanza dell'Associazione limitatamente alla sottoscrizione del contratto di cui al punto precedente, con ogni potere a tal fine necessario.</p>`:''}`
+    };
+  },
+  safeguarding:(f,ctx)=>{
+    const membro=ctx.membri.find(m=>m.id===f.membroId);
+    const nomeCompleto=membro?`${membro.nome} ${membro.cognome}`:'[nominativo]';
+    return {
+      odg:`Nomina del Responsabile Safeguarding (tutela dei tesserati) dell'Associazione`,
+      corpo:`<p>Il Presidente rammenta al Consiglio l'obbligo, ai sensi del Regolamento FISR per la Tutela dei Tesserati, di individuare un Responsabile Safeguarding per l'Associazione, e propone la nomina di ${esc(nomeCompleto)}, con decorrenza dal ${fmtData(f.dal)}.</p>
+      <p>Il Consiglio, condivisa la proposta,</p>
+      <div class="delibera-header">DELIBERA</div>
+      <p>di nominare ${esc(nomeCompleto)} quale Responsabile Safeguarding dell'Associazione, con decorrenza dal ${fmtData(f.dal)}, con il compito di vigilare sull'applicazione delle politiche di tutela dei tesserati minori di età e di riferire al Consiglio Direttivo su eventuali criticità.</p>`
+    };
+  },
+  assemblea:(f,ctx)=>{
+    return {
+      odg:`Convocazione dell'Assemblea dei soci`,
+      corpo:`<p>Il Presidente propone al Consiglio di convocare l'Assemblea dei soci per il giorno ${fmtData(f.data)}, presso ${esc(f.luogo)||'la sede sociale'}, per discutere e deliberare sul seguente ordine del giorno:</p>
+      <p>${(esc(f.odg)||'[ordine del giorno da definire]').replace(/\\n/g,'<br>')}</p>
+      <p>Il Consiglio, condivisa la proposta,</p>
+      <div class="delibera-header">DELIBERA</div>
+      <p>di convocare l'Assemblea dei soci per il giorno ${fmtData(f.data)}, presso ${esc(f.luogo)||'la sede sociale'}, con l'ordine del giorno sopra riportato, dando mandato al Presidente di curare gli adempimenti di convocazione previsti dallo Statuto sociale.</p>`
+    };
+  },
+  quote:(f,ctx)=>{
+    return {
+      odg:`Determinazione della quota associativa per la stagione ${esc(f.stagione)||'________'}`,
+      corpo:`<p>Il Presidente propone al Consiglio di fissare, per la stagione sportiva ${esc(f.stagione)||'________'}, la quota associativa in € ${esc(f.importo)||'________'}.</p>
+      <p>Il Consiglio, condivisa la proposta,</p>
+      <div class="delibera-header">DELIBERA</div>
+      <p>di fissare in € ${esc(f.importo)||'________'} la quota associativa per la stagione sportiva ${esc(f.stagione)||'________'}, dando mandato alla struttura amministrativa dell'Associazione di darne comunicazione ai soci.</p>`
+    };
+  },
+  libero:(f,ctx)=>{
+    return {
+      odg:esc(f.oggetto)||'[oggetto della delibera]',
+      corpo:`<p>${(esc(f.corpo)||'[testo della delibera]').replace(/\\n/g,'</p><p>')}</p>
+      <div class="delibera-header">DELIBERA</div>
+      <p>quanto esposto in premessa.</p>`
+    };
+  }
+};
+
+function build(){
+  const params=new URLSearchParams(window.location.search);
+  const raw=params.get('d');
+  if(!raw){document.getElementById('content').innerHTML='<p class="err">Parametri mancanti.</p>';return;}
+  let payload;
+  try{ payload=JSON.parse(decodeURIComponent(escape(atob(raw)))); }
+  catch(e){ document.getElementById('content').innerHTML='<p class="err">Impossibile leggere i dati del verbale.</p>'; return; }
+
+  const ctx={membri:payload.membri||[],asdNome:payload.asdNome,asdCf:payload.asdCf};
+  const tpl=TEMPLATES[payload.tipo];
+  if(!tpl){document.getElementById('content').innerHTML='<p class="err">Tipo di delibera non riconosciuto.</p>';return;}
+  const {odg,corpo}=tpl(payload.campi||{},ctx);
+
+  const n=ctx.membri.length;
+  const quorum=Math.floor(n/2)+1;
+
+  // Note di astensione/delega — generiche, valide per qualunque tipo di delibera
+  const noteAstensioni=ctx.membri.filter(m=>m.interessato).map(m=>{
+    let t=`Il/la ${esc(m.ruolo)} ${esc(m.nome)} ${esc(m.cognome)}, in quanto parte direttamente interessata alla presente delibera, dichiara di astenersi dal voto.`;
+    return t;
+  });
+  const votanti=ctx.membri.filter(m=>!m.interessato).map(m=>`${m.nome} ${m.cognome}`);
+  const astenuti=ctx.membri.filter(m=>m.interessato).map(m=>`${m.nome} ${m.cognome}`);
+  const esitoVoto=astenuti.length
+    ? `con il voto favorevole di ${esc(votanti.join(', ')||'—')}, e l'astensione di ${esc(astenuti.join(', '))} in quanto parte/i interessata/e`
+    : `all'unanimità dei presenti`;
+
+  const html=`
+    <h1>Verbale di riunione del Consiglio Direttivo</h1>
+    <h2>${esc(ctx.asdNome)}</h2>
+    <p>L'anno ${new Date(payload.data?payload.data.split('/').reverse().join('-'):Date.now()).getFullYear()||'________'}, il giorno <strong>${esc(payload.data)}</strong>, alle ore <strong>${esc(payload.ora)||'________'}</strong>, presso la sede sociale sita in ${esc(payload.asdIndirizzo)}, ${esc(payload.asdCap)} ${esc(payload.asdCitta)}, si è riunito il Consiglio Direttivo dell'Associazione per discutere e deliberare sul seguente</p>
+    <p class="odg">ORDINE DEL GIORNO</p>
+    <p>${odg}</p>
+    <p>Sono presenti alla seduta i seguenti Consiglieri:</p>
+    <p>${ctx.membri.map(m=>`Sig./Sig.ra ${esc(m.nome)} ${esc(m.cognome)}, ${esc(m.ruolo)}`).join('<br>')}</p>
+    <p>Il Consiglio Direttivo risulta composto da n. ${n} membri, di cui n. ${n} presenti alla seduta: la presenza è superiore alla maggioranza assoluta richiesta (n. ${quorum}), sicché la seduta è validamente costituita.</p>
+    <p>Il Presidente, constatata la regolarità della costituzione della seduta, la dichiara aperta e propone quale Segretario verbalizzante ${esc((ctx.membri.find(m=>/segretari|tesorier/i.test(m.ruolo))||{nome:'________',cognome:''}).nome)} ${esc((ctx.membri.find(m=>/segretari|tesorier/i.test(m.ruolo))||{cognome:'________'}).cognome)}, che accetta l'incarico.</p>
+    <p>Si passa alla trattazione del punto all'ordine del giorno.</p>
+    ${corpo}
+    ${noteAstensioni.length?`<p style="margin-top:14px;"><em>${noteAstensioni.join(' ')}</em></p>`:''}
+    <p style="margin-top:6px;">Esito della votazione: ${esitoVoto}.</p>
+    <p style="margin-top:18px;">Esaurito il punto all'ordine del giorno e null'altro essendovi da discutere o deliberare, il Presidente dichiara sciolta la seduta.</p>
+    <p>Del che è redatto il presente verbale, che viene letto, approvato e sottoscritto seduta stante da tutti i Consiglieri presenti.</p>
+    <div class="firme">
+      ${ctx.membri.map(m=>`<div class="firma"><div>${esc(m.ruolo)}</div><div class="linea">${esc(m.nome)} ${esc(m.cognome)}</div></div>`).join('')}
+    </div>
+  `;
+  document.getElementById('content').innerHTML=html;
+  document.title='Verbale CD - '+(payload.data||'');
+}
+build();
+</script>
+</body>
+</html>

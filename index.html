@@ -424,7 +424,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v4.5.0 · Agosto 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.0.0 · Agosto 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -617,21 +617,17 @@ tbody td{padding:10px 13px;vertical-align:middle;}
               <div class="fgroup"><label>Natura struttura</label><select class="fsel" id="s-natura"><option>Club</option><option>Palestra</option><option>Accademia</option><option>Centro sportivo</option></select></div>
               <div class="fgroup"><label>Anno costituzione</label><input class="fi" id="s-anno" type="number"></div>
               <div class="fgroup"><label>Città</label><input class="fi" id="s-citta"></div>
+              <div class="fgroup"><label>Affiliazione federale</label><input class="fi" id="s-affiliazione" placeholder="es. FISR"></div>
               <div class="fgroup s2"><label>Indirizzo</label><input class="fi" id="s-indirizzo"></div>
               <div class="fgroup s2"><label>Descrizione</label><textarea class="fta" id="s-descr"></textarea></div>
             </div>
             <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
-              <div style="font-weight:700;margin-bottom:10px;">⚖️ Presidente / Legale rappresentante (per contratti)</div>
-              <div class="fg">
-                <div class="fgroup s2"><label>Nome e cognome</label><input class="fi" id="s-presidente" placeholder="es. Mario Rossi"></div>
-                <div class="fgroup"><label>Data di nascita</label><input class="fi" id="s-presidente-nascita" type="date"></div>
-                <div class="fgroup"><label>Luogo di nascita</label><input class="fi" id="s-presidente-luogo-nascita" placeholder="es. Bari (BA)"></div>
-                <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="s-presidente-cf"></div>
-                <div class="fgroup s2"><label>Residenza</label><input class="fi" id="s-presidente-residenza" placeholder="es. Via Roma 1, 70100 Bari (BA)"></div>
-                <div class="fgroup"><label>N° Carta d'identità</label><input class="fi" id="s-presidente-ci"></div>
-                <div class="fgroup"><label>Scadenza Carta d'identità</label><input class="fi" id="s-presidente-ci-scadenza" type="date"></div>
-                <div class="fgroup"><label>Affiliazione federale</label><input class="fi" id="s-affiliazione" placeholder="es. FISR"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
+                <div style="font-weight:700;">⚖️ Consiglio Direttivo <span style="font-weight:400;font-size:12px;color:var(--text2);">(per contratti e verbali)</span></div>
+                <button class="btn btn-s btn-sm" onclick="openModalConsigliere('')">+ Aggiungi membro</button>
               </div>
+              <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Anagrafica completa di ciascun membro del Consiglio Direttivo, riutilizzata automaticamente nei contratti e nei verbali generabili dall'app. Aggiorna qui quando cambiano le cariche — vale anche per una nuova installazione dell'app presso un altro cliente.</p>
+              <div id="consiglio-direttivo-list"></div>
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:14px;"><button class="btn btn-p" onclick="saveStruttura()">💾 Salva</button></div>
           </div>
@@ -1114,6 +1110,30 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <input class="fi" id="doc-cocoo-rappresentante" placeholder="Firma per l'ASD (lasciare vuoto = Presidente; indicare il delegato se il collaboratore è il Presidente stesso)" style="margin-bottom:8px;">
           <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('cocoo')">📄 Genera documento</button>
         </div>
+        <div class="card" style="border:1px solid var(--border);grid-column:1 / -1;">
+          <div style="font-size:20px;margin-bottom:8px;">🗳️</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Verbale Consiglio Direttivo</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Genera un verbale formale con una o più delibere, elenco presenti letto automaticamente dal Consiglio Direttivo (in "La mia struttura"), quorum calcolato, gestione di eventuali conflitti d'interesse con astensione e delega di rappresentanza.</div>
+          <select class="fsel" id="doc-verbale-tipo" style="margin-bottom:10px;" onchange="renderVerbaleCampiTipo()">
+            <option value="contoCorrente">Apertura conto corrente bancario</option>
+            <option value="cocoo">Contratto co.co.co. (istruttore/collaboratore)</option>
+            <option value="safeguarding">Nomina Responsabile Safeguarding</option>
+            <option value="assemblea">Convocazione assemblea dei soci</option>
+            <option value="quote">Determinazione quote associative</option>
+            <option value="libero">Altro (testo libero — regolamenti, deleghe, provvedimenti, nomine, modifiche statuto...)</option>
+          </select>
+          <div id="verbale-campi-tipo" style="margin-bottom:14px;"></div>
+          <div style="padding-top:12px;border-top:1px solid var(--border);margin-bottom:12px;">
+            <div style="font-weight:600;font-size:12px;margin-bottom:8px;">Consiglieri presenti alla seduta</div>
+            <div id="verbale-consiglieri-check"></div>
+            <p style="font-size:11px;color:var(--text3);margin-top:6px;">Spunta "interessato/conflitto" solo per chi ha un interesse diretto nella delibera (es. il proprio contratto): verrà registrato come astenuto, con eventuale delega di rappresentanza per la firma.</p>
+          </div>
+          <div class="fg" style="margin-bottom:10px;">
+            <input class="fi" id="verbale-data" type="date" placeholder="Data riunione">
+            <input class="fi" id="verbale-ora" type="time" placeholder="Ora riunione">
+          </div>
+          <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriVerbaleCD()">📄 Genera verbale</button>
+        </div>
         <div class="card" style="border:1px solid var(--border);">
           <div style="font-size:20px;margin-bottom:8px;">🛡️</div>
           <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Nomina Duty Officer Safeguarding</div>
@@ -1430,6 +1450,35 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 </div>
 
 <!-- CORSO -->
+<div class="mo" id="modal-consigliere">
+  <div class="modal wide">
+    <div class="mh"><div class="mt" id="modal-consigliere-title">Membro Consiglio Direttivo</div><button class="mc" onclick="closeModal('modal-consigliere')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fgroup"><label>Ruolo *</label><select class="fsel" id="mcd-ruolo"><option>Presidente</option><option>Vicepresidente</option><option>Tesoriere</option><option>Segretario</option><option>Consigliere</option><option>Altro</option></select></div>
+        <div class="fgroup"><label>Ruolo (se "Altro")</label><input class="fi" id="mcd-ruolo-altro" placeholder="es. Consigliere delegato"></div>
+        <div class="fgroup"><label>Nome *</label><input class="fi" id="mcd-nome"></div>
+        <div class="fgroup"><label>Cognome *</label><input class="fi" id="mcd-cognome"></div>
+        <div class="fgroup"><label>Data di nascita</label><input class="fi" id="mcd-nascita" type="date"></div>
+        <div class="fgroup"><label>Luogo di nascita</label><input class="fi" id="mcd-luogo-nascita" placeholder="es. Bari (BA)"></div>
+        <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="mcd-cf"></div>
+        <div class="fgroup s2"><label>Residenza</label><input class="fi" id="mcd-residenza" placeholder="es. Via Roma 1, 70100 Bari (BA)"></div>
+        <div class="fgroup"><label>N° Carta d'identità</label><input class="fi" id="mcd-ci"></div>
+        <div class="fgroup"><label>Scadenza Carta d'identità</label><input class="fi" id="mcd-ci-scadenza" type="date"></div>
+        <div class="fgroup"><label>Email</label><input class="fi" id="mcd-email" type="email"></div>
+        <div class="fgroup"><label>Telefono</label><input class="fi" id="mcd-tel"></div>
+        <div class="fgroup"><label>Inizio mandato</label><input class="fi" id="mcd-inizio-mandato" type="date"></div>
+        <div class="fgroup"><label>Fine mandato</label><input class="fi" id="mcd-fine-mandato" type="date"></div>
+        <div class="fgroup s2"><label style="display:flex;align-items:center;gap:7px;font-weight:400;"><input type="checkbox" id="mcd-rappresentanza" style="width:auto;"> Ha rappresentanza legale dell'Associazione (di norma solo il Presidente)</label></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-s" onclick="closeModal('modal-consigliere')">Annulla</button>
+      <button class="btn btn-p" onclick="saveConsigliere()">💾 Salva membro</button>
+    </div>
+  </div>
+</div>
+
 <div class="mo" id="modal-corso">
   <div class="modal wide">
     <div class="mh"><div class="mt">Corso / Squadra</div><button class="mc" onclick="closeModal('modal-corso')">✕</button></div>
@@ -1641,6 +1690,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.0.0 · Agosto 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Consiglio Direttivo strutturato</strong> — nuova sezione in "La mia struttura": elenco completo e ripetibile dei membri del Consiglio Direttivo (ruolo, dati anagrafici, CF, residenza, documento d'identità, rappresentanza legale, durata mandato), non più limitato al solo Presidente. Sostituisce i vecchi campi fissi "Presidente/Legale rappresentante" (migrati automaticamente al primo avvio) e resta valido sia in caso di cambio cariche sia per una nuova installazione dell'app presso un altro cliente.</div>
+        <div class="cl-item"><strong>Verbale Consiglio Direttivo generico</strong> — nuovo generatore in "Genera documenti": intestazione, elenco presenti e quorum letti automaticamente dal Consiglio Direttivo, con sei tipologie di delibera pronte all'uso (apertura conto corrente, contratto co.co.co. istruttore/collaboratore, nomina Responsabile Safeguarding, convocazione assemblea, determinazione quote associative, e un tipo a testo libero per tutto il resto — regolamenti, deleghe, nomine di commissioni, provvedimenti disciplinari, modifiche statutarie). Gestione generica di conflitto d'interesse: ogni consigliere può essere segnato come "interessato" (astensione automatica dal voto) con eventuale delega di rappresentanza per la firma, riutilizzando lo schema già validato per i contratti co.co.co. di Presidente e Vicepresidente.</div>
+        <div class="cl-item"><strong>Contratti e documenti aggiornati</strong> — il contratto co.co.co. sportivo e il contratto di sponsorizzazione ora leggono i dati del legale rappresentante dal nuovo Consiglio Direttivo invece dei vecchi campi fissi.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v4.5.0 · Agosto 2026</div>
@@ -2467,19 +2524,102 @@ document.addEventListener('click',e=>{if(e.target.classList.contains('mo'))close
 // ═══ STRUTTURA ════════════════════════════════════════════
 function loadStrutturaForm(){
   const s=DB.struttura;
-  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr',
-   'presidente','presidenteNascita','presidenteLuogoNascita','presidenteCf','presidenteResidenza','presidenteCi','presidenteCiScadenza','affiliazione']
+  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)el.value=s[k]||'';});
   document.getElementById('logo-nome-display').textContent=s.nome||'Spartans';
   const pw=document.getElementById('logo-preview-wrap');
   pw.innerHTML=s.logo?`<img src="${s.logo}" style="width:100%;height:100%;object-fit:cover;">`:'⚔️';
   renderDocumentiList();
+  renderConsiglioDirettivoList();
 }
 function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
-  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr',
-   'presidente','presidenteNascita','presidenteLuogoNascita','presidenteCf','presidenteResidenza','presidenteCi','presidenteCiScadenza','affiliazione']
+  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)DB.struttura[k]=el.value;});
   document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
+
+// ═══ CONSIGLIO DIRETTIVO ══════════════════════════════════
+const RUOLI_CD_STD=['Presidente','Vicepresidente','Tesoriere','Segretario','Consigliere'];
+function renderConsiglioDirettivoList(){
+  const c=document.getElementById('consiglio-direttivo-list');
+  if(!c)return;
+  const cd=(DB.struttura.consiglioDirettivo||[]);
+  if(!cd.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun membro inserito — aggiungi almeno il Presidente per poter generare contratti e verbali.</span>';return;}
+  c.innerHTML=cd.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;">
+    <div style="width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">${(m.nome[0]||'')+(m.cognome[0]||'')}</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:600;">${m.nome} ${m.cognome} ${m.rappresentanzaLegale?'<span style="font-size:10px;color:var(--gold);font-weight:400;">⚖️ rapp. legale</span>':''}</div>
+      <div style="font-size:11px;color:var(--text2);">${m.ruolo}${m.cf?' · '+m.cf:''}${m._migrato?' · <span style="color:var(--yellow);">verificare nome/cognome (migrato automaticamente)</span>':''}</div>
+    </div>
+    <button class="btn btn-s btn-sm" onclick="openModalConsigliere('${m.id}')">✏️</button>
+    <button class="btn btn-s btn-sm" onclick="deleteConsigliere('${m.id}')" style="color:var(--red);">🗑️</button>
+  </div>`).join('');
+}
+function openModalConsigliere(id){
+  document.getElementById('mcd-ruolo').value='Presidente';
+  ['mcd-ruolo-altro','mcd-nome','mcd-cognome','mcd-nascita','mcd-luogo-nascita','mcd-cf','mcd-residenza','mcd-ci','mcd-ci-scadenza','mcd-email','mcd-tel','mcd-inizio-mandato','mcd-fine-mandato']
+    .forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+  document.getElementById('mcd-rappresentanza').checked=false;
+  document.getElementById('modal-consigliere-title').textContent=id?'Modifica membro':'Nuovo membro Consiglio Direttivo';
+  document.getElementById('modal-consigliere').dataset.editId=id||'';
+  if(id){
+    const m=(DB.struttura.consiglioDirettivo||[]).find(x=>x.id===id);
+    if(m){
+      document.getElementById('mcd-ruolo').value=RUOLI_CD_STD.includes(m.ruolo)?m.ruolo:'Altro';
+      if(!RUOLI_CD_STD.includes(m.ruolo))document.getElementById('mcd-ruolo-altro').value=m.ruolo;
+      const map={nome:'mcd-nome',cognome:'mcd-cognome',nascita:'mcd-nascita',luogoNascita:'mcd-luogo-nascita',cf:'mcd-cf',residenza:'mcd-residenza',ciNumero:'mcd-ci',ciScadenza:'mcd-ci-scadenza',email:'mcd-email',tel:'mcd-tel',dataInizioMandato:'mcd-inizio-mandato',dataFineMandato:'mcd-fine-mandato'};
+      Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el)el.value=m[k]||'';});
+      document.getElementById('mcd-rappresentanza').checked=!!m.rappresentanzaLegale;
+    }
+  }
+  document.getElementById('modal-consigliere').classList.add('open');
+}
+function saveConsigliere(){
+  if(_isDemo){toast('🎭 Modalità demo — sola lettura','warning');return;}
+  const nome=document.getElementById('mcd-nome').value.trim();
+  const cognome=document.getElementById('mcd-cognome').value.trim();
+  if(!nome||!cognome){toast('Nome e cognome sono obbligatori','error');return;}
+  const ruoloSel=document.getElementById('mcd-ruolo').value;
+  const ruolo=ruoloSel==='Altro'?(document.getElementById('mcd-ruolo-altro').value.trim()||'Altro'):ruoloSel;
+  const id=document.getElementById('modal-consigliere').dataset.editId;
+  const dati={
+    ruolo,nome,cognome,
+    nascita:document.getElementById('mcd-nascita').value,
+    luogoNascita:document.getElementById('mcd-luogo-nascita').value.trim(),
+    cf:document.getElementById('mcd-cf').value.trim().toUpperCase(),
+    residenza:document.getElementById('mcd-residenza').value.trim(),
+    ciNumero:document.getElementById('mcd-ci').value.trim(),
+    ciScadenza:document.getElementById('mcd-ci-scadenza').value,
+    email:document.getElementById('mcd-email').value.trim(),
+    tel:document.getElementById('mcd-tel').value.trim(),
+    dataInizioMandato:document.getElementById('mcd-inizio-mandato').value,
+    dataFineMandato:document.getElementById('mcd-fine-mandato').value,
+    rappresentanzaLegale:document.getElementById('mcd-rappresentanza').checked
+  };
+  if(!DB.struttura.consiglioDirettivo)DB.struttura.consiglioDirettivo=[];
+  if(id){
+    const i=DB.struttura.consiglioDirettivo.findIndex(x=>x.id===id);
+    if(i>=0)DB.struttura.consiglioDirettivo[i]={...DB.struttura.consiglioDirettivo[i],...dati};
+  }else{
+    DB.struttura.consiglioDirettivo.push({id:uid(),...dati});
+  }
+  saveDB();closeModal('modal-consigliere');renderConsiglioDirettivoList();toast('Membro salvato','success');
+}
+function deleteConsigliere(id){
+  if(_isDemo){toast('🎭 Modalità demo — sola lettura','warning');return;}
+  if(!confirm('Rimuovere questo membro dal Consiglio Direttivo?'))return;
+  DB.struttura.consiglioDirettivo=(DB.struttura.consiglioDirettivo||[]).filter(x=>x.id!==id);
+  saveDB();renderConsiglioDirettivoList();toast('Membro rimosso','success');
+}
+// Helper riutilizzabile da moduli/contratti/verbali: trova un membro per ruolo
+// (case-insensitive) o, in assenza, chi ha rappresentanzaLegale=true.
+function trovaConsigliere(ruolo){
+  const cd=DB.struttura.consiglioDirettivo||[];
+  return cd.find(m=>m.ruolo.toLowerCase()===String(ruolo||'').toLowerCase())||null;
+}
+function trovaRappresentanteLegale(){
+  const cd=DB.struttura.consiglioDirettivo||[];
+  return cd.find(m=>m.rappresentanzaLegale)||trovaConsigliere('Presidente')||null;
+}
 function loadLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{DB.struttura.logo=ev.target.result;document.getElementById('logo-preview-wrap').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;">`;saveDB();};r.readAsDataURL(f);}
 function addSport(){const v=document.getElementById('sport-new-input').value.trim();if(!v)return;if(!DB.struttura.sport)DB.struttura.sport=[];DB.struttura.sport.push(v);document.getElementById('sport-new-input').value='';saveDB();renderSportTags();}
 function renderSportTags(){const c=document.getElementById('sport-list');c.innerHTML=(DB.struttura.sport||[]).map((s,i)=>`<div style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:12px;">${s}<span style="cursor:pointer;color:var(--red);" onclick="removeSport(${i})">✕</span></div>`).join('')||'<span style="color:var(--text3);font-size:12px;">Nessuno</span>';}
@@ -2629,6 +2769,30 @@ function getEtaAnagrafica(nascita){
 }
 
 // ═══ MIGRAZIONE DATI ══════════════════════════════════════
+
+// Consiglio Direttivo: da campi piatti "presidente/presidenteCf/..." (v4.4.0)
+// a un elenco strutturato e ripetibile di membri, riutilizzabile in tutti i
+// documenti/verbali generabili e resistente sia al cambio di cariche sia
+// a una nuova installazione dell'app per un altro cliente.
+function migraConsiglioDirettivo(){
+  if(!DB.struttura)DB.struttura={};
+  if(!DB.struttura.consiglioDirettivo)DB.struttura.consiglioDirettivo=[];
+  const cd=DB.struttura.consiglioDirettivo;
+  if(DB.struttura.presidente && !cd.some(m=>m.ruolo==='Presidente')){
+    const parti=(DB.struttura.presidente||'').trim().split(/\s+/);
+    cd.unshift({
+      id:uid(),ruolo:'Presidente',
+      nome:parti[0]||'',cognome:parti.slice(1).join(' ')||'',
+      nascita:DB.struttura.presidenteNascita||'',luogoNascita:DB.struttura.presidenteLuogoNascita||'',
+      cf:DB.struttura.presidenteCf||'',residenza:DB.struttura.presidenteResidenza||'',
+      ciNumero:DB.struttura.presidenteCi||'',ciScadenza:DB.struttura.presidenteCiScadenza||'',
+      email:'',tel:'',dataInizioMandato:'',dataFineMandato:'',
+      rappresentanzaLegale:true,
+      _migrato:true // segnale per la UI: nome/cognome separati automaticamente, da verificare
+    });
+  }
+}
+
 const TIPOLOGIE_STAFF=['dirigente','tecnico','presidente','vice-presidente','segretario','tesoriere','attrezzista','cronometrista','segnapunti'];
 
 function migraStaffDaAtleti(){
@@ -4883,7 +5047,7 @@ async function confirmRestore(){
 function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b.data],{type:'application/json'}));a.download=`spartans_backup_${b.ts.slice(0,10)}.json`;a.click();}
 
 // ═══ RENDER ALL ═══════════════════════════════════════════
-function renderAll(){initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche'){applyFilters();renderStaff();renderMacrogruppi();}if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();
+function renderAll(){migraConsiglioDirettivo();initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche'){applyFilters();renderStaff();renderMacrogruppi();}if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();
   setTimeout(checkNuoviComunicatiFisr,3000);
 }
 
@@ -4910,6 +5074,121 @@ function generaTimbro(){
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
+// ═══ GENERATORE VERBALE CONSIGLIO DIRETTIVO ══════════════════
+const VERBALE_CAMPI_TIPO={
+  contoCorrente:()=>`
+    <div class="fgroup"><label>Istituto di credito</label><input class="fi" id="vb-banca" placeholder="es. Banca Popolare di Bari, filiale di Sannicandro"></div>
+    <p style="font-size:11px;color:var(--text3);margin-top:4px;">Spunta sotto, nell'elenco consiglieri, chi avrà "Operatività sul conto".</p>`,
+  cocoo:()=>`
+    <div class="fg">
+      <div class="fgroup s2"><label>Consigliere interessato (collaboratore)</label><select class="fsel" id="vb-cocoo-membro" onchange="onCocooMembroChange()"></select></div>
+      <div class="fgroup s2"><label>Mansione</label><input class="fi" id="vb-cocoo-mansione" placeholder="es. Istruttore Minihockey/Under 12"></div>
+      <div class="fgroup"><label>Dal</label><input class="fi" id="vb-cocoo-dal" type="date"></div>
+      <div class="fgroup"><label>Al</label><input class="fi" id="vb-cocoo-al" type="date"></div>
+      <div class="fgroup"><label>Compenso lordo annuo (€)</label><input class="fi" id="vb-cocoo-compenso" placeholder="es. 1200"></div>
+      <div class="fgroup"><label>Ore settimanali</label><input class="fi" id="vb-cocoo-ore" type="number" max="24" placeholder="max 24"></div>
+    </div>`,
+  safeguarding:()=>`
+    <div class="fg">
+      <div class="fgroup s2"><label>Responsabile nominato</label><select class="fsel" id="vb-safeg-membro"></select></div>
+      <div class="fgroup"><label>Decorrenza incarico</label><input class="fi" id="vb-safeg-dal" type="date"></div>
+    </div>`,
+  assemblea:()=>`
+    <div class="fg">
+      <div class="fgroup"><label>Data assemblea</label><input class="fi" id="vb-ass-data" type="date"></div>
+      <div class="fgroup"><label>Luogo</label><input class="fi" id="vb-ass-luogo" placeholder="es. sede sociale"></div>
+      <div class="fgroup s2"><label>Ordine del giorno assemblea</label><textarea class="fta" id="vb-ass-odg" placeholder="1. ...&#10;2. ..."></textarea></div>
+    </div>`,
+  quote:()=>`
+    <div class="fg">
+      <div class="fgroup"><label>Stagione di riferimento</label><input class="fi" id="vb-quote-stagione" placeholder="es. 2026/2027"></div>
+      <div class="fgroup"><label>Importo quota (€)</label><input class="fi" id="vb-quote-importo" placeholder="es. 150"></div>
+    </div>`,
+  libero:()=>`
+    <div class="fgroup" style="margin-bottom:8px;"><label>Oggetto della delibera</label><input class="fi" id="vb-libero-oggetto" placeholder="es. Approvazione regolamento interno / Nomina commissione / Modifica statuto..."></div>
+    <div class="fgroup"><label>Testo della delibera (cosa viene deciso)</label><textarea class="fta" id="vb-libero-corpo" style="min-height:100px;" placeholder="Descrivi qui cosa il Consiglio delibera. Il resto del verbale (intestazione, presenti, quorum, formula di chiusura) viene generato automaticamente."></textarea></div>`
+};
+function renderVerbaleCampiTipo(){
+  const tipo=document.getElementById('doc-verbale-tipo').value;
+  document.getElementById('verbale-campi-tipo').innerHTML=VERBALE_CAMPI_TIPO[tipo]();
+  const cd=DB.struttura.consiglioDirettivo||[];
+  if(tipo==='cocoo'){
+    const sel=document.getElementById('vb-cocoo-membro');
+    sel.innerHTML='<option value="">— Seleziona —</option>'+cd.map(m=>`<option value="${m.id}">${m.nome} ${m.cognome} (${m.ruolo})</option>`).join('');
+  }
+  if(tipo==='safeguarding'){
+    const sel=document.getElementById('vb-safeg-membro');
+    sel.innerHTML='<option value="">— Seleziona —</option>'+cd.map(m=>`<option value="${m.id}">${m.nome} ${m.cognome} (${m.ruolo})</option>`).join('');
+  }
+  renderVerbaleConsiglieriCheck();
+}
+function onCocooMembroChange(){
+  const id=document.getElementById('vb-cocoo-membro').value;
+  document.querySelectorAll('.vb-cd-interessato').forEach(cb=>{cb.checked=(cb.dataset.id===id);toggleVbDelega(cb);});
+}
+function renderVerbaleConsiglieriCheck(){
+  const c=document.getElementById('verbale-consiglieri-check');
+  const cd=DB.struttura.consiglioDirettivo||[];
+  const tipo=document.getElementById('doc-verbale-tipo')?.value;
+  if(!cd.length){c.innerHTML='<span style="font-size:12px;color:var(--red);">Nessun membro nel Consiglio Direttivo — vai su "La mia struttura" e aggiungili prima di generare un verbale.</span>';return;}
+  c.innerHTML=cd.map(m=>`
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;background:var(--surface2);border-radius:7px;margin-bottom:5px;font-size:12px;">
+      <div style="flex:1;min-width:140px;font-weight:600;">${m.nome} ${m.cognome} <span style="font-weight:400;color:var(--text2);">(${m.ruolo})</span></div>
+      <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" class="vb-cd-interessato" data-id="${m.id}" style="width:auto;" onchange="toggleVbDelega(this)"> interessato/conflitto</label>
+      <select class="fsel vb-cd-delega" data-id="${m.id}" style="display:none;max-width:200px;font-size:11px;padding:4px 8px;"></select>
+      ${tipo==='contoCorrente'?`<label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" class="vb-cd-operativita" data-id="${m.id}" style="width:auto;"> operatività conto</label>`:''}
+    </div>`).join('');
+}
+function toggleVbDelega(cb){
+  const sel=document.querySelector(`.vb-cd-delega[data-id="${cb.dataset.id}"]`);
+  if(!sel)return;
+  if(cb.checked){
+    const cd=DB.struttura.consiglioDirettivo||[];
+    sel.innerHTML='<option value="">Nessuna delega di rappresentanza</option>'+cd.filter(m=>m.id!==cb.dataset.id).map(m=>`<option value="${m.id}">Delega rappresentanza a: ${m.nome} ${m.cognome}</option>`).join('');
+    sel.style.display='';
+  }else{
+    sel.style.display='none';sel.value='';
+  }
+}
+function apriVerbaleCD(){
+  const cd=DB.struttura.consiglioDirettivo||[];
+  if(!cd.length){toast('Aggiungi prima i membri del Consiglio Direttivo in "La mia struttura"','error');return;}
+  const tipo=document.getElementById('doc-verbale-tipo').value;
+  const data=document.getElementById('verbale-data').value;
+  const ora=document.getElementById('verbale-ora').value;
+  if(!data){toast('Inserisci la data della riunione','error');return;}
+  const membri=cd.map(m=>{
+    const interessatoCb=document.querySelector(`.vb-cd-interessato[data-id="${m.id}"]`);
+    const delegaSel=document.querySelector(`.vb-cd-delega[data-id="${m.id}"]`);
+    const operativitaCb=document.querySelector(`.vb-cd-operativita[data-id="${m.id}"]`);
+    return {
+      id:m.id,nome:m.nome,cognome:m.cognome,ruolo:m.ruolo,rappresentanzaLegale:!!m.rappresentanzaLegale,
+      interessato:interessatoCb?interessatoCb.checked:false,
+      delegaA:(delegaSel&&delegaSel.style.display!=='none')?delegaSel.value:'',
+      operativita:operativitaCb?operativitaCb.checked:false
+    };
+  });
+  let campi={};
+  if(tipo==='contoCorrente')campi={banca:document.getElementById('vb-banca').value};
+  else if(tipo==='cocoo')campi={
+    membroId:document.getElementById('vb-cocoo-membro').value,
+    mansione:document.getElementById('vb-cocoo-mansione').value,
+    dal:document.getElementById('vb-cocoo-dal').value,al:document.getElementById('vb-cocoo-al').value,
+    compenso:document.getElementById('vb-cocoo-compenso').value,ore:document.getElementById('vb-cocoo-ore').value
+  };
+  else if(tipo==='safeguarding')campi={membroId:document.getElementById('vb-safeg-membro').value,dal:document.getElementById('vb-safeg-dal').value};
+  else if(tipo==='assemblea')campi={data:document.getElementById('vb-ass-data').value,luogo:document.getElementById('vb-ass-luogo').value,odg:document.getElementById('vb-ass-odg').value};
+  else if(tipo==='quote')campi={stagione:document.getElementById('vb-quote-stagione').value,importo:document.getElementById('vb-quote-importo').value};
+  else if(tipo==='libero')campi={oggetto:document.getElementById('vb-libero-oggetto').value,corpo:document.getElementById('vb-libero-corpo').value};
+  const st=DB.struttura;
+  const payload={
+    tipo,data:data?formatDate(data):'',ora:ora||'',campi,membri,
+    asdNome:st.nome||'',asdIndirizzo:st.indirizzo||'',asdCap:st.cap||'',asdCitta:st.citta||'',asdCf:st.cf||''
+  };
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  window.open(`${BASE_URL}modulo_verbale_cd.html?d=${encoded}`,'_blank');
+}
+
 function initGeneraDocumenti(){
   ['doc-730-atleta','doc-giust-atleta','doc-visita-atleta','doc-ric-atleta','doc-certiscr-atleta','doc-attestato-atleta'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
@@ -4923,6 +5202,7 @@ function initGeneraDocumenti(){
       (DB.staff||[]).filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
       .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome} (${s.ruolo||''})</option>`).join('');
   });
+  if(document.getElementById('doc-verbale-tipo'))renderVerbaleCampiTipo();
 }
 
 function apriDocumento(tipo){
@@ -4937,6 +5217,10 @@ function apriDocumento(tipo){
     asdCitta:st.citta||'',
     asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''
   };
+  // Presidente/legale rappresentante: attinge dal Consiglio Direttivo (nuovo),
+  // con fallback al vecchio campo piatto "presidente" per compatibilità.
+  const _pres=trovaConsigliere('Presidente');
+  const presidenteNomeCompleto=_pres?`${_pres.nome} ${_pres.cognome}`.trim():(st.presidente||'');
   if(tipo==='730'){
     const id=document.getElementById('doc-730-atleta').value;
     if(!id){toast('Seleziona un atleta','error');return;}
@@ -4997,7 +5281,7 @@ function apriDocumento(tipo){
       compenso:document.getElementById('doc-incarico-compenso').value||'',
       asdEmail:st.email||'',asdWeb:st.web||st.sito||'',
       asdCitta:st.citta||'',
-      presidente:st.presidente||'',
+      presidente:presidenteNomeCompleto,
       dataDoc:oggi,...ps});
     window.open(`${BASE_URL}modulo_incarico.html?${p}`,'_blank');
   }
@@ -5014,9 +5298,9 @@ function apriDocumento(tipo){
       mansione:document.getElementById('doc-cocoo-mansione').value||'Istruttore sportivo',
       dal:dal?formatDate(dal):'',al:al?formatDate(al):'',
       compenso,ore:document.getElementById('doc-cocoo-ore').value||'',
-      rappresentante:document.getElementById('doc-cocoo-rappresentante').value||st.presidente||'',
+      rappresentante:document.getElementById('doc-cocoo-rappresentante').value||presidenteNomeCompleto,
       asdEmail:st.email||'',asdCitta:st.citta||'',
-      presidente:st.presidente||'',
+      presidente:presidenteNomeCompleto,
       dataDoc:oggi,...ps});
     window.open(`${BASE_URL}modulo_cocoo_sportivo.html?${p}`,'_blank');
   }
@@ -5031,7 +5315,7 @@ function apriDocumento(tipo){
       dal:dal?formatDate(dal):oggi,
       asdEmail:st.email||'',asdWeb:st.web||st.sito||'',
       asdCitta:st.citta||'',
-      presidente:st.presidente||'',
+      presidente:presidenteNomeCompleto,
       dataDoc:oggi,...ps});
     window.open(`${BASE_URL}modulo_duty_officer.html?${p}`,'_blank');
   }
@@ -5485,15 +5769,19 @@ function generaContrattoSponsor(id){
   const curr=getStagioneCorrente?getStagioneCorrente():null;
   const stagione=curr?curr.label:'';
   const oggi=new Date().toISOString().slice(0,10);
+  const _presSponsor=trovaConsigliere('Presidente')||{};
   const ps=DB.struttura?{
     asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||DB.struttura.cf||'',
     asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',
     asdCap:DB.struttura.cap||'',
     asdCitta:DB.struttura.citta||'',
-    asdPresidente:DB.struttura.presidente||'',asdPresidenteNascita:DB.struttura.presidenteNascita||'',
-    asdPresidenteLuogoNascita:DB.struttura.presidenteLuogoNascita||'',asdPresidenteCf:DB.struttura.presidenteCf||'',
-    asdPresidenteResidenza:DB.struttura.presidenteResidenza||'',asdPresidenteCi:DB.struttura.presidenteCi||'',
-    asdPresidenteCiScadenza:DB.struttura.presidenteCiScadenza?formatDate(DB.struttura.presidenteCiScadenza):'',
+    asdPresidente:`${_presSponsor.nome||''} ${_presSponsor.cognome||''}`.trim()||DB.struttura.presidente||'',
+    asdPresidenteNascita:_presSponsor.nascita?formatDate(_presSponsor.nascita):(DB.struttura.presidenteNascita||''),
+    asdPresidenteLuogoNascita:_presSponsor.luogoNascita||DB.struttura.presidenteLuogoNascita||'',
+    asdPresidenteCf:_presSponsor.cf||DB.struttura.presidenteCf||'',
+    asdPresidenteResidenza:_presSponsor.residenza||DB.struttura.presidenteResidenza||'',
+    asdPresidenteCi:_presSponsor.ciNumero||DB.struttura.presidenteCi||'',
+    asdPresidenteCiScadenza:_presSponsor.ciScadenza?formatDate(_presSponsor.ciScadenza):(DB.struttura.presidenteCiScadenza?formatDate(DB.struttura.presidenteCiScadenza):''),
     asdEmail:DB.struttura.email||'',asdTel:DB.struttura.telefono||DB.struttura.tel||'',asdWeb:DB.struttura.sito||DB.struttura.web||'',
     asdAffiliazione:DB.struttura.affiliazione||''
   }:{};
@@ -5782,7 +6070,8 @@ const GUIDA_VOCI=[
   {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva, dati ASD e sponsor, descrizione e importo del contratto.',tag:'fattura sponsor generare documento numerazione'},
   {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
 
-  {cat:'🏛️ Struttura',titolo:'Inserire i dati del Presidente / Legale rappresentante',testo:'Vai su La mia struttura → IDS → sezione \"⚖️ Presidente / Legale rappresentante\". Inserisci nome, data e luogo di nascita, CF, residenza, numero e scadenza della carta d\'identità. Questi dati vengono riutilizzati automaticamente nei contratti di sponsorizzazione.',tag:'presidente legale rappresentante struttura dati contratto'},
+  {cat:'🏛️ Struttura',titolo:'Inserire i dati del Consiglio Direttivo',testo:'Vai su La mia struttura → sezione "⚖️ Consiglio Direttivo" → "+ Aggiungi membro". Inserisci ruolo, nome, cognome, dati anagrafici, CF, residenza, documento d\'identità per ciascun membro (Presidente, Vicepresidente, Tesoriere, Segretario, Consiglieri). Questi dati vengono riutilizzati automaticamente nei contratti, nei verbali e negli altri documenti generabili. Aggiorna questa sezione ogni volta che cambiano le cariche sociali.',tag:'presidente vicepresidente consiglio direttivo legale rappresentante struttura dati contratto verbale'},
+  {cat:'📄 Documenti',titolo:'Generare un verbale del Consiglio Direttivo',testo:'Vai su Genera documenti → card "🗳️ Verbale Consiglio Direttivo". Scegli il tipo di delibera (apertura conto corrente, contratto co.co.co., nomina Safeguarding, convocazione assemblea, quote associative, o testo libero per tutto il resto), compila i campi specifici, e per ogni consigliere presente segna "interessato/conflitto" se ha un interesse diretto nella delibera: verrà registrato come astenuto, con eventuale delega di rappresentanza per la firma. L\'elenco dei consiglieri viene letto automaticamente da "La mia struttura" — se è vuoto, aggiungili prima da lì.',tag:'verbale consiglio direttivo delibera conto corrente cocoo safeguarding assemblea quote conflitto interesse astensione delega'},
   {cat:'🏛️ Struttura',titolo:'Archiviare i documenti della struttura',testo:'Vai su La mia struttura → Documenti. Per ogni documento (Statuto, Atto Costitutivo, ecc.) inserisci nome, data e link al file su Drive: il nome diventa un link cliccabile che apre il documento.',tag:'documenti struttura statuto atto costitutivo drive link'},
 
   {cat:'🔍 Ricerca',titolo:'Cercare uno sponsor',testo:'La barra di ricerca globale in alto cerca anche tra gli sponsor: ragione sociale, categoria, referente e descrizione del contratto. Cliccando sul risultato si apre direttamente la scheda dello sponsor.',tag:'ricerca globale sponsor cercare'},

@@ -2,6 +2,18 @@
 
 ---
 
+## v5.0.0 · Agosto 2026
+
+### Nuove funzionalità
+- **Consiglio Direttivo strutturato** — nuova sezione in "La mia struttura": elenco completo e ripetibile dei membri del Consiglio Direttivo (ruolo, dati anagrafici, CF, residenza, documento d'identità, rappresentanza legale, durata mandato), non più limitato al solo Presidente. Sostituisce i vecchi campi fissi "Presidente/Legale rappresentante" (migrati automaticamente al primo avvio) e resta valido sia in caso di cambio cariche sia per una nuova installazione dell'app presso un altro cliente.
+- **Verbale Consiglio Direttivo generico** — nuovo generatore in "Genera documenti": intestazione, elenco presenti e quorum letti automaticamente dal Consiglio Direttivo, con sei tipologie di delibera pronte all'uso (apertura conto corrente, contratto co.co.co. istruttore/collaboratore, nomina Responsabile Safeguarding, convocazione assemblea, determinazione quote associative, e un tipo a testo libero per tutto il resto — regolamenti, deleghe, nomine di commissioni, provvedimenti disciplinari, modifiche statutarie). Gestione generica di conflitto d'interesse: ogni consigliere può essere segnato come "interessato" (astensione automatica dal voto) con eventuale delega di rappresentanza per la firma, riutilizzando lo schema già validato per i contratti co.co.co. di Presidente e Vicepresidente.
+- **Contratti e documenti aggiornati** — il contratto co.co.co. sportivo e il contratto di sponsorizzazione ora leggono i dati del legale rappresentante dal nuovo Consiglio Direttivo invece dei vecchi campi fissi.
+
+### File aggiunti
+- `modulo_verbale_cd.html`
+
+---
+
 ## v4.5.0 · Agosto 2026
 
 ### ⚠ Fix critico
