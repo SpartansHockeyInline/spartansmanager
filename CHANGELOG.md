@@ -2,6 +2,13 @@
 
 ---
 
+## v5.0.1 · Agosto 2026
+
+### Fix
+- **Menu a tendina del generatore verbali non aggiornati** — nei menu "Consigliere interessato" e "Responsabile nominato" del Verbale Consiglio Direttivo potevano comparire solo alcuni membri (es. il solo Presidente) se i dati del Consiglio Direttivo arrivavano da Firebase dopo l'apertura della pagina "Genera documenti", perché quella pagina non veniva mai aggiornata automaticamente. Ora si aggiorna da sola quando cambia la composizione del Consiglio Direttivo, senza però azzerare un verbale che si sta compilando se a cambiare sono dati non collegati (es. un nuovo atleta).
+
+---
+
 ## v5.0.0 · Agosto 2026
 
 ### Nuove funzionalità

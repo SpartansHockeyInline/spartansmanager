@@ -424,7 +424,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.0.0 · Agosto 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.0.1 · Agosto 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1690,6 +1690,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.0.1 · Agosto 2026</div>
+        <div class="cl-section">Fix</div>
+        <div class="cl-item"><strong>Menu a tendina del generatore verbali non aggiornati</strong> — nei menu "Consigliere interessato" e "Responsabile nominato" del Verbale Consiglio Direttivo potevano comparire solo alcuni membri (es. il solo Presidente) se i dati del Consiglio Direttivo arrivavano da Firebase dopo l'apertura della pagina "Genera documenti", perché quella pagina non veniva mai aggiornata automaticamente. Ora si aggiorna da sola quando cambia la composizione del Consiglio Direttivo, senza però azzerare un verbale che si sta compilando se a cambiare sono dati non collegati (es. un nuovo atleta).</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.0.0 · Agosto 2026</div>
@@ -5047,7 +5053,7 @@ async function confirmRestore(){
 function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b.data],{type:'application/json'}));a.download=`spartans_backup_${b.ts.slice(0,10)}.json`;a.click();}
 
 // ═══ RENDER ALL ═══════════════════════════════════════════
-function renderAll(){migraConsiglioDirettivo();initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche'){applyFilters();renderStaff();renderMacrogruppi();}if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();
+function renderAll(){migraConsiglioDirettivo();initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche'){applyFilters();renderStaff();renderMacrogruppi();}if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();if(currentPage==='genera-documenti')initGeneraDocumenti();
   setTimeout(checkNuoviComunicatiFisr,3000);
 }
 
@@ -5202,7 +5208,17 @@ function initGeneraDocumenti(){
       (DB.staff||[]).filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
       .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome} (${s.ruolo||''})</option>`).join('');
   });
-  if(document.getElementById('doc-verbale-tipo'))renderVerbaleCampiTipo();
+  // Il generatore di verbali si ri-renderizza solo se il Consiglio Direttivo è
+  // davvero cambiato (numero o composizione), non ad ogni sincronizzazione
+  // Firebase qualsiasi — altrimenti un verbale in corso di compilazione
+  // verrebbe azzerato da un aggiornamento non collegato (es. un nuovo atleta).
+  if(document.getElementById('doc-verbale-tipo')){
+    const cdKey=(DB.struttura.consiglioDirettivo||[]).map(m=>m.id).sort().join(',');
+    if(cdKey!==window._ultimoCdKey){
+      window._ultimoCdKey=cdKey;
+      renderVerbaleCampiTipo();
+    }
+  }
 }
 
 function apriDocumento(tipo){
