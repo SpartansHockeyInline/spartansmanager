@@ -2,6 +2,15 @@
 
 ---
 
+## v5.0.2 · Agosto 2026
+
+### Fix
+- **Verbale CD — esito della votazione poco chiaro** — il verbale generato non dichiarava esplicitamente l'approvazione della delibera: elencava solo chi aveva votato a favore e chi si era astenuto, senza concludere che la delibera risultava approvata. Ora il verbale afferma esplicitamente "la delibera risulta approvata" (all'unanimità, o a maggioranza con il dettaglio di favorevoli/astenuti).
+- **Verbale CD — tipo "Altro" (testo libero)** — il testo inserito come "testo della delibera" veniva ripetuto nella premessa e poi sostituito, nella sezione DELIBERA vera e propria, da un generico "quanto esposto in premessa". Ora il testo inserito diventa direttamente il contenuto della delibera, come atteso.
+- **A-capo non visualizzati** — corretto un errore che impediva la corretta formattazione degli a-capo nei campi a testo libero (ordine del giorno assemblea, testo delibera).
+
+---
+
 ## v5.0.1 · Agosto 2026
 
 ### Fix

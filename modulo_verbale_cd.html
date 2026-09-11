@@ -83,7 +83,7 @@ const TEMPLATES={
     return {
       odg:`Convocazione dell'Assemblea dei soci`,
       corpo:`<p>Il Presidente propone al Consiglio di convocare l'Assemblea dei soci per il giorno ${fmtData(f.data)}, presso ${esc(f.luogo)||'la sede sociale'}, per discutere e deliberare sul seguente ordine del giorno:</p>
-      <p>${(esc(f.odg)||'[ordine del giorno da definire]').replace(/\\n/g,'<br>')}</p>
+      <p>${(esc(f.odg)||'[ordine del giorno da definire]').replace(/\n/g,'<br>')}</p>
       <p>Il Consiglio, condivisa la proposta,</p>
       <div class="delibera-header">DELIBERA</div>
       <p>di convocare l'Assemblea dei soci per il giorno ${fmtData(f.data)}, presso ${esc(f.luogo)||'la sede sociale'}, con l'ordine del giorno sopra riportato, dando mandato al Presidente di curare gli adempimenti di convocazione previsti dallo Statuto sociale.</p>`
@@ -99,11 +99,13 @@ const TEMPLATES={
     };
   },
   libero:(f,ctx)=>{
+    const corpoUtente=(esc(f.corpo)||'[testo della delibera]').replace(/\n/g,'</p><p>');
     return {
       odg:esc(f.oggetto)||'[oggetto della delibera]',
-      corpo:`<p>${(esc(f.corpo)||'[testo della delibera]').replace(/\\n/g,'</p><p>')}</p>
+      corpo:`<p>Il Presidente illustra al Consiglio la proposta relativa a: <strong>${esc(f.oggetto)||'[oggetto]'}</strong>.</p>
+      <p>Il Consiglio, dopo discussione,</p>
       <div class="delibera-header">DELIBERA</div>
-      <p>quanto esposto in premessa.</p>`
+      <p>${corpoUtente}</p>`
     };
   }
 };
@@ -132,8 +134,8 @@ function build(){
   const votanti=ctx.membri.filter(m=>!m.interessato).map(m=>`${m.nome} ${m.cognome}`);
   const astenuti=ctx.membri.filter(m=>m.interessato).map(m=>`${m.nome} ${m.cognome}`);
   const esitoVoto=astenuti.length
-    ? `con il voto favorevole di ${esc(votanti.join(', ')||'—')}, e l'astensione di ${esc(astenuti.join(', '))} in quanto parte/i interessata/e`
-    : `all'unanimità dei presenti`;
+    ? `La delibera risulta <strong>approvata</strong> a maggioranza dei presenti aventi diritto di voto, con il voto favorevole di ${esc(votanti.join(', ')||'—')}, e con l'astensione di ${esc(astenuti.join(', '))} in quanto part${astenuti.length>1?'i interessate':'e interessata'}.`
+    : `La delibera risulta <strong>approvata all'unanimità</strong> dei presenti.`;
 
   const html=`
     <h1>Verbale di riunione del Consiglio Direttivo</h1>
@@ -148,7 +150,7 @@ function build(){
     <p>Si passa alla trattazione del punto all'ordine del giorno.</p>
     ${corpo}
     ${noteAstensioni.length?`<p style="margin-top:14px;"><em>${noteAstensioni.join(' ')}</em></p>`:''}
-    <p style="margin-top:6px;">Esito della votazione: ${esitoVoto}.</p>
+    <p style="margin-top:6px;">${esitoVoto}</p>
     <p style="margin-top:18px;">Esaurito il punto all'ordine del giorno e null'altro essendovi da discutere o deliberare, il Presidente dichiara sciolta la seduta.</p>
     <p>Del che è redatto il presente verbale, che viene letto, approvato e sottoscritto seduta stante da tutti i Consiglieri presenti.</p>
     <div class="firme">
