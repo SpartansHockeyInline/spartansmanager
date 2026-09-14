@@ -424,7 +424,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.0.2 · Agosto 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.1.0 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -701,7 +701,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <th>Vis. Medica</th>
             <th>Assicurazione</th>
             <th>Abbonamento</th>
-            <th>Moduli</th>
+            <th title="Riepilogo dei 7 passi di iscrizione">Checklist</th>
+            <th title="Regolarità dei pagamenti mensili della quota">Pagamenti mensili</th>
             <th class="sortable" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
             <th>Azioni</th>
           </tr></thead>
@@ -1390,7 +1391,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div id="checklist-iscritto-content"></div>
       </div>
     </div>
-    <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-socio')">Annulla</button><button class="btn btn-p" onclick="saveSocio()">💾 Salva atleta</button></div>
+    <div class="mf">
+      <button class="btn btn-s" id="btn-elimina-socio" style="display:none;color:var(--red);border-color:var(--red);" onclick="if(confirm('Eliminare questo atleta?')){deleteSocio(currentEditId);closeModal('modal-socio');}">🗑️ Elimina</button>
+      <div style="flex:1;"></div>
+      <button class="btn btn-s" onclick="closeModal('modal-socio')">Annulla</button>
+      <button class="btn btn-p" onclick="saveSocio()">💾 Salva atleta</button>
+    </div>
   </div>
 </div>
 
@@ -1690,6 +1696,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.1.0 · Settembre 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Checklist consolidata in tabella Anagrafiche</strong> — la colonna "Moduli" è sostituita da "Checklist": un riepilogo compatto dei 7 passi di iscrizione (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) direttamente nella tabella, con conteggio "N/7" e 7 pallini colorati (verde = fatto), senza dover aprire la scheda di ogni singolo atleta. Passa il mouse sopra per vedere il dettaglio di quali passi mancano.</div>
+        <div class="cl-item"><strong>Stato pagamenti mensili in tabella</strong> — nuova colonna che segnala a colpo d'occhio se un atleta è "in regola" con la quota mensile o quanti mesi risulta arretrato, calcolato confrontando i mesi trascorsi da quando è iscritto con i pagamenti registrati in Amministrazione (causale contenente "quota"). È una stima basata sui dati già presenti, non un registro di rate separato: se serve un controllo puntuale mese per mese, è un possibile sviluppo futuro.</div>
+        <div class="cl-item"><strong>Eliminazione atleta spostata nella scheda singola</strong> — il pulsante 🗑️ non è più nella tabella (per ridurre il rischio di click accidentali scorrendo l'elenco): ora si trova nella scheda di modifica dell'atleta, accanto al pulsante "Salva".</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.0.2 · Agosto 2026</div>
@@ -2510,6 +2524,8 @@ function openModalSocio(id=null){
   if(!DB.macrogruppi)DB.macrogruppi=[];
   editingId=id;currentEditId=id;tempDocs=[];tempFoto='';
   document.getElementById('modal-socio-title').textContent=id?'Modifica atleta':'Nuovo atleta';
+  const btnElim=document.getElementById('btn-elimina-socio');
+  if(btnElim)btnElim.style.display=id?'':'none';
   document.getElementById('modal-socio').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
   document.getElementById('m-s-foto-wrap').innerHTML='<span id="m-s-foto-initials">?</span>';
   populateCorseSel();
@@ -3196,6 +3212,50 @@ function resetFilters(){
   renderSoci();
 }
 
+// Checklist di iscrizione a 7 passi — logica condivisa tra la tabella Anagrafiche
+// e il tab "✅ Checklist" della scheda atleta, per evitare che le due viste
+// possano disallinearsi nel tempo.
+function computeChecklist(s){
+  const anagraficaOk=!!(s.nome&&s.cognome&&s.nascita&&s.cf&&s.tel);
+  const corsoOk=!!s.corsoId;
+  const iscrizioneFirmata=!!s.iscrizioneAllegato;
+  const privacyFirmata=!!s.privacyAllegato;
+  const hasPagamento=(DB.entrate||[]).some(e=>e.atletaId===s.id);
+  const fisrOk=!!s.tesseraFisr;
+  const visitaOk=!!(s.visitaScad&&(new Date(s.visitaScad)-new Date())>0);
+  return [
+    {key:'anagrafica',label:'Anagrafica completa',ok:anagraficaOk},
+    {key:'corso',label:'Corso assegnato',ok:corsoOk},
+    {key:'iscrizione',label:'Modulo iscrizione firmato',ok:iscrizioneFirmata},
+    {key:'privacy',label:'Modulo privacy firmato',ok:privacyFirmata},
+    {key:'pagamento',label:'Primo pagamento ricevuto',ok:hasPagamento},
+    {key:'fisr',label:'Tessera FISR',ok:fisrOk},
+    {key:'visita',label:'Certificato medico valido',ok:visitaOk}
+  ];
+}
+// Regolarità della quota mensile — euristica basata sui pagamenti già
+// registrati in Amministrazione (entrate con causale contenente "quota"),
+// contando quanti mesi distinti da inizio-iscrizione/inizio-stagione risultano
+// coperti rispetto ai mesi effettivamente trascorsi. Non sostituisce un
+// registro rate-per-rata: se in futuro serve un controllo mese per mese
+// puntuale, va introdotta una struttura dati dedicata.
+function getStatoPagamentoMensile(s){
+  const stagione=getStagioneCorrente?getStagioneCorrente():null;
+  if(!stagione||!stagione.inizio)return{label:'—',ok:null};
+  const inizioStagione=new Date(stagione.inizio);
+  const inizioAtleta=s.creato?new Date(s.creato):inizioStagione;
+  const inizio=inizioAtleta>inizioStagione?inizioAtleta:inizioStagione;
+  const oggi=new Date();
+  if(inizio>oggi)return{label:'—',ok:null};
+  let mesiTrascorsi=(oggi.getFullYear()-inizio.getFullYear())*12+(oggi.getMonth()-inizio.getMonth())+1;
+  if(mesiTrascorsi<1)mesiTrascorsi=1;
+  const mesiPagati=new Set();
+  (DB.entrate||[]).filter(e=>e.atletaId===s.id&&/quota/i.test(e.causale||'')&&e.data&&new Date(e.data)>=inizio)
+    .forEach(e=>mesiPagati.add(e.data.slice(0,7)));
+  const arretrato=mesiTrascorsi-mesiPagati.size;
+  if(arretrato<=0)return{label:'✅ in regola',ok:true};
+  return{label:`⚠ ${arretrato} mes${arretrato>1?'i':'e'} arretrat${arretrato>1?'i':'o'}`,ok:false};
+}
 function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilter='',mgFilter=''){
   const tb=document.getElementById('soci-tbody');
   if(!tb)return;
@@ -3250,7 +3310,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
   const cnt=document.getElementById('soci-count');
   if(cnt)cnt.textContent=listaArricchita.length;
 
-  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty"><div class="ei">👥</div><h3>Nessun atleta trovato</h3></div></td></tr>`;return;}
+  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="15"><div class="empty"><div class="ei">👥</div><h3>Nessun atleta trovato</h3></div></td></tr>`;return;}
 
   tb.innerHTML=listaArricchita.map((s,idx)=>{
     const abb=getAbbStatoSocio(s.id);
@@ -3269,6 +3329,13 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
       else if(diff<30)visitaBadge=`<span class="badge by">⚠ ${Math.round(diff)}gg</span>`;
       else visitaBadge=`<span class="badge bg">✓ ${formatDate(s.visitaScad)}</span>`;
     }
+    const cl=computeChecklist(s);
+    const clOk=cl.filter(c=>c.ok).length;
+    const clColor=clOk===7?'bg':clOk>=4?'by':'br';
+    const clTitle=cl.map(c=>`${c.ok?'✓':'✗'} ${c.label}`).join(' · ');
+    const clBadge=`<div title="${clTitle}"><span class="badge ${clColor}" style="font-size:10px;">${clOk}/7</span><div style="display:flex;gap:2px;margin-top:3px;">${cl.map(c=>`<span style="width:6px;height:6px;border-radius:50%;display:inline-block;background:${c.ok?'var(--green)':'var(--border)'};"></span>`).join('')}</div></div>`;
+    const pagMens=getStatoPagamentoMensile(s);
+    const pagBadge=pagMens.ok===null?`<span class="badge bgy">—</span>`:`<span class="badge ${pagMens.ok?'bg':'br'}" style="font-size:10px;white-space:nowrap;">${pagMens.label}</span>`;
     return`<tr>
       <td class="row-num">${idx+1}</td>
       <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
@@ -3281,9 +3348,10 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
       <td>${visitaBadge}</td>
       <td>${assicBadge}</td>
       <td>${abbBadge}</td>
-      <td>${(()=>{const hi=!!s.iscrizioneAllegato,hp=!!s.privacyAllegato;if(hi&&hp)return'<span class="badge bg" title="Iscrizione ✓ · Privacy ✓">✓ Moduli</span>';if(hi||hp)return`<span class="badge by" title="Iscrizione ${hi?'✓':'✗'} · Privacy ${hp?'✓':'✗'}">⚠ Parziale</span>`;return'<span class="badge br" title="Nessun modulo firmato">✗</span>';})()}</td>
+      <td>${clBadge}</td>
+      <td>${pagBadge}</td>
       <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}">${s.stato||'attivo'}</span></td>
-      <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button><button class="bico" onclick="deleteSocio('${s.id}')">🗑️</button></div></td>
+      <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -3693,6 +3761,10 @@ function renderAlertAbbAtleta(atletaId){
   }
 }
 // ═══ CHECKLIST NUOVO ISCRITTO ═════════════════════════════
+// NB: questa vista dettagliata (con azioni/link per ogni passo) duplica
+// intenzionalmente le condizioni di computeChecklist() qui sopra, perché
+// qui servono anche testo/azione per singolo passo che l'array generico
+// non porta. Se cambia la logica di un passo, aggiornarla in ENTRAMBI i punti.
 function renderChecklistIscritto(){
   const cont=document.getElementById('checklist-iscritto-content');
   if(!cont)return;

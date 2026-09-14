@@ -2,6 +2,15 @@
 
 ---
 
+## v5.1.0 · Settembre 2026
+
+### Nuove funzionalità
+- **Checklist consolidata in tabella Anagrafiche** — la colonna "Moduli" è sostituita da "Checklist": un riepilogo compatto dei 7 passi di iscrizione (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) direttamente nella tabella, con conteggio "N/7" e 7 pallini colorati (verde = fatto), senza dover aprire la scheda di ogni singolo atleta. Passa il mouse sopra per vedere il dettaglio di quali passi mancano.
+- **Stato pagamenti mensili in tabella** — nuova colonna che segnala a colpo d'occhio se un atleta è "in regola" con la quota mensile o quanti mesi risulta arretrato, calcolato confrontando i mesi trascorsi da quando è iscritto con i pagamenti registrati in Amministrazione (causale contenente "quota"). È una stima basata sui dati già presenti, non un registro di rate separato: se serve un controllo puntuale mese per mese, è un possibile sviluppo futuro.
+- **Eliminazione atleta spostata nella scheda singola** — il pulsante 🗑️ non è più nella tabella (per ridurre il rischio di click accidentali scorrendo l'elenco): ora si trova nella scheda di modifica dell'atleta, accanto al pulsante "Salva".
+
+---
+
 ## v5.0.2 · Agosto 2026
 
 ### Fix
