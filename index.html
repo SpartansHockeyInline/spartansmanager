@@ -132,6 +132,7 @@ nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 8px 60px;scrollbar-widt
 /* TABLE */
 .tw{overflow:auto;max-height:calc(100vh - 300px);border-radius:var(--radius);border:1px solid var(--border);}
 .tw table thead th{position:sticky;top:0;background:var(--surface2);z-index:3;}
+.tw table thead tr:nth-child(2) th{top:33px;}
 .tw table th:last-child,.tw table td:last-child{position:sticky;right:0;}
 .tw table th:last-child{background:var(--surface2);z-index:4;}
 .tw table td:last-child{background:var(--surface);z-index:1;box-shadow:-6px 0 8px -6px rgba(0,0,0,.18);}
@@ -424,7 +425,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.1.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.1.1 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -689,23 +690,33 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         </div>
         <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">Visualizzati: <strong id="soci-count">0</strong></div>
         <div class="tw"><table>
-          <thead><tr>
-            <th class="row-num">#</th>
-            <th class="sortable" onclick="sortSoci('cognome')" id="th-cognome">Atleta <span></span></th>
-            <th class="sortable" onclick="sortSoci('eta')" id="th-eta">Età <span></span></th>
-            <th class="sortable" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
-            <th class="sortable" onclick="sortSoci('tipologia')" id="th-tipologia">Tipo <span></span></th>
-            <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso <span></span></th>
-            <th class="sortable" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd">Tessera ASD <span></span></th>
-            <th class="sortable" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
-            <th>Vis. Medica</th>
-            <th>Assicurazione</th>
-            <th>Abbonamento</th>
-            <th title="Riepilogo dei 7 passi di iscrizione">Checklist</th>
-            <th title="Regolarità dei pagamenti mensili della quota">Pagamenti mensili</th>
-            <th class="sortable" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
-            <th>Azioni</th>
-          </tr></thead>
+          <thead>
+          <tr>
+            <th class="row-num" rowspan="2">#</th>
+            <th class="sortable" rowspan="2" onclick="sortSoci('cognome')" id="th-cognome">Atleta <span></span></th>
+            <th class="sortable" rowspan="2" onclick="sortSoci('eta')" id="th-eta">Età <span></span></th>
+            <th class="sortable" rowspan="2" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
+            <th class="sortable" rowspan="2" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso <span></span></th>
+            <th class="sortable" rowspan="2" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd">Tessera ASD <span></span></th>
+            <th class="sortable" rowspan="2" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
+            <th rowspan="2">Vis. Medica</th>
+            <th rowspan="2">Assicurazione</th>
+            <th rowspan="2">Abbonamento</th>
+            <th colspan="7" style="text-align:center;border-bottom:1px solid var(--border);">Checklist iscrizione</th>
+            <th rowspan="2">Pagamenti mensili</th>
+            <th class="sortable" rowspan="2" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
+            <th rowspan="2">Azioni</th>
+          </tr>
+          <tr>
+            <th title="Anagrafica completa" style="font-size:9.5px;padding:5px 3px;text-align:center;">Anagr.</th>
+            <th title="Corso assegnato" style="font-size:9.5px;padding:5px 3px;text-align:center;">Corso</th>
+            <th title="Modulo iscrizione firmato" style="font-size:9.5px;padding:5px 3px;text-align:center;">Iscr.</th>
+            <th title="Modulo privacy firmato" style="font-size:9.5px;padding:5px 3px;text-align:center;">Priv.</th>
+            <th title="Primo pagamento ricevuto" style="font-size:9.5px;padding:5px 3px;text-align:center;">Pag.</th>
+            <th title="Tessera FISR" style="font-size:9.5px;padding:5px 3px;text-align:center;">FISR</th>
+            <th title="Certificato medico valido" style="font-size:9.5px;padding:5px 3px;text-align:center;">Med.</th>
+          </tr>
+          </thead>
           <tbody id="soci-tbody"></tbody>
         </table></div>
       </div>
@@ -770,7 +781,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tw"><table><thead><tr><th>Nome</th><th>Durata</th><th>Prezzo</th><th>Sport</th><th>Note</th><th>Azioni</th></tr></thead><tbody id="piani-tbody"></tbody></table></div>
       </div>
       <div class="tab-panel" id="abbonamenti-tab-attivi">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-abb-socio','')">+ Assegna</button></div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModalAbbNuovo()">+ Assegna</button></div>
         <div class="tw"><table><thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Pagato</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="abbattivi-tbody"></tbody></table></div>
       </div>
       <div class="tab-panel" id="abbonamenti-tab-solleciti">
@@ -1440,7 +1451,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <!-- ABBONAMENTO SOCIO -->
 <div class="mo" id="modal-abb-socio">
   <div class="modal">
-    <div class="mh"><div class="mt">Assegna abbonamento</div><button class="mc" onclick="closeModal('modal-abb-socio')">✕</button></div>
+    <div class="mh"><div class="mt" id="modal-abb-socio-title">Assegna abbonamento</div><button class="mc" onclick="closeModal('modal-abb-socio')">✕</button></div>
     <div class="mb">
       <div class="fg">
         <div class="fgroup s2"><label>Socio *</label><select class="fsel" id="m-as-socio"></select></div>
@@ -1696,6 +1707,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.1.1 · Settembre 2026</div>
+        <div class="cl-section">Fix</div>
+        <div class="cl-item"><strong>Pagamenti mensili non si aggiornavano</strong> — la colonna "Pagamenti mensili" e la voce "Primo pagamento" della Checklist cercavano le entrate con nomi di campo sbagliati (<code>atletaId</code>/<code>causale</code>) mentre Amministrazione le salva come <code>socioId</code>/<code>cat</code>/<code>descr</code>: nessun pagamento veniva mai riconosciuto, qualunque descrizione o categoria si usasse. Corretto — ora riconosce le entrate con categoria "Quota associativa" o "Abbonamento", o descrizione contenente "quota"/"abbonamento".</div>
+        <div class="cl-item"><strong>Nessuna modifica possibile per gli abbonamenti</strong> — la tabella "Abbonamenti attivi" permetteva solo di assegnare un nuovo abbonamento o eliminarne uno esistente, senza alcuna possibilità di correggere quello già assegnato. Aggiunto il pulsante ✏️ per modificare socio, piano, date, importo e metodo di un abbonamento esistente.</div>
+        <div class="cl-section">Altre modifiche</div>
+        <div class="cl-item"><strong>Checklist dettagliata invece di un unico campo</strong> — nella tabella Atleti, i 7 passi della checklist non sono più raggruppati in un unico badge "N/7": ognuno ha ora la propria colonna (✓/✗) sotto l'intestazione di gruppo "Checklist iscrizione", per un controllo immediato senza dover passare il mouse sopra per vedere il dettaglio.</div>
+        <div class="cl-item"><strong>Rimossa la colonna "Tipo"</strong> dalla tabella Atleti — nella vista per singola tipologia (es. tutti "atleta") era un valore ripetuto su ogni riga senza reale utilità; resta comunque disponibile come filtro sopra la tabella.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.1.0 · Settembre 2026</div>
@@ -3220,7 +3241,7 @@ function computeChecklist(s){
   const corsoOk=!!s.corsoId;
   const iscrizioneFirmata=!!s.iscrizioneAllegato;
   const privacyFirmata=!!s.privacyAllegato;
-  const hasPagamento=(DB.entrate||[]).some(e=>e.atletaId===s.id);
+  const hasPagamento=(DB.entrate||[]).some(e=>e.socioId===s.id);
   const fisrOk=!!s.tesseraFisr;
   const visitaOk=!!(s.visitaScad&&(new Date(s.visitaScad)-new Date())>0);
   return [
@@ -3249,8 +3270,12 @@ function getStatoPagamentoMensile(s){
   if(inizio>oggi)return{label:'—',ok:null};
   let mesiTrascorsi=(oggi.getFullYear()-inizio.getFullYear())*12+(oggi.getMonth()-inizio.getMonth())+1;
   if(mesiTrascorsi<1)mesiTrascorsi=1;
+  // Le entrate collegano l'atleta tramite "socioId" (non "atletaId") e usano
+  // i campi "cat" (categoria a tendina: Quota associativa/Abbonamento/...) e
+  // "descr" (descrizione libera) — non esiste un campo "causale".
   const mesiPagati=new Set();
-  (DB.entrate||[]).filter(e=>e.atletaId===s.id&&/quota/i.test(e.causale||'')&&e.data&&new Date(e.data)>=inizio)
+  (DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizio&&
+    (/quota|abbonamento/i.test(e.cat||'')||/quota|abbonamento/i.test(e.descr||'')))
     .forEach(e=>mesiPagati.add(e.data.slice(0,7)));
   const arretrato=mesiTrascorsi-mesiPagati.size;
   if(arretrato<=0)return{label:'✅ in regola',ok:true};
@@ -3310,7 +3335,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
   const cnt=document.getElementById('soci-count');
   if(cnt)cnt.textContent=listaArricchita.length;
 
-  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="15"><div class="empty"><div class="ei">👥</div><h3>Nessun atleta trovato</h3></div></td></tr>`;return;}
+  if(!listaArricchita.length){tb.innerHTML=`<tr><td colspan="20"><div class="empty"><div class="ei">👥</div><h3>Nessun atleta trovato</h3></div></td></tr>`;return;}
 
   tb.innerHTML=listaArricchita.map((s,idx)=>{
     const abb=getAbbStatoSocio(s.id);
@@ -3330,10 +3355,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
       else visitaBadge=`<span class="badge bg">✓ ${formatDate(s.visitaScad)}</span>`;
     }
     const cl=computeChecklist(s);
-    const clOk=cl.filter(c=>c.ok).length;
-    const clColor=clOk===7?'bg':clOk>=4?'by':'br';
-    const clTitle=cl.map(c=>`${c.ok?'✓':'✗'} ${c.label}`).join(' · ');
-    const clBadge=`<div title="${clTitle}"><span class="badge ${clColor}" style="font-size:10px;">${clOk}/7</span><div style="display:flex;gap:2px;margin-top:3px;">${cl.map(c=>`<span style="width:6px;height:6px;border-radius:50%;display:inline-block;background:${c.ok?'var(--green)':'var(--border)'};"></span>`).join('')}</div></div>`;
+    const clCell=(c)=>`<td style="text-align:center;" title="${c.label}: ${c.ok?'fatto':'da fare'}">${c.ok?'<span style="color:var(--green);font-size:13px;">✓</span>':'<span style="color:var(--text3);font-size:13px;">✗</span>'}</td>`;
     const pagMens=getStatoPagamentoMensile(s);
     const pagBadge=pagMens.ok===null?`<span class="badge bgy">—</span>`:`<span class="badge ${pagMens.ok?'bg':'br'}" style="font-size:10px;white-space:nowrap;">${pagMens.label}</span>`;
     return`<tr>
@@ -3341,14 +3363,13 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
       <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
       <td style="font-weight:600;">${s.eta!==null&&s.eta!==undefined?s.eta:'—'}</td>
       <td><span class="badge bgold" style="font-size:10px;">${s.categoriaFisr}</span></td>
-      <td><span class="badge bgy" style="font-size:10px;">${s.tipologia||'atleta'}</span></td>
       <td>${s.corsoNome||'—'}</td>
       <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
       <td>${s.tesseraFisr||'—'}${s.tesseraFisrScad?`<div style="font-size:10px;color:${scadColor(s.tesseraFisrScad)};">scad.${formatDate(s.tesseraFisrScad)}</div>`:''}</td>
       <td>${visitaBadge}</td>
       <td>${assicBadge}</td>
       <td>${abbBadge}</td>
-      <td>${clBadge}</td>
+      ${cl.map(clCell).join('')}
       <td>${pagBadge}</td>
       <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}">${s.stato||'attivo'}</span></td>
       <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button></div></td>
@@ -3777,7 +3798,7 @@ function renderChecklistIscritto(){
   const iscrizioneInviata=!!(s.iscrizioneAllegato||s.privacyAllegato);
   const iscrizioneFirmata=!!s.iscrizioneAllegato;
   const privacyFirmata=!!s.privacyAllegato;
-  const pagamenti=DB.entrate?.filter(e=>e.atletaId===s.id)||[];
+  const pagamenti=DB.entrate?.filter(e=>e.socioId===s.id)||[];
   const hasPagamento=pagamenti.length>0;
   const fisrOk=!!s.tesseraFisr;
   const visitaOk=s.visitaScad&&(new Date(s.visitaScad)-new Date())>0;
@@ -3845,8 +3866,45 @@ function populateSociSel(){document.getElementById('m-as-socio').innerHTML='<opt
 function populatePianiSel(){document.getElementById('m-as-piano').innerHTML='<option value="">Seleziona...</option>'+DB.piani.map(p=>`<option value="${p.id}">${p.nome} — €${p.prezzo}</option>`).join('');}
 
 // ═══ ABBONAMENTI ══════════════════════════════════════════
-function saveAbbSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}const sId=document.getElementById('m-as-socio').value,pId=document.getElementById('m-as-piano').value;if(!sId||!pId){toast('Seleziona socio e piano','error');return;}const s=DB.soci.find(x=>x.id===sId),p=DB.piani.find(x=>x.id===pId);DB.abbonamenti.push({id:uid(),socioId:sId,pianoId:pId,socioNome:`${s.cognome} ${s.nome}`,pianoNome:p.nome,inizio:document.getElementById('m-as-inizio').value,scadenza:document.getElementById('m-as-scadenza').value,pagato:parseFloat(document.getElementById('m-as-pagato').value)||0,metodo:document.getElementById('m-as-metodo').value});saveDB();closeModal('modal-abb-socio');renderAbbAttivi();renderDashboard();toast('Abbonamento assegnato','success');}
-function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=new Date().toISOString().slice(0,10);tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td>€${(parseFloat(a.pagato)||0).toFixed(2)}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></td></tr>`;}).join('');}
+let editAbbTargetId=null;
+function openModalAbbNuovo(){
+  editAbbTargetId=null;
+  openModal('modal-abb-socio','');
+  document.getElementById('modal-abb-socio-title').textContent='Assegna abbonamento';
+  ['m-as-inizio','m-as-scadenza','m-as-pagato'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const metodo=document.getElementById('m-as-metodo');if(metodo)metodo.selectedIndex=0;
+}
+function editAbb(id){
+  const a=DB.abbonamenti.find(x=>x.id===id);if(!a)return;
+  editAbbTargetId=id;
+  openModal('modal-abb-socio','');
+  document.getElementById('modal-abb-socio-title').textContent='Modifica abbonamento';
+  document.getElementById('m-as-socio').value=a.socioId||'';
+  document.getElementById('m-as-piano').value=a.pianoId||'';
+  document.getElementById('m-as-inizio').value=a.inizio||'';
+  document.getElementById('m-as-scadenza').value=a.scadenza||'';
+  document.getElementById('m-as-pagato').value=a.pagato||'';
+  document.getElementById('m-as-metodo').value=a.metodo||'Contanti';
+}
+function saveAbbSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  const sId=document.getElementById('m-as-socio').value,pId=document.getElementById('m-as-piano').value;
+  if(!sId||!pId){toast('Seleziona socio e piano','error');return;}
+  const s=DB.soci.find(x=>x.id===sId),p=DB.piani.find(x=>x.id===pId);
+  const dati={socioId:sId,pianoId:pId,socioNome:`${s.cognome} ${s.nome}`,pianoNome:p.nome,
+    inizio:document.getElementById('m-as-inizio').value,scadenza:document.getElementById('m-as-scadenza').value,
+    pagato:parseFloat(document.getElementById('m-as-pagato').value)||0,metodo:document.getElementById('m-as-metodo').value};
+  if(editAbbTargetId){
+    const i=DB.abbonamenti.findIndex(x=>x.id===editAbbTargetId);
+    if(i>=0)DB.abbonamenti[i]={...DB.abbonamenti[i],...dati};
+    toast('Abbonamento aggiornato','success');
+  }else{
+    DB.abbonamenti.push({id:uid(),...dati});
+    toast('Abbonamento assegnato','success');
+  }
+  editAbbTargetId=null;
+  saveDB();closeModal('modal-abb-socio');renderAbbAttivi();renderDashboard();
+}
+function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=new Date().toISOString().slice(0,10);tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td>€${(parseFloat(a.pagato)||0).toFixed(2)}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><div class="tda"><button class="bico" onclick="editAbb('${a.id}')">✏️</button><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></div></td></tr>`;}).join('');}
 function deleteAbb(id){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Rimuovere?'))return;DB.abbonamenti=DB.abbonamenti.filter(x=>x.id!==id);saveDB();renderAbbAttivi();renderDashboard();}
 
 // ═══ GIORNI/ORARI ═════════════════════════════════════════
@@ -6148,7 +6206,9 @@ const GUIDA_VOCI=[
 
   {cat:'👤 Anagrafiche',titolo:'Generare il certificato di iscrizione',testo:'Vai su Genera Documenti → Certificato di iscrizione. Seleziona l\'atleta: il documento certifica formalmente l\'iscrizione all\'ASD per la stagione sportiva in corso, con tessera ASD/FISR e firma del presidente.',tag:'certificato iscrizione documento atleta'},
   {cat:'👤 Anagrafiche',titolo:'Generare l\'attestato di frequenza',testo:'Vai su Genera Documenti → Attestato di frequenza. Seleziona l\'atleta e inserisci data inizio e data fine del periodo: il documento attesta la partecipazione alle attività nel periodo indicato, con firma del presidente.',tag:'attestato frequenza documento periodo atleta'},
-  {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab \"✅ Checklist\". Mostra i 7 passi del processo di iscrizione (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) con una barra di avanzamento e link diretti alle sezioni da completare.',tag:'checklist nuovo iscritto onboarding passi'},
+  {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab "✅ Checklist" per il dettaglio con barra di avanzamento e link diretti alle sezioni da completare. Gli stessi 7 passi (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) sono visibili anche direttamente nella tabella Atleti, come 7 colonne ✓/✗ sotto l\'intestazione di gruppo "Checklist iscrizione" — così vedi lo stato di tutti gli atleti scorrendo l\'elenco, senza aprire ogni scheda singolarmente.',tag:'checklist nuovo iscritto onboarding passi tabella colonne'},
+  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" nella tabella Atleti mostra "✅ in regola" o "⚠ N mesi arretrati" per ciascun atleta, calcolato confrontando da quando è iscritto (o da inizio stagione se iscritto prima) quanti mesi sono trascorsi e quanti risultano coperti da un\'entrata registrata in Amministrazione con categoria "Quota associativa" o "Abbonamento" (o descrizione contenente "quota"/"abbonamento"). È una stima basata sui pagamenti già registrati, non un registro di rate separato: se le causali usate sono diverse da queste, il calcolo potrebbe non risultare accurato.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate'},
+  {cat:'💳 Abbonamenti',titolo:'Modificare un abbonamento esistente',testo:'Nella pagina Abbonamenti, ogni riga della tabella "Abbonamenti attivi" ha ora anche un pulsante ✏️ (oltre a 🗑️) per modificare socio, piano, date, importo pagato e metodo di un abbonamento già assegnato, senza doverlo eliminare e ricreare da capo.',tag:'abbonamenti modifica piano importo scadenza'},
   {cat:'👤 Anagrafiche',titolo:'Verificare i moduli firmati a colpo d\'occhio',testo:'Nella tabella Anagrafiche → Atleti, la colonna \"Moduli\" mostra ✓ verde se sia il modulo iscrizione che quello privacy sono stati caricati, ⚠ se solo uno dei due, ✗ se nessuno. I link ai file vanno inseriti nella scheda atleta → tab Documenti.',tag:'moduli firmati badge iscrizione privacy tabella'},
   {cat:'👤 Anagrafiche',titolo:'Inserire i dati del documento d\'identità',testo:'Apri la scheda atleta → tab Anagrafica → sezione \"🏛️ Documento d\'identità\". Inserisci tipo documento, numero e data di scadenza: utile per le gare e per le procedure FISR.',tag:'documento identità carta numero scadenza atleta'},
 

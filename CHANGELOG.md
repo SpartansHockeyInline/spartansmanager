@@ -2,6 +2,18 @@
 
 ---
 
+## v5.1.1 · Settembre 2026
+
+### Fix
+- **Pagamenti mensili non si aggiornavano** — la colonna "Pagamenti mensili" e la voce "Primo pagamento" della Checklist cercavano le entrate con nomi di campo sbagliati (`atletaId`/`causale`) mentre Amministrazione le salva come `socioId`/`cat`/`descr`: nessun pagamento veniva mai riconosciuto, qualunque descrizione o categoria si usasse. Corretto — ora riconosce le entrate con categoria "Quota associativa" o "Abbonamento", o descrizione contenente "quota"/"abbonamento".
+- **Nessuna modifica possibile per gli abbonamenti** — la tabella "Abbonamenti attivi" permetteva solo di assegnare un nuovo abbonamento o eliminarne uno esistente, senza alcuna possibilità di correggere quello già assegnato. Aggiunto il pulsante ✏️ per modificare socio, piano, date, importo e metodo di un abbonamento esistente.
+
+### Altre modifiche
+- **Checklist dettagliata invece di un unico campo** — nella tabella Atleti, i 7 passi della checklist non sono più raggruppati in un unico badge "N/7": ognuno ha ora la propria colonna (✓/✗) sotto l'intestazione di gruppo "Checklist iscrizione", per un controllo immediato senza dover passare il mouse sopra per vedere il dettaglio.
+- **Rimossa la colonna "Tipo"** dalla tabella Atleti — nella vista per singola tipologia (es. tutti "atleta") era un valore ripetuto su ogni riga senza reale utilità; resta comunque disponibile come filtro sopra la tabella.
+
+---
+
 ## v5.1.0 · Settembre 2026
 
 ### Nuove funzionalità
