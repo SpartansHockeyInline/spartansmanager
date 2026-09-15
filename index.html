@@ -425,7 +425,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.1.1 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.2.0 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1159,7 +1159,10 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Ricevuta pagamento</div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Ricevuta di avvenuto pagamento quota/abbonamento/attrezzatura.</div>
           <select class="fsel" id="doc-ric-atleta" style="margin-bottom:8px;"><option value="">— Seleziona atleta —</option></select>
-          <input class="fi" id="doc-ric-importo" placeholder="Importo (€)" style="margin-bottom:6px;">
+          <div class="fg" style="margin-bottom:6px;">
+            <input class="fi" id="doc-ric-importo" placeholder="Importo (€)">
+            <select class="fsel" id="doc-ric-metodo"><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>POS</option><option>Altro</option></select>
+          </div>
           <input class="fi" id="doc-ric-causale" placeholder="Causale (es. Quota associativa)" style="margin-bottom:8px;">
           <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('ricevuta')">📄 Genera documento</button>
         </div>
@@ -1707,6 +1710,13 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.2.0 · Settembre 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Metodo di pagamento nella ricevuta</strong> — la card "Ricevuta pagamento" in Genera documenti ora ha un menu per scegliere il metodo (Contanti, Bonifico, Carta, POS, Altro), che prima era fissato sempre a "Contanti" indipendentemente da come era stato effettuato il pagamento.</div>
+        <div class="cl-item"><strong>Proposta automatica di ricevuta dopo un'entrata</strong> — quando registri in Amministrazione un'entrata collegata a un atleta (quota associativa, mensile o qualsiasi altro incasso), l'app chiede subito se vuoi generare la ricevuta, già precompilata con atleta, importo, causale e metodo appena inseriti — senza dover tornare su Genera documenti e reinserire gli stessi dati a mano.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.1.1 · Settembre 2026</div>
@@ -4199,6 +4209,15 @@ function saveMovimento(){if(_isDemo){toast("🎭 Modalità demo — sola lettura
     if(movTipo==='entrata')DB.entrate.push(obj);else DB.uscite.push(obj);
   }
   saveDB();closeModal('modal-movimento');renderAmministrazione();toast('Salvato','success');
+  // Richiamo automatico: se è un'entrata collegata a un atleta, propone
+  // subito di generare la ricevuta con gli stessi dati appena inseriti.
+  if(movTipo==='entrata'&&obj.socioId){
+    setTimeout(()=>{
+      if(confirm(`Generare la ricevuta per ${obj.socioNome} (€${obj.importo.toFixed(2)} · ${obj.descr})?`)){
+        generaRicevutaRapida(obj.socioId,obj.importo,obj.descr,obj.metodo);
+      }
+    },350);
+  }
 }
 function editMovimento(tipo,id){
   editingId=id;movTipo=tipo;
@@ -5359,6 +5378,30 @@ function initGeneraDocumenti(){
   }
 }
 
+// Genera una ricevuta dati socioId/importo/causale/metodo — usata sia dalla
+// card "Ricevuta pagamento" in Genera documenti sia dal richiamo automatico
+// proposto subito dopo aver registrato un'entrata in Amministrazione.
+function generaRicevutaRapida(socioId,importo,causale,metodo){
+  const s=DB.soci.find(x=>x.id===socioId);
+  if(!s){toast('Atleta non trovato per generare la ricevuta','error');return;}
+  const st=DB.struttura;
+  const ps={asdNome:st.nome||'',asdIndirizzo:st.indirizzo||'',asdCap:st.cap||'',asdCitta:st.citta||'',
+    asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''};
+  const stagioneLbl=getStagioneCorrente()?.label||'';
+  const oggi=new Date().toLocaleDateString('it-IT');
+  const numRef=fbDb?fbDb.ref('spartans/contatori/ricevute'):null;
+  const genera=(numRicevuta)=>{
+    const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
+      stagione:stagioneLbl,importo:importo||'',causale:causale||'',descr:causale||'',metodo:metodo||'Contanti',
+      numRicevuta:String(numRicevuta).padStart(4,'0'),dataDoc:oggi,...ps});
+    window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
+  };
+  if(numRef){
+    numRef.transaction(n=>(n||0)+1).then(res=>genera(res.snapshot.val())).catch(()=>genera(Date.now().toString().slice(-4)));
+  } else {
+    genera(Date.now().toString().slice(-4));
+  }
+}
 function apriDocumento(tipo){
   const stagione=getStagioneCorrente()?.label||'';
   const anno=new Date().getFullYear().toString();
@@ -5497,24 +5540,10 @@ function apriDocumento(tipo){
   else if(tipo==='ricevuta'){
     const id=document.getElementById('doc-ric-atleta').value;
     if(!id){toast('Seleziona un atleta','error');return;}
-    const s=DB.soci.find(x=>x.id===id);if(!s)return;
     const importo=document.getElementById('doc-ric-importo').value;
     const causale=document.getElementById('doc-ric-causale').value;
-    // Numero ricevuta progressivo da Firebase
-    const numRef=fbDb?fbDb.ref('spartans/contatori/ricevute'):null;
-    const generaRicevuta=(numRicevuta)=>{
-      const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
-        stagione,importo:importo||'',causale:causale||'',descr:causale||'',metodo:'Contanti',
-        numRicevuta:String(numRicevuta).padStart(4,'0'),dataDoc:oggi,...ps});
-      window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
-    };
-    if(numRef){
-      numRef.transaction(n=>(n||0)+1).then(res=>{
-        generaRicevuta(res.snapshot.val());
-      }).catch(()=>generaRicevuta(Date.now().toString().slice(-4)));
-    } else {
-      generaRicevuta(Date.now().toString().slice(-4));
-    }
+    const metodo=document.getElementById('doc-ric-metodo').value;
+    generaRicevutaRapida(id,importo,causale,metodo);
   }
 }
 
@@ -6195,7 +6224,7 @@ const GUIDA_VOCI=[
   {cat:'📋 Presenze',titolo:'Atleti con bassa frequenza',testo:'Vai su Registro presenze → Alert. Imposta la soglia (default 50%). Vengono mostrati tutti gli atleti con più di 3 sessioni registrate che sono sotto soglia. Da qui puoi contattarli direttamente.',tag:'alert bassa frequenza presenze'},
   {cat:'📅 Calendario',titolo:'Aggiungere una gara o un evento',testo:'Vai su Calendario → clicca su un giorno oppure usa i pulsanti "⚔️ + Gara" o "🏒 + Allenamento" in alto. Compila titolo, data, orario e luogo.',tag:'gara evento calendario aggiungere'},
   {cat:'📅 Calendario',titolo:'Esportare il calendario su Google Calendar',testo:'Vai su Calendario → clicca "📆 iCal". Viene scaricato un file .ics. Aprilo su Google Calendar (o Apple Calendar) per importare tutti gli eventi.',tag:'ical google calendar apple esportare'},
-  {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa.',tag:'ricevuta pagamento documento generare'},
+  {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta, l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti.',tag:'ricevuta pagamento documento generare metodo automatico amministrazione'},
   {cat:'📄 Documenti',titolo:'Generare la certificazione per il 730',testo:'Vai su Genera Documenti → Certificazione quota (730). Seleziona l\'atleta e il documento si pre-compila con i dati anagrafici, la tessera ASD e i dati del genitore. Stampalo e firmalo.',tag:'730 certificazione fiscale documento'},
   {cat:'📄 Documenti',titolo:'Generare la giustificazione scolastica',testo:'Vai su Genera Documenti → Giustificazione scolastica. Seleziona l\'atleta, inserisci il nome dell\'evento e le date di assenza. Il documento viene pre-compilato con i dati dell\'atleta e del genitore.',tag:'giustificazione scuola assenza documento'},
   {cat:'✉️ Comunicazioni',titolo:'Inviare una email a tutti gli atleti',testo:'Vai su Comunicazioni → seleziona i destinatari (o clicca "Seleziona tutti") → scrivi oggetto e messaggio → clicca "📧 Apri Gmail (BCC)". Si apre Gmail con tutti i destinatari in copia nascosta usando l\'account email configurato in "La mia struttura".',tag:'email comunicazione atleti gmail inviare'},

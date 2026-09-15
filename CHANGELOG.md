@@ -2,6 +2,14 @@
 
 ---
 
+## v5.2.0 · Settembre 2026
+
+### Nuove funzionalità
+- **Metodo di pagamento nella ricevuta** — la card "Ricevuta pagamento" in Genera documenti ora ha un menu per scegliere il metodo (Contanti, Bonifico, Carta, POS, Altro), che prima era fissato sempre a "Contanti" indipendentemente da come era stato effettuato il pagamento.
+- **Proposta automatica di ricevuta dopo un'entrata** — quando registri in Amministrazione un'entrata collegata a un atleta (quota associativa, mensile o qualsiasi altro incasso), l'app chiede subito se vuoi generare la ricevuta, già precompilata con atleta, importo, causale e metodo appena inseriti — senza dover tornare su Genera documenti e reinserire gli stessi dati a mano.
+
+---
+
 ## v5.1.1 · Settembre 2026
 
 ### Fix
