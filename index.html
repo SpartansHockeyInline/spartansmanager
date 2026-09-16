@@ -425,7 +425,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.2.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.2.1 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1295,6 +1295,11 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="fgroup"><label>Corso/Squadra</label><select class="fsel" id="m-s-corso"><option value="">— Nessuno —</option></select></div>
           <div class="fgroup"><label>Macrogruppo</label><select class="fsel" id="m-s-macrogruppo"><option value="">— Nessuno —</option></select></div>
           <div class="fgroup"><label>N° Maglia</label><input class="fi" id="m-s-maglia" type="number"></div>
+          <div class="fgroup">
+            <label>Abbonamento</label>
+            <select class="fsel" id="m-s-abbonamento-piano"><option value="">— Nessuno assegnato —</option></select>
+            <div id="m-s-abbonamento-stato" style="font-size:10.5px;margin-top:4px;"></div>
+          </div>
         </div>
         <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 8px;">📇 Tessere</div>
         <div class="fg">
@@ -1710,6 +1715,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.2.1 · Settembre 2026</div>
+        <div class="cl-section">Modifiche di forma alla tabella Atleti</div>
+        <div class="cl-item"><strong>Tessere, visita medica e assicurazione come flag</strong> — le colonne Tessera ASD, Tessera FISR, Vis. Medica e Assicurazione mostrano ora un semplice ✓/✗ invece del numero o della data per esteso, con il dettaglio completo disponibile passando il mouse sopra. Le scadenze imminenti restano comunque segnalate con 60 giorni di anticipo in Dashboard, quindi in tabella basta sapere se la pratica è a posto.</div>
+        <div class="cl-section">Abbonamento nella scheda atleta</div>
+        <div class="cl-item"><strong>Campo Abbonamento ripristinato</strong> — accanto al N° Maglia, la scheda atleta mostra ora il piano assegnato e lo stato dei pagamenti, con possibilità di assegnare o cambiare il piano direttamente da qui (senza dover passare dalla pagina Abbonamenti). Cambiare piano e salvare crea un nuovo abbonamento da oggi, senza cancellare lo storico dei piani precedenti.</div>
+        <div class="cl-item"><strong>Pagamenti mensili calcolati sul piano effettivo dell'atleta</strong> — se è assegnato un abbonamento con un prezzo/durata riconoscibili, lo stato "in regola"/"arretrato" ora confronta i pagamenti ricevuti con la quota mensile DI QUEL piano specifico, non con uno standard generico: un atleta con una quota scontata/agevolata che paga regolarmente secondo il proprio piano risulta correttamente "in regola". Senza un piano assegnato, resta il conteggio per presenza di pagamento mensile già introdotto in precedenza.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.2.0 · Settembre 2026</div>
@@ -2577,6 +2591,7 @@ function openModalSocio(id=null){
       renderTempDocs();renderQuoteAtleta();
     }
   }
+  renderAbbonamentoAtletaField();
   document.getElementById('modal-socio').classList.add('open');
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -2776,6 +2791,24 @@ function saveSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","w
   };
   if(editingId){const i=DB.soci.findIndex(x=>x.id===editingId);if(i>-1)DB.soci[i]=obj;}
   else DB.soci.push(obj);
+  // Sincronizza l'abbonamento assegnato dal campo nella scheda atleta.
+  // Crea un nuovo abbonamento solo se il piano scelto è diverso da quello
+  // già attivo — non tocca nulla se non cambia, non cancella lo storico.
+  const pianoSelId=document.getElementById('m-s-abbonamento-piano')?.value||'';
+  if(pianoSelId){
+    const oggiIso=new Date().toISOString().slice(0,10);
+    const abbAttivo=(DB.abbonamenti||[]).find(a=>a.socioId===obj.id&&(!a.scadenza||a.scadenza>=oggiIso));
+    if(!abbAttivo||abbAttivo.pianoId!==pianoSelId){
+      const piano=(DB.piani||[]).find(p=>p.id===pianoSelId);
+      if(piano){
+        if(!DB.abbonamenti)DB.abbonamenti=[];
+        DB.abbonamenti.push({id:uid(),socioId:obj.id,pianoId:piano.id,
+          socioNome:`${obj.cognome} ${obj.nome}`,pianoNome:piano.nome,
+          inizio:oggiIso,scadenza:calcolaScadenzaPiano(piano.durata,oggiIso),
+          pagato:0,metodo:''});
+      }
+    }
+  }
   saveDB();closeModal('modal-socio');renderSoci();updateBadges();renderDashboard();
   toast(editingId?'Atleta aggiornato':'Atleta aggiunto','success');
 }
@@ -3280,13 +3313,29 @@ function getStatoPagamentoMensile(s){
   if(inizio>oggi)return{label:'—',ok:null};
   let mesiTrascorsi=(oggi.getFullYear()-inizio.getFullYear())*12+(oggi.getMonth()-inizio.getMonth())+1;
   if(mesiTrascorsi<1)mesiTrascorsi=1;
-  // Le entrate collegano l'atleta tramite "socioId" (non "atletaId") e usano
-  // i campi "cat" (categoria a tendina: Quota associativa/Abbonamento/...) e
-  // "descr" (descrizione libera) — non esiste un campo "causale".
+  // Le entrate collegano l'atleta tramite "socioId" e usano i campi "cat"
+  // (categoria a tendina) e "descr" (descrizione libera).
+  const entrateQuota=(DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizio&&
+    (/quota|abbonamento/i.test(e.cat||'')||/quota|abbonamento/i.test(e.descr||'')));
+  // Se l'atleta ha un abbonamento assegnato con una quota mensile calcolabile,
+  // confronta il TOTALE versato con quanto atteso PER QUEL piano (anche se
+  // scontato) — non con uno standard generico uguale per tutti.
+  const oggiIso=oggi.toISOString().slice(0,10);
+  const abbAttivo=(DB.abbonamenti||[]).find(a=>a.socioId===s.id&&(!a.scadenza||a.scadenza>=oggiIso));
+  const piano=abbAttivo?(DB.piani||[]).find(p=>p.id===abbAttivo.pianoId):null;
+  const quotaMensile=piano?getQuotaMensilePiano(piano):null;
+  if(quotaMensile){
+    const totalePagato=entrateQuota.reduce((sum,e)=>sum+(parseFloat(e.importo)||0),0);
+    const atteso=quotaMensile*mesiTrascorsi;
+    const differenza=atteso-totalePagato;
+    if(differenza<=0.5)return{label:'✅ in regola',ok:true}; // margine per arrotondamenti
+    const mesiArretrati=Math.max(1,Math.ceil(differenza/quotaMensile));
+    return{label:`⚠ ${mesiArretrati} mes${mesiArretrati>1?'i':'e'} arretrat${mesiArretrati>1?'i':'o'}`,ok:false};
+  }
+  // Fallback (nessun piano assegnato, o durata non convertibile in mensile
+  // come "Illimitato"): conta i mesi distinti con almeno un pagamento.
   const mesiPagati=new Set();
-  (DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizio&&
-    (/quota|abbonamento/i.test(e.cat||'')||/quota|abbonamento/i.test(e.descr||'')))
-    .forEach(e=>mesiPagati.add(e.data.slice(0,7)));
+  entrateQuota.forEach(e=>mesiPagati.add(e.data.slice(0,7)));
   const arretrato=mesiTrascorsi-mesiPagati.size;
   if(arretrato<=0)return{label:'✅ in regola',ok:true};
   return{label:`⚠ ${arretrato} mes${arretrato>1?'i':'e'} arretrat${arretrato>1?'i':'o'}`,ok:false};
@@ -3352,18 +3401,18 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     const abbBadge=abb
       ?`<span class="badge ${abb.stato==='attivo'?'bg':'br'}">${abb.stato==='attivo'?'✓':'✗ Scad.'}</span>`
       :`<span class="badge bgy">—</span>`;
-    const assicBadge=s.assicurazione==='pagata'?`<span class="badge bg">✓</span>`
-      :s.assicurazione==='non-pagata'?`<span class="badge br">✗</span>`
-      :s.assicurazione==='in-attesa'?`<span class="badge by">⏳</span>`
-      :`<span class="badge bgy">—</span>`;
-    // Visita medica
-    let visitaBadge='<span class="badge bgy">—</span>';
-    if(s.visitaScad){
-      const diff=(new Date(s.visitaScad)-new Date())/86400000;
-      if(diff<0)visitaBadge=`<span class="badge br">Scaduta</span>`;
-      else if(diff<30)visitaBadge=`<span class="badge by">⚠ ${Math.round(diff)}gg</span>`;
-      else visitaBadge=`<span class="badge bg">✓ ${formatDate(s.visitaScad)}</span>`;
-    }
+    // Assicurazione: flag semplice — il dettaglio (ente/polizza/scadenza) è
+    // nella scheda atleta, le scadenze imminenti sono già segnalate in dashboard.
+    const assicOk=s.assicurazione==='pagata';
+    const assicTitle=s.assicurazione==='pagata'?`Pagata${s.assicurazioneScad?' — scad. '+formatDate(s.assicurazioneScad):''}`
+      :s.assicurazione==='in-attesa'?'In attesa di pagamento'
+      :s.assicurazione==='non-pagata'?'Non pagata':'Non specificata';
+    const assicBadge=`<span class="badge ${assicOk?'bg':'bgy'}" title="${assicTitle}">${assicOk?'✓':'✗'}</span>`;
+    // Visita medica: flag semplice (valida/non valida) — la data e il conto
+    // alla rovescia restano nel dettaglio (tooltip) e nelle Scadenze imminenti.
+    const visitaValida=!!(s.visitaScad&&(new Date(s.visitaScad)-new Date())>0);
+    const visitaTitle=s.visitaScad?`Scadenza: ${formatDate(s.visitaScad)}${visitaValida?'':' (scaduta)'}`:'Nessuna visita registrata';
+    const visitaBadge=`<span class="badge ${visitaValida?'bg':'bgy'}" title="${visitaTitle}">${visitaValida?'✓':'✗'}</span>`;
     const cl=computeChecklist(s);
     const clCell=(c)=>`<td style="text-align:center;" title="${c.label}: ${c.ok?'fatto':'da fare'}">${c.ok?'<span style="color:var(--green);font-size:13px;">✓</span>':'<span style="color:var(--text3);font-size:13px;">✗</span>'}</td>`;
     const pagMens=getStatoPagamentoMensile(s);
@@ -3374,8 +3423,8 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
       <td style="font-weight:600;">${s.eta!==null&&s.eta!==undefined?s.eta:'—'}</td>
       <td><span class="badge bgold" style="font-size:10px;">${s.categoriaFisr}</span></td>
       <td>${s.corsoNome||'—'}</td>
-      <td>${s.tesseraAsd||'—'}${s.tesseraAsdScad?`<div style="font-size:10px;color:${scadColor(s.tesseraAsdScad)};">scad.${formatDate(s.tesseraAsdScad)}</div>`:''}</td>
-      <td>${s.tesseraFisr||'—'}${s.tesseraFisrScad?`<div style="font-size:10px;color:${scadColor(s.tesseraFisrScad)};">scad.${formatDate(s.tesseraFisrScad)}</div>`:''}</td>
+      <td><span class="badge ${s.tesseraAsd?'bg':'bgy'}" title="${s.tesseraAsd?`N° ${s.tesseraAsd}${s.tesseraAsdScad?' — scad. '+formatDate(s.tesseraAsdScad):''}`:'Non registrata'}">${s.tesseraAsd?'✓':'✗'}</span></td>
+      <td><span class="badge ${s.tesseraFisr?'bg':'bgy'}" title="${s.tesseraFisr?`N° ${s.tesseraFisr}${s.tesseraFisrScad?' — scad. '+formatDate(s.tesseraFisrScad):''}`:'Non registrata'}">${s.tesseraFisr?'✓':'✗'}</span></td>
       <td>${visitaBadge}</td>
       <td>${assicBadge}</td>
       <td>${abbBadge}</td>
@@ -3405,6 +3454,57 @@ function getAbbStatoSocio(socioId){
   const abbScaduto=DB.abbonamenti.filter(a=>a.socioId===socioId).sort((a,b)=>b.scadenza?.localeCompare(a.scadenza||'')||0)[0];
   if(abbScaduto)return{stato:'scaduto',nome:abbScaduto.pianoNome,scad:abbScaduto.scadenza};
   return null;
+}
+// Data di scadenza di un piano in base alla sua durata testuale, a partire
+// dalla data di inizio indicata. "Stagione" usa la fine della stagione
+// attiva; "Illimitato" o durate non riconosciute non hanno scadenza.
+function calcolaScadenzaPiano(durata,dataInizio){
+  const map={'1 mese':1,'3 mesi':3,'6 mesi':6,'1 anno':12};
+  if(map[durata]){
+    const d=new Date(dataInizio);
+    d.setMonth(d.getMonth()+map[durata]);
+    return d.toISOString().slice(0,10);
+  }
+  if(durata==='Stagione'){
+    const st=getStagioneCorrente();
+    if(st&&st.fine)return st.fine;
+  }
+  return '';
+}
+// Quota mensile "equivalente" di un piano, per confrontare i pagamenti
+// ricevuti con l'importo atteso PER QUEL piano specifico (utile per piani
+// scontati: un atleta con quota ridotta risulta "in regola" rispetto al
+// proprio piano, non rispetto a uno standard generico).
+function getQuotaMensilePiano(piano){
+  if(!piano||!piano.prezzo)return null;
+  const map={'1 mese':1,'3 mesi':3,'6 mesi':6,'1 anno':12};
+  let mesi=map[piano.durata];
+  if(!mesi&&piano.durata==='Stagione'){
+    const st=getStagioneCorrente();
+    if(st&&st.inizio&&st.fine)mesi=Math.max(1,Math.round((new Date(st.fine)-new Date(st.inizio))/(1000*60*60*24*30)));
+    else mesi=10;
+  }
+  if(!mesi)return null; // "Illimitato" o durata non riconosciuta
+  return piano.prezzo/mesi;
+}
+// Popola il campo Abbonamento nella scheda atleta (select piano + stato
+// pagamenti calcolato rispetto al piano effettivamente assegnato).
+function renderAbbonamentoAtletaField(){
+  const sel=document.getElementById('m-s-abbonamento-piano');
+  const statoEl=document.getElementById('m-s-abbonamento-stato');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Nessuno assegnato —</option>'+
+    (DB.piani||[]).map(p=>`<option value="${p.id}">${p.nome} (€${p.prezzo} / ${p.durata})</option>`).join('');
+  if(statoEl)statoEl.innerHTML='';
+  if(!currentEditId)return;
+  const oggi=new Date().toISOString().slice(0,10);
+  const abbAttivo=(DB.abbonamenti||[]).find(a=>a.socioId===currentEditId&&(!a.scadenza||a.scadenza>=oggi));
+  if(abbAttivo)sel.value=abbAttivo.pianoId||'';
+  const s=DB.soci.find(x=>x.id===currentEditId);
+  if(s&&statoEl){
+    const pag=getStatoPagamentoMensile(s);
+    if(pag.ok!==null)statoEl.innerHTML=`<span class="badge ${pag.ok?'bg':'br'}" style="font-size:10px;">${pag.label}</span>`;
+  }
 }
 
 
@@ -6236,8 +6336,10 @@ const GUIDA_VOCI=[
   {cat:'👤 Anagrafiche',titolo:'Generare il certificato di iscrizione',testo:'Vai su Genera Documenti → Certificato di iscrizione. Seleziona l\'atleta: il documento certifica formalmente l\'iscrizione all\'ASD per la stagione sportiva in corso, con tessera ASD/FISR e firma del presidente.',tag:'certificato iscrizione documento atleta'},
   {cat:'👤 Anagrafiche',titolo:'Generare l\'attestato di frequenza',testo:'Vai su Genera Documenti → Attestato di frequenza. Seleziona l\'atleta e inserisci data inizio e data fine del periodo: il documento attesta la partecipazione alle attività nel periodo indicato, con firma del presidente.',tag:'attestato frequenza documento periodo atleta'},
   {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab "✅ Checklist" per il dettaglio con barra di avanzamento e link diretti alle sezioni da completare. Gli stessi 7 passi (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) sono visibili anche direttamente nella tabella Atleti, come 7 colonne ✓/✗ sotto l\'intestazione di gruppo "Checklist iscrizione" — così vedi lo stato di tutti gli atleti scorrendo l\'elenco, senza aprire ogni scheda singolarmente.',tag:'checklist nuovo iscritto onboarding passi tabella colonne'},
-  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" nella tabella Atleti mostra "✅ in regola" o "⚠ N mesi arretrati" per ciascun atleta, calcolato confrontando da quando è iscritto (o da inizio stagione se iscritto prima) quanti mesi sono trascorsi e quanti risultano coperti da un\'entrata registrata in Amministrazione con categoria "Quota associativa" o "Abbonamento" (o descrizione contenente "quota"/"abbonamento"). È una stima basata sui pagamenti già registrati, non un registro di rate separato: se le causali usate sono diverse da queste, il calcolo potrebbe non risultare accurato.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate'},
+  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" nella tabella Atleti mostra "✅ in regola" o "⚠ N mesi arretrati" per ciascun atleta. Se l\'atleta ha un abbonamento assegnato (vedi "Assegnare o cambiare l\'abbonamento di un atleta"), il calcolo confronta i pagamenti ricevuti con la quota mensile DI QUEL piano specifico — utile per chi ha una quota scontata/agevolata, che risulta in regola rispetto al proprio piano e non a uno standard generico. Se non c\'è un piano assegnato, l\'app conta semplicemente i mesi con almeno un pagamento registrato in Amministrazione con categoria "Quota associativa"/"Abbonamento".',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato'},
+  {cat:'💳 Abbonamenti',titolo:'Assegnare o cambiare l\'abbonamento di un atleta',testo:'Nella scheda dell\'atleta (tab Anagrafica), accanto al N° Maglia, il campo "Abbonamento" mostra il piano attualmente assegnato e lo stato dei pagamenti rispetto ad esso. Cambiando il piano dal menu e salvando la scheda, viene creato un nuovo abbonamento con data di inizio da oggi (lo storico dei piani precedenti resta conservato, non viene cancellato). È lo stesso dato mostrato/gestito nella pagina Abbonamenti — modificarlo da un punto o dall\'altro aggiorna la stessa informazione.',tag:'abbonamento scheda atleta piano assegnare cambiare maglia'},
   {cat:'💳 Abbonamenti',titolo:'Modificare un abbonamento esistente',testo:'Nella pagina Abbonamenti, ogni riga della tabella "Abbonamenti attivi" ha ora anche un pulsante ✏️ (oltre a 🗑️) per modificare socio, piano, date, importo pagato e metodo di un abbonamento già assegnato, senza doverlo eliminare e ricreare da capo.',tag:'abbonamenti modifica piano importo scadenza'},
+  {cat:'👤 Anagrafiche',titolo:'Tessere, visita medica e assicurazione come flag in tabella',testo:'Nella tabella Atleti, le colonne Tessera ASD, Tessera FISR, Vis. Medica e Assicurazione mostrano un semplice ✓ (in regola) o ✗ (mancante/da registrare), invece del numero o della data per esteso — passa il mouse sopra per vedere il dettaglio (numero tessera, data di scadenza, ente/polizza). Le scadenze imminenti restano comunque segnalate con 60 giorni di anticipo in Dashboard, quindi qui basta sapere se la pratica è a posto o no.',tag:'tessere visita medica assicurazione flag tabella colonne semplificate'},
   {cat:'👤 Anagrafiche',titolo:'Verificare i moduli firmati a colpo d\'occhio',testo:'Nella tabella Anagrafiche → Atleti, la colonna \"Moduli\" mostra ✓ verde se sia il modulo iscrizione che quello privacy sono stati caricati, ⚠ se solo uno dei due, ✗ se nessuno. I link ai file vanno inseriti nella scheda atleta → tab Documenti.',tag:'moduli firmati badge iscrizione privacy tabella'},
   {cat:'👤 Anagrafiche',titolo:'Inserire i dati del documento d\'identità',testo:'Apri la scheda atleta → tab Anagrafica → sezione \"🏛️ Documento d\'identità\". Inserisci tipo documento, numero e data di scadenza: utile per le gare e per le procedure FISR.',tag:'documento identità carta numero scadenza atleta'},
 

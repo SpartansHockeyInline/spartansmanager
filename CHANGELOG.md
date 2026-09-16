@@ -2,6 +2,17 @@
 
 ---
 
+## v5.2.1 · Settembre 2026
+
+### Modifiche di forma alla tabella Atleti
+- **Tessere, visita medica e assicurazione come flag** — le colonne Tessera ASD, Tessera FISR, Vis. Medica e Assicurazione mostrano ora un semplice ✓/✗ invece del numero o della data per esteso, con il dettaglio completo disponibile passando il mouse sopra. Le scadenze imminenti restano comunque segnalate con 60 giorni di anticipo in Dashboard, quindi in tabella basta sapere se la pratica è a posto.
+
+### Abbonamento nella scheda atleta
+- **Campo Abbonamento ripristinato** — accanto al N° Maglia, la scheda atleta mostra ora il piano assegnato e lo stato dei pagamenti, con possibilità di assegnare o cambiare il piano direttamente da qui (senza dover passare dalla pagina Abbonamenti). Cambiare piano e salvare crea un nuovo abbonamento da oggi, senza cancellare lo storico dei piani precedenti.
+- **Pagamenti mensili calcolati sul piano effettivo dell'atleta** — se è assegnato un abbonamento con un prezzo/durata riconoscibili, lo stato "in regola"/"arretrato" ora confronta i pagamenti ricevuti con la quota mensile DI QUEL piano specifico, non con uno standard generico: un atleta con una quota scontata/agevolata che paga regolarmente secondo il proprio piano risulta correttamente "in regola". Senza un piano assegnato, resta il conteggio per presenza di pagamento mensile già introdotto in precedenza.
+
+---
+
 ## v5.2.0 · Settembre 2026
 
 ### Nuove funzionalità
