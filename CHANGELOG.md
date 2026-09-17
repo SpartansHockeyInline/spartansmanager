@@ -2,6 +2,18 @@
 
 ---
 
+## v5.3.0 · Settembre 2026
+
+### ⚠ Fix sostanziale — calcolo pagamenti mensili
+- **Il conteggio dei mesi dovuti partiva dalla data sbagliata** — usava la data di creazione della scheda atleta, che spesso risale a molto prima della reale iscrizione (es. importazioni o test precedenti), gonfiando artificialmente i mesi risultati arretrati. Ora il conteggio parte dalla data di inizio dell'abbonamento effettivamente assegnato all'atleta, impostabile liberamente.
+- **Gestione di tariffe diverse in mesi diversi** — se un atleta ha avuto più abbonamenti assegnati in sequenza (es. un piano per il mese di iscrizione e uno successivo per la quota a regime), il calcolo ora somma correttamente l'importo atteso per ciascun periodo con il piano/prezzo di competenza, invece di applicare un unico piano a tutta la stagione.
+- **Campo data di inizio nella scheda atleta** — il campo Abbonamento ora ha anche una data di inizio modificabile, invece di essere sempre fissata a "oggi" al momento dell'assegnazione.
+
+### Nuove funzionalità
+- **Quote mensili arretrate in Dashboard** — nuova card "💳 Quote mensili arretrate" che elenca direttamente gli atleti non in regola (calcolato sui pagamenti reali, non sulla sola scadenza "grezza" dell'abbonamento), con pulsanti per sollecitare subito via email o WhatsApp.
+
+---
+
 ## v5.2.1 · Settembre 2026
 
 ### Modifiche di forma alla tabella Atleti

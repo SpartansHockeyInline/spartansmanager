@@ -425,7 +425,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.2.1 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.3.0 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -514,6 +514,10 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="card">
             <div class="card-title">⚠️ Scadenze imminenti</div>
             <div id="ds-scadenze"><div class="empty"><div class="ei">✅</div><p>Nessuna scadenza</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">💳 Quote mensili arretrate</div>
+            <div id="ds-arretrati"><div class="empty"><div class="ei">✅</div><p>Nessun arretrato</p></div></div>
           </div>
         </div>
         <div class="card">
@@ -1297,7 +1301,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="fgroup"><label>N° Maglia</label><input class="fi" id="m-s-maglia" type="number"></div>
           <div class="fgroup">
             <label>Abbonamento</label>
-            <select class="fsel" id="m-s-abbonamento-piano"><option value="">— Nessuno assegnato —</option></select>
+            <select class="fsel" id="m-s-abbonamento-piano" style="margin-bottom:5px;"><option value="">— Nessuno assegnato —</option></select>
+            <input class="fi" id="m-s-abbonamento-inizio" type="date" title="Data di inizio di questo abbonamento (importante per il calcolo dei mesi dovuti)">
             <div id="m-s-abbonamento-stato" style="font-size:10.5px;margin-top:4px;"></div>
           </div>
         </div>
@@ -1715,6 +1720,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.3.0 · Settembre 2026</div>
+        <div class="cl-section">⚠ Fix sostanziale — calcolo pagamenti mensili</div>
+        <div class="cl-item"><strong>Il conteggio dei mesi dovuti partiva dalla data sbagliata</strong> — usava la data di creazione della scheda atleta, che spesso risale a molto prima della reale iscrizione (es. importazioni o test precedenti), gonfiando artificialmente i mesi risultati arretrati. Ora il conteggio parte dalla data di inizio dell'abbonamento effettivamente assegnato all'atleta, impostabile liberamente.</div>
+        <div class="cl-item"><strong>Gestione di tariffe diverse in mesi diversi</strong> — se un atleta ha avuto più abbonamenti assegnati in sequenza (es. un piano per il mese di iscrizione e uno successivo per la quota a regime), il calcolo ora somma correttamente l'importo atteso per ciascun periodo con il piano/prezzo di competenza, invece di applicare un unico piano a tutta la stagione.</div>
+        <div class="cl-item"><strong>Campo data di inizio nella scheda atleta</strong> — il campo Abbonamento ora ha anche una data di inizio modificabile, invece di essere sempre fissata a "oggi" al momento dell'assegnazione.</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Quote mensili arretrate in Dashboard</strong> — nuova card "💳 Quote mensili arretrate" che elenca direttamente gli atleti non in regola (calcolato sui pagamenti reali, non sulla sola scadenza "grezza" dell'abbonamento), con pulsanti per sollecitare subito via email o WhatsApp.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.2.1 · Settembre 2026</div>
@@ -2795,16 +2810,17 @@ function saveSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","w
   // Crea un nuovo abbonamento solo se il piano scelto è diverso da quello
   // già attivo — non tocca nulla se non cambia, non cancella lo storico.
   const pianoSelId=document.getElementById('m-s-abbonamento-piano')?.value||'';
+  const inizioSelDate=document.getElementById('m-s-abbonamento-inizio')?.value||new Date().toISOString().slice(0,10);
   if(pianoSelId){
     const oggiIso=new Date().toISOString().slice(0,10);
     const abbAttivo=(DB.abbonamenti||[]).find(a=>a.socioId===obj.id&&(!a.scadenza||a.scadenza>=oggiIso));
-    if(!abbAttivo||abbAttivo.pianoId!==pianoSelId){
+    if(!abbAttivo||abbAttivo.pianoId!==pianoSelId||abbAttivo.inizio!==inizioSelDate){
       const piano=(DB.piani||[]).find(p=>p.id===pianoSelId);
       if(piano){
         if(!DB.abbonamenti)DB.abbonamenti=[];
         DB.abbonamenti.push({id:uid(),socioId:obj.id,pianoId:piano.id,
           socioNome:`${obj.cognome} ${obj.nome}`,pianoNome:piano.nome,
-          inizio:oggiIso,scadenza:calcolaScadenzaPiano(piano.durata,oggiIso),
+          inizio:inizioSelDate,scadenza:calcolaScadenzaPiano(piano.durata,inizioSelDate),
           pagato:0,metodo:''});
       }
     }
@@ -3304,41 +3320,69 @@ function computeChecklist(s){
 // registro rate-per-rata: se in futuro serve un controllo mese per mese
 // puntuale, va introdotta una struttura dati dedicata.
 function getStatoPagamentoMensile(s){
-  const stagione=getStagioneCorrente?getStagioneCorrente():null;
-  if(!stagione||!stagione.inizio)return{label:'—',ok:null};
-  const inizioStagione=new Date(stagione.inizio);
-  const inizioAtleta=s.creato?new Date(s.creato):inizioStagione;
-  const inizio=inizioAtleta>inizioStagione?inizioAtleta:inizioStagione;
   const oggi=new Date();
-  if(inizio>oggi)return{label:'—',ok:null};
-  let mesiTrascorsi=(oggi.getFullYear()-inizio.getFullYear())*12+(oggi.getMonth()-inizio.getMonth())+1;
-  if(mesiTrascorsi<1)mesiTrascorsi=1;
   // Le entrate collegano l'atleta tramite "socioId" e usano i campi "cat"
   // (categoria a tendina) e "descr" (descrizione libera).
-  const entrateQuota=(DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizio&&
-    (/quota|abbonamento/i.test(e.cat||'')||/quota|abbonamento/i.test(e.descr||'')));
-  // Se l'atleta ha un abbonamento assegnato con una quota mensile calcolabile,
-  // confronta il TOTALE versato con quanto atteso PER QUEL piano (anche se
-  // scontato) — non con uno standard generico uguale per tutti.
-  const oggiIso=oggi.toISOString().slice(0,10);
-  const abbAttivo=(DB.abbonamenti||[]).find(a=>a.socioId===s.id&&(!a.scadenza||a.scadenza>=oggiIso));
-  const piano=abbAttivo?(DB.piani||[]).find(p=>p.id===abbAttivo.pianoId):null;
-  const quotaMensile=piano?getQuotaMensilePiano(piano):null;
-  if(quotaMensile){
-    const totalePagato=entrateQuota.reduce((sum,e)=>sum+(parseFloat(e.importo)||0),0);
-    const atteso=quotaMensile*mesiTrascorsi;
-    const differenza=atteso-totalePagato;
-    if(differenza<=0.5)return{label:'✅ in regola',ok:true}; // margine per arrotondamenti
-    const mesiArretrati=Math.max(1,Math.ceil(differenza/quotaMensile));
-    return{label:`⚠ ${mesiArretrati} mes${mesiArretrati>1?'i':'e'} arretrat${mesiArretrati>1?'i':'o'}`,ok:false};
+  const isQuotaEntrata=e=>/quota|abbonamento/i.test(e.cat||'')||/quota|abbonamento/i.test(e.descr||'');
+
+  // Tutti gli abbonamenti mai assegnati a questo atleta, in ordine di inizio.
+  // NB: usiamo la data di inizio DELL'ABBONAMENTO come ancora dei mesi da
+  // conteggiare — non più la data di creazione della scheda atleta, che può
+  // risalire a molto prima della reale iscrizione (es. importazioni/test
+  // precedenti) e falsava il conteggio dei mesi trascorsi.
+  const abbonamentiAtleta=(DB.abbonamenti||[]).filter(a=>a.socioId===s.id&&a.inizio)
+    .map(a=>({...a,piano:(DB.piani||[]).find(p=>p.id===a.pianoId)}))
+    .filter(a=>a.piano)
+    .sort((a,b)=>a.inizio.localeCompare(b.inizio));
+
+  if(!abbonamentiAtleta.length){
+    // Nessun abbonamento mai assegnato: fallback ancorato a inizio stagione,
+    // conteggio per presenza di pagamento (non per importo atteso).
+    const stagione=getStagioneCorrente?getStagioneCorrente():null;
+    if(!stagione||!stagione.inizio)return{label:'—',ok:null};
+    const inizio=new Date(stagione.inizio);
+    if(inizio>oggi)return{label:'—',ok:null};
+    let mesiTrascorsi=(oggi.getFullYear()-inizio.getFullYear())*12+(oggi.getMonth()-inizio.getMonth())+1;
+    if(mesiTrascorsi<1)mesiTrascorsi=1;
+    const mesiPagati=new Set();
+    (DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizio&&isQuotaEntrata(e))
+      .forEach(e=>mesiPagati.add(e.data.slice(0,7)));
+    const arretrato=mesiTrascorsi-mesiPagati.size;
+    if(arretrato<=0)return{label:'✅ in regola',ok:true};
+    return{label:`⚠ ${arretrato} mes${arretrato>1?'i':'e'} arretrat${arretrato>1?'i':'o'}`,ok:false};
   }
-  // Fallback (nessun piano assegnato, o durata non convertibile in mensile
-  // come "Illimitato"): conta i mesi distinti con almeno un pagamento.
-  const mesiPagati=new Set();
-  entrateQuota.forEach(e=>mesiPagati.add(e.data.slice(0,7)));
-  const arretrato=mesiTrascorsi-mesiPagati.size;
-  if(arretrato<=0)return{label:'✅ in regola',ok:true};
-  return{label:`⚠ ${arretrato} mes${arretrato>1?'i':'e'} arretrat${arretrato>1?'i':'o'}`,ok:false};
+
+  const inizioComplessivo=new Date(abbonamentiAtleta[0].inizio);
+  const totalePagato=(DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizioComplessivo&&isQuotaEntrata(e))
+    .reduce((sum,e)=>sum+(parseFloat(e.importo)||0),0);
+
+  // Somma l'importo ATTESO periodo per periodo, usando la quota mensile del
+  // piano attivo in ciascun periodo — gestisce correttamente prezzi diversi
+  // in mesi diversi (es. quota di iscrizione + mensile ridotta a settembre,
+  // quota piena da ottobre) se assegnati come abbonamenti distinti in sequenza.
+  let atteso=0;
+  for(let i=0;i<abbonamentiAtleta.length;i++){
+    const a=abbonamentiAtleta[i];
+    const quotaMensile=getQuotaMensilePiano(a.piano);
+    if(!quotaMensile)continue; // piano "Illimitato"/non convertibile: non contribuisce
+    const periodoInizio=new Date(a.inizio);
+    const prossimo=abbonamentiAtleta[i+1];
+    // Se c'è un abbonamento successivo, il periodo corrente finisce quando
+    // inizia quello nuovo. Altrimenti (è l'ultimo/unico piano assegnato) resta
+    // valido fino ad oggi: non tronchiamo alla sua scadenza nominale, perché
+    // Antonio non riassegna il piano ogni mese — un'unica assegnazione vale
+    // per tutta la stagione finché non ne viene creata una nuova.
+    let periodoFine=(prossimo&&prossimo.inizio)?new Date(prossimo.inizio):oggi;
+    if(periodoFine>oggi)periodoFine=oggi;
+    if(periodoFine<=periodoInizio)continue;
+    const mesiPeriodo=(periodoFine.getFullYear()-periodoInizio.getFullYear())*12+(periodoFine.getMonth()-periodoInizio.getMonth())+1;
+    atteso+=quotaMensile*Math.max(1,mesiPeriodo);
+  }
+  const differenza=atteso-totalePagato;
+  if(differenza<=0.5)return{label:'✅ in regola',ok:true};
+  const ultimaQuota=getQuotaMensilePiano(abbonamentiAtleta[abbonamentiAtleta.length-1].piano)||Math.max(differenza,1);
+  const mesiArretrati=Math.max(1,Math.ceil(differenza/ultimaQuota));
+  return{label:`⚠ ${mesiArretrati} mes${mesiArretrati>1?'i':'e'} arretrat${mesiArretrati>1?'i':'o'}`,ok:false};
 }
 function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilter='',mgFilter=''){
   const tb=document.getElementById('soci-tbody');
@@ -3492,14 +3536,20 @@ function getQuotaMensilePiano(piano){
 function renderAbbonamentoAtletaField(){
   const sel=document.getElementById('m-s-abbonamento-piano');
   const statoEl=document.getElementById('m-s-abbonamento-stato');
+  const inizioEl=document.getElementById('m-s-abbonamento-inizio');
   if(!sel)return;
   sel.innerHTML='<option value="">— Nessuno assegnato —</option>'+
     (DB.piani||[]).map(p=>`<option value="${p.id}">${p.nome} (€${p.prezzo} / ${p.durata})</option>`).join('');
   if(statoEl)statoEl.innerHTML='';
+  const oggiIso=new Date().toISOString().slice(0,10);
+  if(inizioEl)inizioEl.value=oggiIso;
   if(!currentEditId)return;
-  const oggi=new Date().toISOString().slice(0,10);
-  const abbAttivo=(DB.abbonamenti||[]).find(a=>a.socioId===currentEditId&&(!a.scadenza||a.scadenza>=oggi));
-  if(abbAttivo)sel.value=abbAttivo.pianoId||'';
+  const oggi=new Date();
+  const abbAttivo=(DB.abbonamenti||[]).find(a=>a.socioId===currentEditId&&(!a.scadenza||a.scadenza>=oggiIso));
+  if(abbAttivo){
+    sel.value=abbAttivo.pianoId||'';
+    if(inizioEl&&abbAttivo.inizio)inizioEl.value=abbAttivo.inizio;
+  }
   const s=DB.soci.find(x=>x.id===currentEditId);
   if(s&&statoEl){
     const pag=getStatoPagamentoMensile(s);
@@ -4783,6 +4833,15 @@ function renderDashboard(){
   scad.sort((a,b)=>a.diff-b.diff);
   if(!scad.length)cont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessuna scadenza imminente</p></div>';
   else cont.innerHTML=scad.slice(0,8).map(s=>{const col=s.diff<0?'var(--red)':s.diff<7?'var(--red)':s.diff<14?'var(--yellow)':'var(--text2)';const lbl=s.diff<0?`Scaduta ${Math.abs(s.diff)}gg fa`:s.diff===0?'Oggi!':s.diff===1?'Domani':`${s.diff}gg`;return`<div class="scad-item"><div class="scad-dot" style="background:${col};"></div><div class="scad-info"><div class="scad-name">${s.nome}</div><div class="scad-detail">${s.tipo} · ${formatDate(s.scad)}</div></div><div class="scad-days" style="color:${col};font-weight:${s.diff<=7?'700':'400'};">${lbl}</div></div>`;}).join('');
+  // Quote mensili arretrate — segnalazione diretta e precisa basata sui
+  // pagamenti effettivamente registrati, indipendente dalla scadenza "grezza"
+  // dell'abbonamento (che segnala solo quando il piano stesso va rinnovato).
+  const arrCont=document.getElementById('ds-arretrati');
+  if(arrCont){
+    const arretrati=DB.soci.filter(s=>(s.stato||'attivo')==='attivo').map(s=>({s,pag:getStatoPagamentoMensile(s)})).filter(x=>x.pag.ok===false);
+    if(!arretrati.length)arrCont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessun arretrato</p></div>';
+    else arrCont.innerHTML=arretrati.map(({s,pag})=>`<div class="scad-item"><div class="scad-dot" style="background:var(--red);"></div><div class="scad-info"><div class="scad-name">${s.nome} ${s.cognome}</div><div class="scad-detail">${pag.label}</div></div><div style="display:flex;gap:4px;"><button class="bico" title="Sollecita via email" onclick="sollecitaQuotaEmail('${s.id}')">✉️</button><button class="bico" title="Sollecita via WhatsApp" onclick="sollecitaQuotaWhatsApp('${s.id}')">💬</button></div></div>`).join('');
+  }
   // Riepilogo
   const totE=DB.entrate.reduce((s,e)=>s+e.importo,0),totU=DB.uscite.reduce((s,u)=>s+u.importo,0);
   document.getElementById('ds-riepilogo').innerHTML=[{l:'Impianti',v:DB.impianti.length,i:'🏟️'},{l:'Tecnici',v:DB.maestri.length,i:'🧑‍🏫'},{l:'Entrate',v:`€${totE.toFixed(2)}`,i:'💚',c:'var(--green)'},{l:'Uscite',v:`€${totU.toFixed(2)}`,i:'🔴',c:'var(--red)'},{l:'Saldo',v:`€${(totE-totU).toFixed(2)}`,i:'💰',c:totE-totU>=0?'var(--green)':'var(--red)'}].map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 9px;background:var(--surface2);border-radius:7px;"><span style="font-size:12px;">${r.i} ${r.l}</span><strong style="${r.c?'color:'+r.c:''};font-size:13px;">${r.v}</strong></div>`).join('');
@@ -6229,6 +6288,27 @@ function renderSolleciti(){
   }).join('');
 }
 
+// Solleciti quota mensile — basati sullo stato reale calcolato da
+// getStatoPagamentoMensile (piano assegnato + entrate registrate), non
+// sulla struttura legacy DB.quoteAtleti (mantenuta solo per compatibilità
+// storica e generalmente vuota nell'uso corrente dell'app).
+function sollecitaQuotaEmail(socioId){
+  const s=DB.soci.find(x=>x.id===socioId);if(!s)return;
+  const pag=getStatoPagamentoMensile(s);
+  const email=s.email||s.g1Email||'';
+  const stagione=getStagioneCorrente()?.label||'';
+  const oggetto=`ASD Spartans Hockey Inline — Sollecito quota mensile ${stagione}`;
+  const body=`Gentile ${s.nome} ${s.cognome},\n\nLa contattiamo per segnalarLe che la quota mensile risulta ${pag.label.replace('⚠ ','')}.\n\nLa preghiamo di provvedere al pagamento al più presto.\n\nCordiali saluti,\nStaff ${DB.struttura.nome||'ASD'}`;
+  window.open(`https://mail.google.com/mail/?authuser=${encodeURIComponent(DB.struttura.email||'')}&view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(body)}`,'_blank');
+}
+function sollecitaQuotaWhatsApp(socioId){
+  const s=DB.soci.find(x=>x.id===socioId);if(!s)return;
+  const pag=getStatoPagamentoMensile(s);
+  const tel=(s.tel||s.g1Tel||'').replace(/\D/g,'');
+  const stagione=getStagioneCorrente()?.label||'';
+  const testo=`Gentile ${s.nome} ${s.cognome}, la contattiamo per segnalare che la quota mensile per la ${stagione} risulta ${pag.label.replace('⚠ ','')}. Grazie — Staff ASD Spartans Hockey Inline`;
+  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(testo)}`,'_blank');
+}
 function sollecitaEmail(atletaId){
   const s=DB.soci.find(x=>x.id===atletaId);if(!s)return;
   const quote=(DB.quoteAtleti||[]).filter(q=>q.atletaId===atletaId&&!q.pagata&&q.scadenza);
@@ -6336,7 +6416,9 @@ const GUIDA_VOCI=[
   {cat:'👤 Anagrafiche',titolo:'Generare il certificato di iscrizione',testo:'Vai su Genera Documenti → Certificato di iscrizione. Seleziona l\'atleta: il documento certifica formalmente l\'iscrizione all\'ASD per la stagione sportiva in corso, con tessera ASD/FISR e firma del presidente.',tag:'certificato iscrizione documento atleta'},
   {cat:'👤 Anagrafiche',titolo:'Generare l\'attestato di frequenza',testo:'Vai su Genera Documenti → Attestato di frequenza. Seleziona l\'atleta e inserisci data inizio e data fine del periodo: il documento attesta la partecipazione alle attività nel periodo indicato, con firma del presidente.',tag:'attestato frequenza documento periodo atleta'},
   {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab "✅ Checklist" per il dettaglio con barra di avanzamento e link diretti alle sezioni da completare. Gli stessi 7 passi (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) sono visibili anche direttamente nella tabella Atleti, come 7 colonne ✓/✗ sotto l\'intestazione di gruppo "Checklist iscrizione" — così vedi lo stato di tutti gli atleti scorrendo l\'elenco, senza aprire ogni scheda singolarmente.',tag:'checklist nuovo iscritto onboarding passi tabella colonne'},
-  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" nella tabella Atleti mostra "✅ in regola" o "⚠ N mesi arretrati" per ciascun atleta. Se l\'atleta ha un abbonamento assegnato (vedi "Assegnare o cambiare l\'abbonamento di un atleta"), il calcolo confronta i pagamenti ricevuti con la quota mensile DI QUEL piano specifico — utile per chi ha una quota scontata/agevolata, che risulta in regola rispetto al proprio piano e non a uno standard generico. Se non c\'è un piano assegnato, l\'app conta semplicemente i mesi con almeno un pagamento registrato in Amministrazione con categoria "Quota associativa"/"Abbonamento".',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato'},
+  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" mostra "✅ in regola" o "⚠ N mesi arretrati". Il calcolo si basa sulla data di INIZIO dell\'abbonamento assegnato all\'atleta (non sulla data di creazione della scheda) e confronta il totale dei pagamenti ricevuti — entrate in Amministrazione con categoria "Quota associativa"/"Abbonamento" — con l\'importo atteso in base al/ai piano/i assegnato/i. Il mese in corso viene considerato dovuto fin dal giorno 1 (non è prorato sui giorni effettivi). Se l\'atleta non ha mai avuto un abbonamento assegnato, l\'app conta semplicemente i mesi con almeno un pagamento, da inizio stagione.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato'},
+  {cat:'💳 Abbonamenti',titolo:'Gestire una tariffa diversa per il mese di iscrizione',testo:'Se il primo mese ha un prezzo diverso dai successivi (es. quota di iscrizione + quota ridotta a settembre, poi quota piena da ottobre), il modo corretto è assegnare all\'atleta un SECONDO abbonamento quando cambia la tariffa: 1) crea (se non esiste) un piano "Quota mensile" con il prezzo standard e durata "1 mese"; 2) nella scheda atleta, imposta la data di inizio dell\'abbonamento alla data reale di iscrizione (es. 15/09) — se il totale versato nel primo mese (iscrizione + quota ridotta) coincide con la quota piena, non serve nessun piano separato; 3) se invece il primo mese ha un totale diverso dalla quota a regime, crea un piano dedicato per quel mese (es. "Quota settembre ridotta") e assegnalo con inizio alla data di iscrizione — poi, quando parte la tariffa piena, assegna il piano standard con la sua data di inizio: l\'app userà automaticamente il piano corretto per ciascun periodo. In entrambi i casi, ricordati di registrare ogni pagamento in Amministrazione con categoria "Quota associativa" o "Abbonamento", altrimenti non verrà conteggiato.',tag:'tariffa mese iscrizione settembre ridotta piano cambio prezzo abbonamento sequenza'},
+  {cat:'📊 Dashboard',titolo:'Quote mensili arretrate',testo:'La card "💳 Quote mensili arretrate" in Dashboard elenca direttamente gli atleti non in regola con la quota mensile (calcolato sui pagamenti reali, non sulla scadenza "grezza" dell\'abbonamento), con pulsanti per sollecitare subito il pagamento via email o WhatsApp. È distinta dalla card "Scadenze imminenti", che segnala invece quando un abbonamento/tessera/visita va rinnovato, indipendentemente da quanto sia stato effettivamente pagato.',tag:'dashboard arretrati quote mensili sollecito email whatsapp'},
   {cat:'💳 Abbonamenti',titolo:'Assegnare o cambiare l\'abbonamento di un atleta',testo:'Nella scheda dell\'atleta (tab Anagrafica), accanto al N° Maglia, il campo "Abbonamento" mostra il piano attualmente assegnato e lo stato dei pagamenti rispetto ad esso. Cambiando il piano dal menu e salvando la scheda, viene creato un nuovo abbonamento con data di inizio da oggi (lo storico dei piani precedenti resta conservato, non viene cancellato). È lo stesso dato mostrato/gestito nella pagina Abbonamenti — modificarlo da un punto o dall\'altro aggiorna la stessa informazione.',tag:'abbonamento scheda atleta piano assegnare cambiare maglia'},
   {cat:'💳 Abbonamenti',titolo:'Modificare un abbonamento esistente',testo:'Nella pagina Abbonamenti, ogni riga della tabella "Abbonamenti attivi" ha ora anche un pulsante ✏️ (oltre a 🗑️) per modificare socio, piano, date, importo pagato e metodo di un abbonamento già assegnato, senza doverlo eliminare e ricreare da capo.',tag:'abbonamenti modifica piano importo scadenza'},
   {cat:'👤 Anagrafiche',titolo:'Tessere, visita medica e assicurazione come flag in tabella',testo:'Nella tabella Atleti, le colonne Tessera ASD, Tessera FISR, Vis. Medica e Assicurazione mostrano un semplice ✓ (in regola) o ✗ (mancante/da registrare), invece del numero o della data per esteso — passa il mouse sopra per vedere il dettaglio (numero tessera, data di scadenza, ente/polizza). Le scadenze imminenti restano comunque segnalate con 60 giorni di anticipo in Dashboard, quindi qui basta sapere se la pratica è a posto o no.',tag:'tessere visita medica assicurazione flag tabella colonne semplificate'},
