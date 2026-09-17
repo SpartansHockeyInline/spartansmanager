@@ -431,7 +431,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.4.1 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.4.2 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1735,6 +1735,13 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.4.2 · Settembre 2026</div>
+        <div class="cl-section">⚠ Fix critico — riapertura di un'entrata/uscita mostrava l'atleta/fornitore sbagliato</div>
+        <div class="cl-item"><strong>Il campo "Atleta collegato" (o "Fornitore") non veniva mai ripristinato aprendo ✏️ un movimento esistente</strong> — data, descrizione, importo e categoria tornavano corretti, ma il menu a tendina restava fermo su qualunque valore fosse rimasto dall'ultima registrazione fatta in precedenza. Risultato: riaprendo una vecchia entrata dopo averne registrata una nuova per un altro atleta, sembrava che quella vecchia fosse collegata al secondo atleta — mentre il dato salvato era in realtà sempre corretto. <strong>Attenzione:</strong> se in quella situazione si premeva "Salva" senza accorgersi del valore sbagliato nel menu, il collegamento veniva davvero sovrascritto. Riprodotto e verificato con un test automatico prima di correggerlo, per essere sicuri che il fix risolva esattamente questo comportamento.</div>
+        <div class="cl-item">Se hai già modificato e salvato movimenti in questa condizione, controlla in Amministrazione che l'Atleta collegato di ciascuna entrata corrisponda davvero alla persona giusta — usa lo "Storico pagamenti" nella scheda di ogni atleta (corretto in v5.4.1) come riferimento incrociato.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.4.1 · Settembre 2026</div>
@@ -4451,6 +4458,26 @@ function editMovimento(tipo,id){
   const m=arr.find(x=>x.id===id);if(!m)return;
   document.getElementById('modal-mov-title').textContent=tipo==='entrata'?'Modifica entrata':'Modifica uscita';
   ['data','descr','importo','cat','metodo','note'].forEach(k=>{const el=document.getElementById('m-mov-'+k);if(el)el.value=m[k]||'';});
+  // Campo Atleta collegato (solo entrate) / Fornitore (solo uscite) — prima
+  // non venivano mai ripristinati: riaprendo un movimento esistente restava
+  // selezionato qualunque valore fosse rimasto nel modulo dall'ultima
+  // apertura, mostrando un atleta/fornitore sbagliato (e sovrascrivendolo
+  // davvero, se si salvava senza accorgersene).
+  const soWrap=document.getElementById('m-mov-socio-wrap');
+  const foWrap=document.getElementById('m-mov-fornitore-wrap');
+  if(soWrap)soWrap.style.display=tipo==='entrata'?'':'none';
+  if(foWrap)foWrap.style.display=tipo==='uscita'?'':'none';
+  if(tipo==='entrata'){
+    const sel=document.getElementById('m-mov-socio');
+    if(sel){
+      sel.innerHTML='<option value="">— Nessuno —</option>'+DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it')).map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
+      sel.value=m.socioId||'';
+    }
+  } else {
+    popolaSelectFornitori();
+    const foSel=document.getElementById('m-mov-fornitore');
+    if(foSel)foSel.value=m.fornitoreId||'';
+  }
   document.getElementById('modal-movimento').classList.add('open');
 }
 // Stato ordinamento amministrazione

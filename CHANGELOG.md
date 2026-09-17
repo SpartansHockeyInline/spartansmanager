@@ -2,6 +2,14 @@
 
 ---
 
+## v5.4.2 · Settembre 2026
+
+### ⚠ Fix critico — riapertura di un'entrata/uscita mostrava l'atleta/fornitore sbagliato
+- **Il campo "Atleta collegato" (o "Fornitore") non veniva mai ripristinato aprendo ✏️ un movimento esistente** — data, descrizione, importo e categoria tornavano corretti, ma il menu a tendina restava fermo su qualunque valore fosse rimasto dall'ultima registrazione fatta in precedenza. Risultato: riaprendo una vecchia entrata dopo averne registrata una nuova per un altro atleta, sembrava che quella vecchia fosse collegata al secondo atleta — mentre il dato salvato era in realtà sempre corretto. **Attenzione:** se in quella situazione si premeva "Salva" senza accorgersi del valore sbagliato nel menu, il collegamento veniva davvero sovrascritto. Riprodotto e verificato con un test automatico (simulazione dell'esatta sequenza segnalata, con jsdom) prima di correggerlo.
+- Se hai già modificato e salvato movimenti in questa condizione, controlla in Amministrazione che l'Atleta collegato di ciascuna entrata corrisponda davvero alla persona giusta — usa lo "Storico pagamenti" nella scheda di ogni atleta (corretto in v5.4.1) come riferimento incrociato.
+
+---
+
 ## v5.4.1 · Settembre 2026
 
 ### ⚠ Fix critico — pagamenti di un fratello comparivano su un altro
