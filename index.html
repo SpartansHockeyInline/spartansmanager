@@ -132,10 +132,16 @@ nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 8px 60px;scrollbar-widt
 /* TABLE */
 .tw{overflow:auto;max-height:calc(100vh - 300px);border-radius:var(--radius);border:1px solid var(--border);}
 .tw table thead th{position:sticky;top:0;background:var(--surface2);z-index:3;}
-.tw table thead tr:nth-child(2) th{top:33px;}
 .tw table th:last-child,.tw table td:last-child{position:sticky;right:0;}
 .tw table th:last-child{background:var(--surface2);z-index:4;}
 .tw table td:last-child{background:var(--surface);z-index:1;box-shadow:-6px 0 8px -6px rgba(0,0,0,.18);}
+/* Colonne fisse a sinistra (# e Atleta): restano visibili scorrendo la
+   tabella orizzontalmente, per non perdere il riferimento della riga. */
+.tw table .sticky-col{position:sticky;z-index:2;}
+.tw table th.sticky-col{background:var(--surface2);z-index:5;}
+.tw table td.sticky-col{background:var(--surface);}
+.tw table .row-num.sticky-col{left:0;width:38px;}
+.tw table .sticky-col:not(.row-num){left:38px;min-width:150px;box-shadow:6px 0 8px -6px rgba(0,0,0,.18);}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead th{background:var(--surface2);padding:10px 13px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
 tbody tr{border-top:1px solid var(--border);transition:background var(--tr);}
@@ -387,7 +393,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 .sort-asc::after{content:' ▲';font-size:9px;color:var(--gold);}
 .sort-desc::after{content:' ▼';font-size:9px;color:var(--gold);}
 /* ROW NUMBER */
-.row-num{font-size:11px;color:var(--text3);font-weight:600;text-align:center;min-width:28px;}
+.row-num{font-size:11px;color:var(--text3);font-weight:600;text-align:center;min-width:28px;width:38px;}
 /* CHANGELOG */
 .cl-entry{border-left:3px solid var(--gold);padding:10px 14px;margin-bottom:14px;background:var(--surface2);border-radius:0 8px 8px 0;}
 .cl-ver{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--gold);margin-bottom:6px;}
@@ -425,7 +431,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.4.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.4.1 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -696,29 +702,26 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tw"><table>
           <thead>
           <tr>
-            <th class="row-num" rowspan="2">#</th>
-            <th class="sortable" rowspan="2" onclick="sortSoci('cognome')" id="th-cognome">Atleta <span></span></th>
-            <th class="sortable" rowspan="2" onclick="sortSoci('eta')" id="th-eta">Età <span></span></th>
-            <th class="sortable" rowspan="2" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
-            <th class="sortable" rowspan="2" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso <span></span></th>
-            <th class="sortable" rowspan="2" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd">Tessera ASD <span></span></th>
-            <th class="sortable" rowspan="2" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
-            <th rowspan="2">Vis. Medica</th>
-            <th rowspan="2">Assicurazione</th>
-            <th rowspan="2">Abbonamento</th>
-            <th colspan="7" style="text-align:center;border-bottom:1px solid var(--border);">Checklist iscrizione</th>
-            <th rowspan="2">Pagamenti mensili</th>
-            <th class="sortable" rowspan="2" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
-            <th rowspan="2">Azioni</th>
-          </tr>
-          <tr>
-            <th title="Anagrafica completa" style="font-size:9.5px;padding:5px 3px;text-align:center;">Anagr.</th>
-            <th title="Corso assegnato" style="font-size:9.5px;padding:5px 3px;text-align:center;">Corso</th>
-            <th title="Modulo iscrizione firmato" style="font-size:9.5px;padding:5px 3px;text-align:center;">Iscr.</th>
-            <th title="Modulo privacy firmato" style="font-size:9.5px;padding:5px 3px;text-align:center;">Priv.</th>
-            <th title="Primo pagamento ricevuto" style="font-size:9.5px;padding:5px 3px;text-align:center;">Pag.</th>
-            <th title="Tessera FISR" style="font-size:9.5px;padding:5px 3px;text-align:center;">FISR</th>
-            <th title="Certificato medico valido" style="font-size:9.5px;padding:5px 3px;text-align:center;">Med.</th>
+            <th class="row-num sticky-col">#</th>
+            <th class="sortable sticky-col" onclick="sortSoci('cognome')" id="th-cognome">Atleta <span></span></th>
+            <th class="sortable" onclick="sortSoci('eta')" id="th-eta">Età <span></span></th>
+            <th class="sortable" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
+            <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso <span></span></th>
+            <th class="sortable" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd">Tessera ASD <span></span></th>
+            <th class="sortable" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
+            <th>Vis. Medica</th>
+            <th>Assicurazione</th>
+            <th>Abbonamento</th>
+            <th title="Anagrafica completa">Anagr. ✓</th>
+            <th title="Corso assegnato">Corso ✓</th>
+            <th title="Modulo iscrizione firmato">Iscr. ✓</th>
+            <th title="Modulo privacy firmato">Priv. ✓</th>
+            <th title="Primo pagamento ricevuto">Pag. ✓</th>
+            <th title="Tessera FISR presente">FISR ✓</th>
+            <th title="Certificato medico valido">Med. ✓</th>
+            <th>Pagamenti mensili</th>
+            <th class="sortable" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
+            <th>Azioni</th>
           </tr>
           </thead>
           <tbody id="soci-tbody"></tbody>
@@ -1732,6 +1735,17 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.4.1 · Settembre 2026</div>
+        <div class="cl-section">⚠ Fix critico — pagamenti di un fratello comparivano su un altro</div>
+        <div class="cl-item"><strong>Storico pagamenti errato per famiglie con più figli</strong> — nella scheda atleta, lo "Storico pagamenti" cercava le entrate anche per corrispondenza testuale sul cognome nella descrizione, oltre che per collegamento esplicito. Per fratelli che condividono lo stesso cognome (anche solo in parte, es. un cognome materno composto), questo faceva comparire il pagamento di un fratello anche nella scheda dell'altro, raddoppiando il totale mostrato. Ora il collegamento è solo tramite "Atleta collegato" (socioId): se un'entrata storica non risulta collegata a nessun atleta, va corretta da Amministrazione selezionando l'atleta giusto.</div>
+        <div class="cl-section">Modifiche di forma alla tabella Atleti</div>
+        <div class="cl-item"><strong>Numero Tessera ASD di nuovo visibile</strong> — torna a mostrare il numero effettivo (ordinabile cliccando sull'intestazione), utile per individuare a colpo d'occhio il numero successivo da assegnare a un nuovo atleta. Tessera FISR, Visita medica e Assicurazione restano invece semplici flag ✓/✗.</div>
+        <div class="cl-item"><strong>Colonna Atleta sempre visibile</strong> — insieme al numero di riga, resta fissa a sinistra durante lo scroll orizzontale, così anche scorrendo verso le colonne più a destra si vede sempre a quale atleta si riferisce la riga.</div>
+        <div class="cl-item"><strong>Intestazione su un solo livello</strong> — rimossa la riga di raggruppamento "Checklist iscrizione": tutte le intestazioni di colonna sono ora allo stesso livello. Le colonne della checklist sono rinominate con un ✓ (es. "Corso ✓") per non confondersi con le colonne dati omonime (es. "Corso").</div>
+        <div class="cl-item"><strong>Colonne più compatte</strong> — ridotti font e spaziatura delle colonne meno critiche, per una tabella meno dispersiva scorrendo l'elenco.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.4.0 · Settembre 2026</div>
@@ -3205,14 +3219,15 @@ function renderQuoteAtleta(){
   if(!s)return;
   const cont=document.getElementById('atleta-quote-list');
   if(!cont)return;
-  // Mostra entrate da Amministrazione collegate a questo atleta
-  // Match per socioId esplicito oppure per nome nel campo descr
-  const nomeAtleta=`${s.nome} ${s.cognome}`.toLowerCase();
-  const entrate=(DB.entrate||[]).filter(e=>
-    e.socioId===currentEditId ||
-    (e.descr||'').toLowerCase().includes(nomeAtleta) ||
-    (e.descr||'').toLowerCase().includes(s.cognome.toLowerCase())
-  ).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  // Mostra le entrate da Amministrazione collegate a questo atleta tramite
+  // il campo "Atleta collegato" (socioId) — NON più per corrispondenza di
+  // testo su nome/cognome nella descrizione: con fratelli che condividono
+  // lo stesso cognome (o un cognome composto in comune), quel confronto
+  // faceva comparire il pagamento di un fratello anche nella scheda
+  // dell'altro. Se un'entrata storica non ha socioId collegato, va
+  // corretta da Amministrazione selezionando l'atleta giusto.
+  const entrate=(DB.entrate||[]).filter(e=>e.socioId===currentEditId)
+    .sort((a,b)=>(b.data||'').localeCompare(a.data||''));
   if(!entrate.length){
     cont.innerHTML='<div class="empty" style="padding:14px;"><div class="ei">💰</div><p>Nessun pagamento registrato in Amministrazione per questo atleta</p></div>';
     return;
@@ -3503,19 +3518,19 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     const pagMens=getStatoPagamentoMensile(s);
     const pagBadge=pagMens.ok===null?`<span class="badge bgy">—</span>`:`<span class="badge ${pagMens.ok?'bg':'br'}" style="font-size:10px;white-space:nowrap;">${pagMens.label}</span>`;
     return`<tr>
-      <td class="row-num">${idx+1}</td>
-      <td><div style="display:flex;align-items:center;gap:9px;">${renderAvatar(s,32)}<div><div style="font-weight:600;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:10px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
-      <td style="font-weight:600;">${s.eta!==null&&s.eta!==undefined?s.eta:'—'}</td>
-      <td><span class="badge bgold" style="font-size:10px;">${s.categoriaFisr}</span></td>
-      <td>${s.corsoNome||'—'}</td>
-      <td><span class="badge ${s.tesseraAsd?'bg':'bgy'}" title="${s.tesseraAsd?`N° ${s.tesseraAsd}${s.tesseraAsdScad?' — scad. '+formatDate(s.tesseraAsdScad):''}`:'Non registrata'}">${s.tesseraAsd?'✓':'✗'}</span></td>
+      <td class="row-num sticky-col">${idx+1}</td>
+      <td class="sticky-col"><div style="display:flex;align-items:center;gap:8px;">${renderAvatar(s,26)}<div style="min-width:0;"><div style="font-weight:600;font-size:12.5px;white-space:nowrap;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:9.5px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
+      <td style="font-weight:600;font-size:12px;">${s.eta!==null&&s.eta!==undefined?s.eta:'—'}</td>
+      <td><span class="badge bgold" style="font-size:9.5px;">${s.categoriaFisr}</span></td>
+      <td style="font-size:12px;">${s.corsoNome||'—'}</td>
+      <td style="font-size:12px;white-space:nowrap;">${s.tesseraAsd||'—'}</td>
       <td><span class="badge ${s.tesseraFisr?'bg':'bgy'}" title="${s.tesseraFisr?`N° ${s.tesseraFisr}${s.tesseraFisrScad?' — scad. '+formatDate(s.tesseraFisrScad):''}`:'Non registrata'}">${s.tesseraFisr?'✓':'✗'}</span></td>
       <td>${visitaBadge}</td>
       <td>${assicBadge}</td>
       <td>${abbBadge}</td>
       ${cl.map(clCell).join('')}
       <td>${pagBadge}</td>
-      <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}">${s.stato||'attivo'}</span></td>
+      <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}" style="font-size:10.5px;">${s.stato||'attivo'}</span></td>
       <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button></div></td>
     </tr>`;
   }).join('');
@@ -6511,7 +6526,7 @@ const GUIDA_VOCI=[
 
   {cat:'👤 Anagrafiche',titolo:'Generare il certificato di iscrizione',testo:'Vai su Genera Documenti → Certificato di iscrizione. Seleziona l\'atleta: il documento certifica formalmente l\'iscrizione all\'ASD per la stagione sportiva in corso, con tessera ASD/FISR e firma del presidente.',tag:'certificato iscrizione documento atleta'},
   {cat:'👤 Anagrafiche',titolo:'Generare l\'attestato di frequenza',testo:'Vai su Genera Documenti → Attestato di frequenza. Seleziona l\'atleta e inserisci data inizio e data fine del periodo: il documento attesta la partecipazione alle attività nel periodo indicato, con firma del presidente.',tag:'attestato frequenza documento periodo atleta'},
-  {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab "✅ Checklist" per il dettaglio con barra di avanzamento e link diretti alle sezioni da completare. Gli stessi 7 passi (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) sono visibili anche direttamente nella tabella Atleti, come 7 colonne ✓/✗ sotto l\'intestazione di gruppo "Checklist iscrizione" — così vedi lo stato di tutti gli atleti scorrendo l\'elenco, senza aprire ogni scheda singolarmente.',tag:'checklist nuovo iscritto onboarding passi tabella colonne'},
+  {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab "✅ Checklist" per il dettaglio con barra di avanzamento e link diretti alle sezioni da completare. Gli stessi 7 passi (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) sono visibili anche direttamente nella tabella Atleti, come colonne ✓/✗ contrassegnate con una spunta nel nome (es. "Corso ✓") per distinguerle dalle colonne dati omonime — così vedi lo stato di tutti gli atleti scorrendo l\'elenco, senza aprire ogni scheda singolarmente.',tag:'checklist nuovo iscritto onboarding passi tabella colonne'},
   {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" mostra "✅ in regola" o "⚠ N mesi arretrati". Il calcolo si basa sulla data di INIZIO dell\'abbonamento assegnato all\'atleta (non sulla data di creazione della scheda) e confronta il totale dei pagamenti ricevuti — entrate in Amministrazione con categoria "Quota associativa"/"Abbonamento" — con l\'importo atteso in base al/ai piano/i assegnato/i. Il mese in corso viene considerato dovuto fin dal giorno 1 (non è prorato sui giorni effettivi). Se l\'atleta non ha mai avuto un abbonamento assegnato, l\'app conta semplicemente i mesi con almeno un pagamento, da inizio stagione.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato'},
   {cat:'💳 Abbonamenti',titolo:'Gestire una tariffa diversa per il mese di iscrizione',testo:'Se il primo mese ha un prezzo diverso dai successivi (es. quota di iscrizione + quota ridotta a settembre, poi quota piena da ottobre), il modo corretto è assegnare all\'atleta un SECONDO abbonamento quando cambia la tariffa: 1) crea (se non esiste) un piano "Quota mensile" con il prezzo standard e durata "1 mese"; 2) nella scheda atleta, imposta la data di inizio dell\'abbonamento alla data reale di iscrizione (es. 15/09) — se il totale versato nel primo mese (iscrizione + quota ridotta) coincide con la quota piena, non serve nessun piano separato; 3) se invece il primo mese ha un totale diverso dalla quota a regime, crea un piano dedicato per quel mese (es. "Quota settembre ridotta") e assegnalo con inizio alla data di iscrizione — poi, quando parte la tariffa piena, assegna il piano standard con la sua data di inizio: l\'app userà automaticamente il piano corretto per ciascun periodo. In entrambi i casi, ricordati di registrare ogni pagamento in Amministrazione con categoria "Quota associativa" o "Abbonamento", altrimenti non verrà conteggiato.',tag:'tariffa mese iscrizione settembre ridotta piano cambio prezzo abbonamento sequenza'},
   {cat:'📊 Dashboard',titolo:'Quote mensili arretrate',testo:'La card "💳 Quote mensili arretrate" in Dashboard elenca direttamente gli atleti non in regola con la quota mensile (calcolato sui pagamenti reali, non sulla scadenza "grezza" dell\'abbonamento), con pulsanti per sollecitare subito il pagamento via email o WhatsApp. È distinta dalla card "Scadenze imminenti", che segnala invece quando un abbonamento/tessera/visita va rinnovato, indipendentemente da quanto sia stato effettivamente pagato.',tag:'dashboard arretrati quote mensili sollecito email whatsapp'},

@@ -2,6 +2,19 @@
 
 ---
 
+## v5.4.1 · Settembre 2026
+
+### ⚠ Fix critico — pagamenti di un fratello comparivano su un altro
+- **Storico pagamenti errato per famiglie con più figli** — nella scheda atleta, lo "Storico pagamenti" cercava le entrate anche per corrispondenza testuale sul cognome nella descrizione, oltre che per collegamento esplicito. Per fratelli che condividono lo stesso cognome (anche solo in parte, es. un cognome materno composto), questo faceva comparire il pagamento di un fratello anche nella scheda dell'altro, raddoppiando il totale mostrato. Ora il collegamento è solo tramite "Atleta collegato" (socioId): se un'entrata storica non risulta collegata a nessun atleta, va corretta da Amministrazione selezionando l'atleta giusto.
+
+### Modifiche di forma alla tabella Atleti
+- **Numero Tessera ASD di nuovo visibile** — torna a mostrare il numero effettivo (ordinabile cliccando sull'intestazione), utile per individuare a colpo d'occhio il numero successivo da assegnare a un nuovo atleta. Tessera FISR, Visita medica e Assicurazione restano invece semplici flag ✓/✗.
+- **Colonna Atleta sempre visibile** — insieme al numero di riga, resta fissa a sinistra durante lo scroll orizzontale, così anche scorrendo verso le colonne più a destra si vede sempre a quale atleta si riferisce la riga.
+- **Intestazione su un solo livello** — rimossa la riga di raggruppamento "Checklist iscrizione": tutte le intestazioni di colonna sono ora allo stesso livello. Le colonne della checklist sono rinominate con un ✓ (es. "Corso ✓") per non confondersi con le colonne dati omonime (es. "Corso").
+- **Colonne più compatte** — ridotti font e spaziatura delle colonne meno critiche, per una tabella meno dispersiva scorrendo l'elenco.
+
+---
+
 ## v5.4.0 · Settembre 2026
 
 ### Fix
