@@ -2,6 +2,22 @@
 
 ---
 
+## v5.4.0 · Settembre 2026
+
+### Fix
+- **Impossibile registrare un'entrata a zero euro** — la validazione trattava l'importo 0 come "dato mancante" (comportamento di JavaScript), bloccando la registrazione di abbonamenti/quote gratuite. Ora un importo di 0€ è accettato; resta bloccato solo il campo lasciato vuoto o un valore negativo. La Checklist ("primo pagamento") e il calcolo dei pagamenti mensili riconoscono inoltre come "in regola" un atleta con un piano assegnato a costo zero, anche senza nessuna entrata registrata.
+- **Registro storico presenze mostrava una pagina vuota all'apertura** — richiedeva di selezionare prima un corso specifico. Ora mostra di default lo storico di tutti i corsi insieme (con colonna Corso per distinguerli), lasciando comunque la possibilità di filtrare su un singolo corso.
+
+### Nuove funzionalità
+- **Registro Ricevute** — nuovo tab "🧾 Ricevute" in Amministrazione: ogni ricevuta generata viene ora registrata in modo permanente (numero, data, atleta, importo, causale, metodo), non solo contata. Se il PDF/la stampa di una ricevuta va perso, può essere rigenerato identico in un click dal registro — prima questa informazione non veniva salvata da nessuna parte e andava persa non appena si chiudeva la scheda del documento.
+- **Link Google Drive nei documenti dell'atleta** — nel tab Documenti della scheda atleta, oltre ad allegare un file, ora si può collegare direttamente il link di un documento salvato su Google Drive (utile per moduli scansionati/firmati recuperati con strumenti come DocHub o Adobe), senza dover scaricare e ricaricare il file nell'app.
+
+### Nota aperta
+- **Fornitori — persistenza tra stagioni**: verificato che `chiudiStagione()` non tocca in alcun modo `DB.fornitori` nel codice attuale — la perdita dati segnalata risale quasi certamente allo stesso incidente di giugno già diagnosticato (chiusura stagione che allora cancellava anche altri dati, prima dei fix). Nessuna azione di codice necessaria per il futuro su questo punto specifico.
+- **Campo con testo non pertinente nella pagina Fornitori**: non individuato tramite revisione del codice (titolo pagina e campo di ricerca risultano corretti) — serve uno screenshot per localizzarlo con certezza.
+
+---
+
 ## v5.3.0 · Settembre 2026
 
 ### ⚠ Fix sostanziale — calcolo pagamenti mensili

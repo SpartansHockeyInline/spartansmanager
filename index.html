@@ -425,7 +425,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.3.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.4.0 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -902,6 +902,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tab" onclick="showTab('amm','prima-nota');renderPrimaNota()">📋 Prima nota</div>
         <div class="tab" onclick="showTab('amm','rendiconto');renderRendiconto()">📈 Rendiconto</div>
         <div class="tab" onclick="showTab('amm','solleciti');renderSolleciti()">🔔 Solleciti</div>
+        <div class="tab" onclick="showTab('amm','ricevute');renderRegistroRicevute()">🧾 Ricevute</div>
       </div>
       <div class="tab-panel active" id="amm-tab-entrate">
         <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-movimento','entrata')">+ Nuova entrata</button></div>
@@ -960,6 +961,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       <div class="tab-panel" id="amm-tab-solleciti">
         <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Quote scadute o in scadenza entro 30 giorni. Clicca su un atleta per preparare il sollecito.</div>
         <div id="solleciti-content"></div>
+      </div>
+      <div class="tab-panel" id="amm-tab-ricevute">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Registro di tutte le ricevute generate dall'app: numero, data, atleta e importo restano tracciati qui anche se la ricevuta stampata/PDF viene persa — puoi rigenerarla identica in qualsiasi momento.</div>
+        <div class="tw"><table><thead><tr>
+          <th>N°</th><th>Data</th><th>Atleta</th><th>Causale</th><th>Importo</th><th>Metodo</th><th>Azioni</th>
+        </tr></thead><tbody id="ricevute-tbody"></tbody></table></div>
       </div>
     </div>
 
@@ -1396,8 +1403,13 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           </select>
           <input class="fi" id="m-s-doc-note" placeholder="Note..." style="flex:1;">
           <input type="file" id="m-s-doc-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none;" onchange="addDocSocio(event)">
-          <button class="btn btn-s btn-sm" onclick="document.getElementById('m-s-doc-file').click()">📎 Allega</button>
+          <button class="btn btn-s btn-sm" onclick="document.getElementById('m-s-doc-file').click()">📎 Allega file</button>
         </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:7px;">
+          <input class="fi" id="m-s-doc-drive-url" placeholder="🔗 Incolla qui il link Google Drive del documento" style="flex:1;min-width:220px;">
+          <button class="btn btn-s btn-sm" onclick="addDocDriveLink()">➕ Collega link</button>
+        </div>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:4px;">Per documenti già scansionati/firmati e salvati su Drive (es. moduli firmati recuperati via DocHub/Adobe): incolla il link invece di allegare il file, evitando di appesantire i dati dell'atleta.</div>
         <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
           <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--gold);">📋 Moduli da inviare per firma</div>
           <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Genera il link del modulo pre-compilato con i dati dell'atleta e invialo via WhatsApp o email. Il destinatario lo stampa, lo firma e lo restituisce.</div>
@@ -1720,6 +1732,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.4.0 · Settembre 2026</div>
+        <div class="cl-section">Fix</div>
+        <div class="cl-item"><strong>Impossibile registrare un'entrata a zero euro</strong> — la validazione trattava l'importo 0 come "dato mancante" (comportamento di JavaScript), bloccando la registrazione di abbonamenti/quote gratuite. Ora un importo di 0€ è accettato; resta bloccato solo il campo lasciato vuoto o un valore negativo. La Checklist ("primo pagamento") e il calcolo dei pagamenti mensili riconoscono inoltre come "in regola" un atleta con un piano assegnato a costo zero, anche senza nessuna entrata registrata.</div>
+        <div class="cl-item"><strong>Registro storico presenze mostrava una pagina vuota all'apertura</strong> — richiedeva di selezionare prima un corso specifico. Ora mostra di default lo storico di tutti i corsi insieme (con colonna Corso per distinguerli), lasciando comunque la possibilità di filtrare su un singolo corso.</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Registro Ricevute</strong> — nuovo tab "🧾 Ricevute" in Amministrazione: ogni ricevuta generata viene ora registrata in modo permanente (numero, data, atleta, importo, causale, metodo), non solo contata. Se il PDF/la stampa di una ricevuta va perso, può essere rigenerato identico in un click dal registro — prima questa informazione non veniva salvata da nessuna parte e andava persa non appena si chiudeva la scheda del documento.</div>
+        <div class="cl-item"><strong>Link Google Drive nei documenti dell'atleta</strong> — nel tab Documenti della scheda atleta, oltre ad allegare un file, ora si può collegare direttamente il link di un documento salvato su Google Drive (utile per moduli scansionati/firmati recuperati con strumenti come DocHub o Adobe), senza dover scaricare e ricaricare il file nell'app.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.3.0 · Settembre 2026</div>
@@ -2747,7 +2769,19 @@ function renderAvatar(s,size=32){const sz=`width:${size}px;height:${size}px;font
 // ═══ DOCUMENTI SOCIO ══════════════════════════════════════
 function addDocSocio(e){const f=e.target.files[0];if(!f)return;if(f.size>3*1024*1024){toast('File max 3MB','error');return;}const tipo=document.getElementById('m-s-doc-tipo').value;const note=document.getElementById('m-s-doc-note').value;const r=new FileReader();r.onload=ev=>{tempDocs.push({id:uid(),tipo,note,nome:f.name,mime:f.type,data:ev.target.result,caricato:new Date().toISOString().slice(0,10)});renderTempDocs();document.getElementById('m-s-doc-file').value='';document.getElementById('m-s-doc-note').value='';toast('Documento allegato','success');};r.readAsDataURL(f);}
 function docEmoji(m){if(!m)return'📄';if(m.includes('pdf'))return'📕';if(m.includes('image'))return'🖼️';if(m.includes('word')||m.includes('document'))return'📝';return'📄';}
-function renderTempDocs(){const c=document.getElementById('m-s-docs-list');if(!tempDocs.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun documento</span>';return;}c.innerHTML=tempDocs.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:7px;"><span>${docEmoji(d.mime)}</span><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.tipo}</div><div style="font-size:10px;color:var(--text2);">${d.nome}${d.note?' · '+d.note:''}</div></div><a href="${d.data}" download="${d.nome}" class="bico" title="Scarica">⬇️</a><button class="bico" onclick="tempDocs.splice(${i},1);renderTempDocs()">🗑️</button></div>`).join('');}
+function addDocDriveLink(){
+  const urlEl=document.getElementById('m-s-doc-drive-url');
+  const url=urlEl.value.trim();
+  if(!url){toast('Incolla un link','error');return;}
+  if(!/^https?:\/\//i.test(url)){toast('Il link deve iniziare con http:// o https://','error');return;}
+  const tipo=document.getElementById('m-s-doc-tipo').value;
+  const note=document.getElementById('m-s-doc-note').value;
+  tempDocs.push({id:uid(),tipo,note,url,nome:'Link Google Drive',caricato:new Date().toISOString().slice(0,10)});
+  renderTempDocs();
+  urlEl.value='';document.getElementById('m-s-doc-note').value='';
+  toast('Link collegato','success');
+}
+function renderTempDocs(){const c=document.getElementById('m-s-docs-list');if(!tempDocs.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun documento</span>';return;}c.innerHTML=tempDocs.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:7px;"><span>${d.url?'🔗':docEmoji(d.mime)}</span><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.tipo}</div><div style="font-size:10px;color:var(--text2);">${d.url?'Link Drive':d.nome}${d.note?' · '+d.note:''}</div></div>${d.url?`<a href="${d.url}" target="_blank" class="bico" title="Apri su Drive">↗️</a>`:`<a href="${d.data}" download="${d.nome}" class="bico" title="Scarica">⬇️</a>`}<button class="bico" onclick="tempDocs.splice(${i},1);renderTempDocs()">🗑️</button></div>`).join('');}
 function populateCorseSel(){const sel=document.getElementById('m-s-corso');if(sel)sel.innerHTML='<option value="">— Nessuno —</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');}
 
 // ═══ SOCI ═════════════════════════════════════════════════
@@ -3300,7 +3334,14 @@ function computeChecklist(s){
   const corsoOk=!!s.corsoId;
   const iscrizioneFirmata=!!s.iscrizioneAllegato;
   const privacyFirmata=!!s.privacyAllegato;
-  const hasPagamento=(DB.entrate||[]).some(e=>e.socioId===s.id);
+  // "Primo pagamento" è soddisfatto anche se non c'è ancora un'entrata MA
+  // l'atleta ha un piano assegnato a costo zero (es. borsa di studio/omaggio):
+  // in quel caso non c'è nulla da incassare, quindi il passo è comunque completo.
+  const oggiIsoCk=new Date().toISOString().slice(0,10);
+  const abbAttivoCk=(DB.abbonamenti||[]).find(a=>a.socioId===s.id&&(!a.scadenza||a.scadenza>=oggiIsoCk));
+  const pianoCk=abbAttivoCk?(DB.piani||[]).find(p=>p.id===abbAttivoCk.pianoId):null;
+  const pianoGratuito=!!(pianoCk&&parseFloat(pianoCk.prezzo)===0);
+  const hasPagamento=pianoGratuito||(DB.entrate||[]).some(e=>e.socioId===s.id);
   const fisrOk=!!s.tesseraFisr;
   const visitaOk=!!(s.visitaScad&&(new Date(s.visitaScad)-new Date())>0);
   return [
@@ -3959,7 +4000,9 @@ function renderChecklistIscritto(){
   const iscrizioneFirmata=!!s.iscrizioneAllegato;
   const privacyFirmata=!!s.privacyAllegato;
   const pagamenti=DB.entrate?.filter(e=>e.socioId===s.id)||[];
-  const hasPagamento=pagamenti.length>0;
+  const abbAttivoCk2=(DB.abbonamenti||[]).find(a=>a.socioId===s.id&&(!a.scadenza||a.scadenza>=oggi));
+  const pianoCk2=abbAttivoCk2?(DB.piani||[]).find(p=>p.id===abbAttivoCk2.pianoId):null;
+  const hasPagamento=pagamenti.length>0||!!(pianoCk2&&parseFloat(pianoCk2.prezzo)===0);
   const fisrOk=!!s.tesseraFisr;
   const visitaOk=s.visitaScad&&(new Date(s.visitaScad)-new Date())>0;
   const corsoOk=!!s.corsoId;
@@ -4245,8 +4288,8 @@ function initPresenze(){
   const corsi=DB.corsi||[];
   const optsReg='<option value="">Seleziona corso...</option>'+corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
   const optsAll='<option value="">Tutti i corsi</option>'+corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-  ['pres-corso','storico-corso'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsReg;});
-  ['report-pres-corso','class-pres-corso','alert-pres-corso'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsAll;});
+  ['pres-corso'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsReg;});
+  ['storico-corso','report-pres-corso','class-pres-corso','alert-pres-corso'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsAll;});
   if(!document.getElementById('pres-data').value)document.getElementById('pres-data').value=new Date().toISOString().slice(0,10);
   const anni=[...new Set(Object.keys(DB.presenze||{}).map(k=>k.split('_')[1]?.slice(0,4)).filter(Boolean))].sort().reverse();
   const selAnno=document.getElementById('storico-anno');
@@ -4259,6 +4302,7 @@ function initPresenze(){
     if(dalEl&&!dalEl.value)dalEl.value=stagione.inizio||'';
     if(alEl&&!alEl.value)alEl.value=stagione.fine||'';
   }
+  if(document.getElementById('storico-presenze-list'))renderStoricoPresenze();
 }
 
 function loadPresenze(){
@@ -4293,9 +4337,13 @@ function renderStoricoPresenze(){
   const meseFilter=document.getElementById('storico-mese')?.value||'';
   const annoFilter=document.getElementById('storico-anno')?.value||'';
   const cont=document.getElementById('storico-presenze-list');
-  if(!corsoId){cont.innerHTML='';return;}
 
-  let entries=Object.entries(DB.presenze).filter(([k])=>k.startsWith(corsoId+'_'));
+  // "Tutti i corsi" (corsoId vuoto) mostra l'intero storico aggregato,
+  // con una colonna Corso per distinguere le sessioni; selezionando un
+  // corso specifico si passa alla vista filtrata come prima.
+  let entries=corsoId
+    ? Object.entries(DB.presenze).filter(([k])=>k.startsWith(corsoId+'_'))
+    : Object.entries(DB.presenze);
 
   // Filtro mese
   if(meseFilter)entries=entries.filter(([k])=>{const data=k.split('_')[1]||'';return data.slice(5,7)===meseFilter;});
@@ -4307,7 +4355,13 @@ function renderStoricoPresenze(){
 
   if(!entries.length){cont.innerHTML='<div class="empty"><div class="ei">📋</div><h3>Nessuna sessione trovata</h3><p>Prova a cambiare i filtri</p></div>';return;}
 
-  const atleti=DB.soci.filter(s=>s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId));
+  const atletiCache={};
+  const getAtletiCorso=(cId)=>{
+    if(!atletiCache[cId])atletiCache[cId]=DB.soci.filter(s=>s.corsoId===cId||(s.tipologia==='atleta'&&!s.corsoId));
+    return atletiCache[cId];
+  };
+  const nomeCorso=(cId)=>(DB.corsi||[]).find(c=>c.id===cId)?.nome||'—';
+
   const totPresenze=entries.reduce((sum,[,v])=>sum+Object.values(v).filter(x=>x===true).length,0);
   const mediaPresenze=entries.length?Math.round(totPresenze/entries.length):0;
 
@@ -4315,15 +4369,17 @@ function renderStoricoPresenze(){
     <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
       <div style="background:var(--surface2);border-radius:8px;padding:9px 14px;font-size:12px;"><span style="color:var(--text2);">Sessioni</span> <strong>${entries.length}</strong></div>
       <div style="background:var(--surface2);border-radius:8px;padding:9px 14px;font-size:12px;"><span style="color:var(--text2);">Media presenti</span> <strong style="color:var(--green);">${mediaPresenze}</strong></div>
-      <div style="background:var(--surface2);border-radius:8px;padding:9px 14px;font-size:12px;"><span style="color:var(--text2);">Atleti nel corso</span> <strong>${atleti.length}</strong></div>
+      ${corsoId?`<div style="background:var(--surface2);border-radius:8px;padding:9px 14px;font-size:12px;"><span style="color:var(--text2);">Atleti nel corso</span> <strong>${getAtletiCorso(corsoId).length}</strong></div>`:''}
     </div>
-    <div class="tw"><table><thead><tr><th>Data</th><th>Presenti</th><th>Assenti</th><th>Totale</th><th>%</th></tr></thead><tbody>`
+    <div class="tw"><table><thead><tr>${corsoId?'':'<th>Corso</th>'}<th>Data</th><th>Presenti</th><th>Assenti</th><th>Totale</th><th>%</th></tr></thead><tbody>`
     + entries.map(([k,v])=>{
-      const data=k.split('_')[1];
+      const us=k.indexOf('_');
+      const cId=k.slice(0,us),data=k.slice(us+1);
+      const atleti=getAtletiCorso(cId);
       const pres=Object.values(v).filter(x=>x===true).length;
       const perc=atleti.length?Math.round(pres/atleti.length*100):0;
       const color=perc>=80?'var(--green)':perc>=50?'var(--yellow)':'var(--red)';
-      return`<tr><td>${formatDate(data)}</td><td style="color:var(--green);">${pres}</td><td style="color:var(--red);">${atleti.length-pres}</td><td>${atleti.length}</td><td style="color:${color};font-weight:600;">${perc}%</td></tr>`;
+      return`<tr>${corsoId?'':`<td>${nomeCorso(cId)}</td>`}<td>${formatDate(data)}</td><td style="color:var(--green);">${pres}</td><td style="color:var(--red);">${atleti.length-pres}</td><td>${atleti.length}</td><td style="color:${color};font-weight:600;">${perc}%</td></tr>`;
     }).join('')
     + `</tbody></table></div>`;
 }
@@ -4343,8 +4399,13 @@ function deleteMaestro(id){if(_isDemo){toast("🎭 Modalità demo — sola lettu
 
 // ═══ AMMINISTRAZIONE ══════════════════════════════════════
 function saveMovimento(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
-  const descr=document.getElementById('m-mov-descr').value.trim(),importo=parseFloat(document.getElementById('m-mov-importo').value)||0;
-  if(!descr||!importo){toast('Dati mancanti','error');return;}
+  const descr=document.getElementById('m-mov-descr').value.trim();
+  const importoRaw=document.getElementById('m-mov-importo').value.trim();
+  const importo=parseFloat(importoRaw);
+  // Un importo di 0€ è valido (es. abbonamento/quota gratuita, da registrare
+  // comunque perché la checklist/pagamenti mensili ne tengano conto) — va
+  // rifiutato solo il campo lasciato vuoto o un valore non numerico/negativo.
+  if(!descr||importoRaw===''||isNaN(importo)||importo<0){toast('Dati mancanti','error');return;}
   const foSel=document.getElementById('m-mov-fornitore');
   const fornitoreId=foSel?.value||'';
   const fornitoreNome=fornitoreId?(DB.fornitori||[]).find(f=>f.id===fornitoreId)?.nome||'':'';
@@ -5548,11 +5609,20 @@ function generaRicevutaRapida(socioId,importo,causale,metodo){
     asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''};
   const stagioneLbl=getStagioneCorrente()?.label||'';
   const oggi=new Date().toLocaleDateString('it-IT');
+  const oggiIso=new Date().toISOString().slice(0,10);
   const numRef=fbDb?fbDb.ref('spartans/contatori/ricevute'):null;
   const genera=(numRicevuta)=>{
+    const numFormattato=String(numRicevuta).padStart(4,'0');
     const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
       stagione:stagioneLbl,importo:importo||'',causale:causale||'',descr:causale||'',metodo:metodo||'Contanti',
-      numRicevuta:String(numRicevuta).padStart(4,'0'),dataDoc:oggi,...ps});
+      numRicevuta:numFormattato,dataDoc:oggi,...ps});
+    // Registro permanente: anche se il PDF/stampa va perso, questa riga
+    // resta tracciata e permette di rigenerare la ricevuta identica.
+    if(!DB.ricevute)DB.ricevute=[];
+    DB.ricevute.push({id:uid(),numero:numFormattato,data:oggiIso,socioId:s.id,socioNome:`${s.nome} ${s.cognome}`,
+      importo:parseFloat(importo)||0,causale:causale||'',metodo:metodo||'Contanti'});
+    saveDB();
+    if(document.getElementById('ricevute-tbody'))renderRegistroRicevute();
     window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
   };
   if(numRef){
@@ -5560,6 +5630,28 @@ function generaRicevutaRapida(socioId,importo,causale,metodo){
   } else {
     genera(Date.now().toString().slice(-4));
   }
+}
+function renderRegistroRicevute(){
+  const tb=document.getElementById('ricevute-tbody');if(!tb)return;
+  const elenco=(DB.ricevute||[]).slice().sort((a,b)=>b.numero.localeCompare(a.numero));
+  if(!elenco.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🧾</div><h3>Nessuna ricevuta ancora generata</h3></div></td></tr>';return;}
+  tb.innerHTML=elenco.map(r=>`<tr>
+    <td>${r.numero}</td><td>${formatDate(r.data)}</td><td>${r.socioNome}</td><td>${r.causale||'—'}</td>
+    <td>€${(parseFloat(r.importo)||0).toFixed(2)}</td><td>${r.metodo||'—'}</td>
+    <td><button class="bico" title="Rigenera PDF identico" onclick="rigeneraRicevuta('${r.id}')">🔁</button></td>
+  </tr>`).join('');
+}
+function rigeneraRicevuta(ricevutaId){
+  const r=(DB.ricevute||[]).find(x=>x.id===ricevutaId);if(!r)return;
+  const s=DB.soci.find(x=>x.id===r.socioId);
+  if(!s){toast('Atleta non più presente in anagrafica','error');return;}
+  const st=DB.struttura;
+  const ps={asdNome:st.nome||'',asdIndirizzo:st.indirizzo||'',asdCap:st.cap||'',asdCitta:st.citta||'',
+    asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''};
+  const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
+    stagione:getStagioneCorrente()?.label||'',importo:r.importo||'',causale:r.causale||'',descr:r.causale||'',
+    metodo:r.metodo||'Contanti',numRicevuta:r.numero,dataDoc:formatDate(r.data),...ps});
+  window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
 }
 function apriDocumento(tipo){
   const stagione=getStagioneCorrente()?.label||'';
@@ -6404,7 +6496,11 @@ const GUIDA_VOCI=[
   {cat:'📋 Presenze',titolo:'Atleti con bassa frequenza',testo:'Vai su Registro presenze → Alert. Imposta la soglia (default 50%). Vengono mostrati tutti gli atleti con più di 3 sessioni registrate che sono sotto soglia. Da qui puoi contattarli direttamente.',tag:'alert bassa frequenza presenze'},
   {cat:'📅 Calendario',titolo:'Aggiungere una gara o un evento',testo:'Vai su Calendario → clicca su un giorno oppure usa i pulsanti "⚔️ + Gara" o "🏒 + Allenamento" in alto. Compila titolo, data, orario e luogo.',tag:'gara evento calendario aggiungere'},
   {cat:'📅 Calendario',titolo:'Esportare il calendario su Google Calendar',testo:'Vai su Calendario → clicca "📆 iCal". Viene scaricato un file .ics. Aprilo su Google Calendar (o Apple Calendar) per importare tutti gli eventi.',tag:'ical google calendar apple esportare'},
-  {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta, l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti.',tag:'ricevuta pagamento documento generare metodo automatico amministrazione'},
+  {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta, l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti. Ogni ricevuta generata (da qui o dall\'automatismo) viene anche salvata nel Registro Ricevute — vedi voce dedicata.',tag:'ricevuta pagamento documento generare metodo automatico amministrazione'},
+  {cat:'💰 Amministrazione',titolo:'Registro Ricevute',testo:'Il tab "🧾 Ricevute" in Amministrazione elenca tutte le ricevute generate dall\'app, con numero progressivo, data, atleta, causale, importo e metodo. A differenza del semplice contatore usato per numerare le ricevute (che non conserva alcuna informazione sul passato), questo registro resta consultabile per sempre: se un PDF o una ricevuta stampata va perso, il pulsante 🔁 la rigenera identica, con lo stesso numero e gli stessi dati.',tag:'registro ricevute numero progressivo rigenera recupero'},
+  {cat:'💰 Amministrazione',titolo:'Registrare un abbonamento o una quota gratuita',testo:'Per registrare un pagamento a zero euro (es. borsa di studio, quota omaggio) inserisci "0" nel campo importo di una nuova entrata: ora è accettato (prima veniva rifiutato come "dato mancante"). Perché lo stato pagamenti mensili dell\'atleta risulti "in regola" automaticamente, però, conviene creare un piano dedicato con prezzo 0 in Abbonamenti (es. "Quota omaggio") e assegnarlo all\'atleta dal campo Abbonamento nella sua scheda: a quel punto l\'app non calcola più nulla di dovuto per lui, indipendentemente dalle entrate registrate.',tag:'quota gratuita omaggio borsa di studio abbonamento zero'},
+  {cat:'✅ Presenze',titolo:'Registro storico presenze — vista su tutti i corsi',testo:'Aprendo Presenze → Storico, l\'elenco mostra di default le sessioni di TUTTI i corsi insieme (con una colonna Corso per distinguerle), invece di richiedere prima di scegliere un corso specifico. Puoi comunque restringere la vista a un singolo corso dal menu a tendina in alto.',tag:'storico presenze tutti i corsi vista aggregata'},
+  {cat:'👤 Anagrafiche',titolo:'Collegare un documento salvato su Google Drive',testo:'Nel tab Documenti della scheda atleta, oltre al pulsante "📎 Allega file" (per caricare un file direttamente nell\'app), c\'è ora un campo per incollare il link di un documento già salvato su Google Drive e collegarlo con "➕ Collega link" — utile per moduli scansionati o firmati con strumenti esterni (es. DocHub, Adobe), senza dover scaricare e ricaricare il file.',tag:'documenti drive link atleta scheda allegato collegamento'},
   {cat:'📄 Documenti',titolo:'Generare la certificazione per il 730',testo:'Vai su Genera Documenti → Certificazione quota (730). Seleziona l\'atleta e il documento si pre-compila con i dati anagrafici, la tessera ASD e i dati del genitore. Stampalo e firmalo.',tag:'730 certificazione fiscale documento'},
   {cat:'📄 Documenti',titolo:'Generare la giustificazione scolastica',testo:'Vai su Genera Documenti → Giustificazione scolastica. Seleziona l\'atleta, inserisci il nome dell\'evento e le date di assenza. Il documento viene pre-compilato con i dati dell\'atleta e del genitore.',tag:'giustificazione scuola assenza documento'},
   {cat:'✉️ Comunicazioni',titolo:'Inviare una email a tutti gli atleti',testo:'Vai su Comunicazioni → seleziona i destinatari (o clicca "Seleziona tutti") → scrivi oggetto e messaggio → clicca "📧 Apri Gmail (BCC)". Si apre Gmail con tutti i destinatari in copia nascosta usando l\'account email configurato in "La mia struttura".',tag:'email comunicazione atleti gmail inviare'},
