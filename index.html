@@ -431,7 +431,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.6.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.6.1 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1747,6 +1747,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.6.1 · Settembre 2026</div>
+        <div class="cl-section">Fix — Scadenze imminenti</div>
+        <div class="cl-item"><strong>Abbonamenti doppi e falsi promemoria per chi non ha ancora pagato</strong> — la card "Scadenze imminenti" mostrava un promemoria per ogni singolo record di abbonamento assegnato, non per atleta: con più abbonamenti in sequenza sulla stessa persona (es. quota iscrizione + quota mensile), comparivano più righe per lo stesso atleta. Inoltre il promemoria scattava sulla data di scadenza nominale del record, creata al momento dell'assegnazione del piano indipendentemente da qualunque pagamento — risultando fuorviante per chi non aveva ancora versato nulla. Rimossi gli abbonamenti da questa card: la regolarità dei pagamenti (basata sulle entrate realmente registrate, senza doppioni) è già gestita correttamente dalla card "💳 Quote mensili arretrate". Restano invece qui, senza modifiche, le vere scadenze senza equivalente altrove: tessere, visite mediche, assicurazioni, contratti sponsor ed eventi.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.6.0 · Settembre 2026</div>
@@ -5072,21 +5078,12 @@ function renderDashboard(){
     addScad(n,'Visita medica (staff)',s.visitaScad);
     addScad(n,'🛡️ Formazione Safeguarding',s.safegScad);
   });
-  // Un atleta "attualmente" inattivo (sospeso, o oggi dentro un periodo di
-  // inattività registrato) non deve ricevere solleciti di rinnovo abbonamento:
-  // non ha senso ricordare di rinnovare un piano per chi non c'è in questo momento.
-  const isAttualmenteInattivo=s=>{
-    if(!s)return false;
-    if(s.stato==='sospeso')return true;
-    const oggiIso=now.toISOString().slice(0,10);
-    return (s.periodiInattivita||[]).some(p=>p.dal&&oggiIso>=p.dal&&(!p.al||oggiIso<=p.al));
-  };
-  DB.abbonamenti.forEach(a=>{
-    if(!a.scadenza)return;
-    const socioAbb=DB.soci.find(x=>x.id===a.socioId);
-    if(isAttualmenteInattivo(socioAbb))return;
-    const diff=Math.round((new Date(a.scadenza)-now)/86400000);if(diff<=60)scad.push({nome:a.socioNome,tipo:`Abb. ${a.pianoNome}`,scad:a.scadenza,diff});
-  });
+  // NB: le scadenze degli abbonamenti NON sono più incluse qui — se ne occupa
+  // già, in modo più accurato, la card "💳 Quote mensili arretrate" (basata
+  // sui pagamenti realmente registrati, non sulla data di scadenza nominale
+  // del record di assegnazione). Includerle anche qui creava doppioni quando
+  // un atleta ha più abbonamenti in sequenza, e falsi allarmi per chi non ha
+  // ancora effettuato il primo pagamento.
   // Contratti sponsor in scadenza
   (DB.sponsor||[]).forEach(s=>{
     const c=s.contratto||{};
@@ -6730,7 +6727,7 @@ const GUIDA_VOCI=[
   {cat:'👤 Anagrafiche',titolo:'Sospeso vs Inattivo — quale usare',testo:'"Sospeso" congela del tutto l\'atleta: non compare tra le quote arretrate in Dashboard, non è selezionabile per registrare nuovi pagamenti/ricevute, e il suo stato pagamenti resta neutro ("⏸ Sospeso") finché non lo riporti ad Attivo o Inattivo — usalo per chi ha lasciato l\'associazione o è in una situazione da valutare, senza sapere ancora per quanto. "Inattivo" invece serve per pause temporanee con un periodo definito (infortunio, trasferimento, ecc.): l\'atleta resta normalmente conteggiato per gli altri mesi, e va abbinato a un "Periodo di inattività" (vedi voce dedicata) per escludere solo i mesi realmente non dovuti — altrimenti il solo stato "Inattivo" senza un periodo registrato non esclude nulla dal calcolo.',tag:'sospeso inattivo differenza stato atleta quando usare'},
   {cat:'👤 Anagrafiche',titolo:'Registrare un periodo di inattività',testo:'Nella scheda atleta (tab Anagrafica), sotto ai campi Nome/Cognome/Stato, la sezione "⏸️ Periodi di inattività" permette di aggiungere uno o più intervalli (data inizio, data fine — lasciala vuota se il periodo è ancora in corso — e un motivo facoltativo). I mesi coperti da un periodo qui non vengono conteggiati come dovuti nel calcolo dei pagamenti mensili, e restano esclusi anche se in seguito riporti l\'atleta su "Attivo": è il periodo storico registrato a contare, non lo stato attuale.',tag:'periodo inattivita infortunio pausa mesi esclusi pagamenti'},
   {cat:'💳 Abbonamenti',titolo:'Gestire una tariffa diversa per il mese di iscrizione',testo:'Se il primo mese ha un prezzo diverso dai successivi (es. quota di iscrizione + quota ridotta a settembre, poi quota piena da ottobre), il modo corretto è assegnare all\'atleta un SECONDO abbonamento quando cambia la tariffa: 1) crea (se non esiste) un piano "Quota mensile" con il prezzo standard e durata "1 mese"; 2) nella scheda atleta, imposta la data di inizio dell\'abbonamento alla data reale di iscrizione (es. 15/09) — se il totale versato nel primo mese (iscrizione + quota ridotta) coincide con la quota piena, non serve nessun piano separato; 3) se invece il primo mese ha un totale diverso dalla quota a regime, crea un piano dedicato per quel mese (es. "Quota settembre ridotta") e assegnalo con inizio alla data di iscrizione — poi, quando parte la tariffa piena, assegna il piano standard con la sua data di inizio: l\'app userà automaticamente il piano corretto per ciascun periodo. In entrambi i casi, ricordati di registrare ogni pagamento in Amministrazione con categoria "Quota associativa" o "Abbonamento", altrimenti non verrà conteggiato.',tag:'tariffa mese iscrizione settembre ridotta piano cambio prezzo abbonamento sequenza'},
-  {cat:'📊 Dashboard',titolo:'Quote mensili arretrate',testo:'La card "💳 Quote mensili arretrate" in Dashboard elenca direttamente gli atleti non in regola con la quota mensile (calcolato sui pagamenti reali, non sulla scadenza "grezza" dell\'abbonamento), con pulsanti per sollecitare subito il pagamento via email o WhatsApp. È distinta dalla card "Scadenze imminenti", che segnala invece quando un abbonamento/tessera/visita va rinnovato, indipendentemente da quanto sia stato effettivamente pagato.',tag:'dashboard arretrati quote mensili sollecito email whatsapp'},
+  {cat:'📊 Dashboard',titolo:'Quote mensili arretrate',testo:'La card "💳 Quote mensili arretrate" in Dashboard elenca direttamente gli atleti non in regola con la quota mensile (calcolato sui pagamenti reali in Amministrazione), con pulsanti per sollecitare subito il pagamento via email o WhatsApp. È l\'unico posto dell\'app che segnala la regolarità dei pagamenti: la card "Scadenze imminenti" non include più gli abbonamenti (li includeva in passato, ma creava doppioni e falsi allarmi per chi non aveva ancora pagato) — resta dedicata a tessere, visite mediche, assicurazioni, contratti sponsor ed eventi.',tag:'dashboard arretrati quote mensili sollecito email whatsapp scadenze'},
   {cat:'💳 Abbonamenti',titolo:'Assegnare o cambiare l\'abbonamento di un atleta',testo:'Nella scheda dell\'atleta (tab Anagrafica), accanto al N° Maglia, il campo "Abbonamento" mostra il piano attualmente assegnato e lo stato dei pagamenti rispetto ad esso. Cambiando il piano dal menu e salvando la scheda, viene creato un nuovo abbonamento con data di inizio da oggi (lo storico dei piani precedenti resta conservato, non viene cancellato). È lo stesso dato mostrato/gestito nella pagina Abbonamenti — modificarlo da un punto o dall\'altro aggiorna la stessa informazione.',tag:'abbonamento scheda atleta piano assegnare cambiare maglia'},
   {cat:'💳 Abbonamenti',titolo:'Modificare un abbonamento esistente',testo:'Nella pagina Abbonamenti, ogni riga della tabella "Abbonamenti attivi" ha anche un pulsante ✏️ (oltre a 🗑️) per modificare socio, piano e date di un abbonamento già assegnato, senza doverlo eliminare e ricreare da capo. L\'effettivo incasso non si gestisce più da qui: viene registrato come entrata in Amministrazione e da lì alimenta sia "Pagamenti mensili" in Anagrafiche sia le Statistiche abbonamenti.',tag:'abbonamenti modifica piano date'},
   {cat:'👤 Anagrafiche',titolo:'Tessere, visita medica e assicurazione come flag in tabella',testo:'Nella tabella Atleti, le colonne Tessera ASD, Tessera FISR, Vis. Medica e Assicurazione mostrano un semplice ✓ (in regola) o ✗ (mancante/da registrare), invece del numero o della data per esteso — passa il mouse sopra per vedere il dettaglio (numero tessera, data di scadenza, ente/polizza). Le scadenze imminenti restano comunque segnalate con 60 giorni di anticipo in Dashboard, quindi qui basta sapere se la pratica è a posto o no.',tag:'tessere visita medica assicurazione flag tabella colonne semplificate'},

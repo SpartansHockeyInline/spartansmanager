@@ -2,6 +2,13 @@
 
 ---
 
+## v5.6.1 · Settembre 2026
+
+### Fix — Scadenze imminenti
+- **Abbonamenti doppi e falsi promemoria per chi non ha ancora pagato** — la card "Scadenze imminenti" mostrava un promemoria per ogni singolo record di abbonamento assegnato, non per atleta: con più abbonamenti in sequenza sulla stessa persona (es. quota iscrizione + quota mensile), comparivano più righe per lo stesso atleta. Inoltre il promemoria scattava sulla data di scadenza nominale del record, creata al momento dell'assegnazione del piano indipendentemente da qualunque pagamento — risultando fuorviante per chi non aveva ancora versato nulla. Rimossi gli abbonamenti da questa card: la regolarità dei pagamenti (basata sulle entrate realmente registrate, senza doppioni) è già gestita correttamente dalla card "💳 Quote mensili arretrate". Restano invece qui, senza modifiche, le vere scadenze senza equivalente altrove: tessere, visite mediche, assicurazioni, contratti sponsor ed eventi.
+
+---
+
 ## v5.6.0 · Settembre 2026
 
 ### Nuove funzionalità
