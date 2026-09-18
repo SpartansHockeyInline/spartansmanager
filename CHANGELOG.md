@@ -2,6 +2,18 @@
 
 ---
 
+## v5.5.1 · Settembre 2026
+
+### Fix
+- **Scadenze abbonamento non rispettavano lo stato dell'atleta** — la card "Scadenze imminenti" in Dashboard segnalava il rinnovo dell'abbonamento anche per atleti Sospesi o attualmente dentro un periodo di inattività registrato, cosa che non ha senso (non c'è nulla da rinnovare per chi non è al momento operativo). Ora questi casi vengono esclusi automaticamente.
+- **Scadenze imminenti limitate a 8 voci, senza indicazione delle altre** — con più di 8 scadenze contemporanee, le successive sparivano silenziosamente dalla vista. Ora la card mostra tutte le scadenze entro i 60 giorni, con scroll interno se sono numerose, invece di troncarle senza avviso.
+
+### Semplificazione — Abbonamenti
+- **Rimossi i campi "Importo pagato" e "Metodo" dalla sezione Abbonamenti** — erano scollegati dal reale tracciamento dei pagamenti (che vive in Amministrazione → Entrate, la stessa fonte usata per "Pagamenti mensili" in Anagrafiche): risultavano popolati solo se inseriti manualmente da questa sezione, sempre a €0,00 se il piano veniva assegnato dalla scheda atleta — la stessa incoerenza segnalata. La sezione "Abbonamenti soci" resta comunque utile come elenco di tutti i piani assegnati e per correggerne/eliminarne uno specifico.
+- **Statistiche abbonamenti ricalcolate sulla fonte corretta** — "Totale incassato", "Incasso per piano" e "Incassi per mese" ora si basano sulle entrate reali registrate in Amministrazione, non più sul campo "pagato" appena rimosso: i numeri restano quindi accurati e coerenti con il resto dell'app.
+
+---
+
 ## v5.5.0 · Settembre 2026
 
 ### Nuove funzionalità

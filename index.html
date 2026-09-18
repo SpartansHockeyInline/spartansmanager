@@ -431,7 +431,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.5.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.5.1 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -789,7 +789,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </div>
       <div class="tab-panel" id="abbonamenti-tab-attivi">
         <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModalAbbNuovo()">+ Assegna</button></div>
-        <div class="tw"><table><thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Pagato</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="abbattivi-tbody"></tbody></table></div>
+        <div class="tw"><table><thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="abbattivi-tbody"></tbody></table></div>
       </div>
       <div class="tab-panel" id="abbonamenti-tab-solleciti">
         <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Abbonamenti scaduti o in scadenza entro 30 giorni.</div>
@@ -1494,8 +1494,6 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="fgroup s2"><label>Piano *</label><select class="fsel" id="m-as-piano"></select></div>
         <div class="fgroup"><label>Data inizio</label><input class="fi" id="m-as-inizio" type="date"></div>
         <div class="fgroup"><label>Data scadenza</label><input class="fi" id="m-as-scadenza" type="date"></div>
-        <div class="fgroup"><label>Importo pagato (€)</label><input class="fi" id="m-as-pagato" type="number" step="0.01"></div>
-        <div class="fgroup"><label>Metodo</label><select class="fsel" id="m-as-metodo"><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>POS</option><option>Altro</option></select></div>
       </div>
     </div>
     <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-abb-socio')">Annulla</button><button class="btn btn-p" onclick="saveAbbSocio()">💾 Salva</button></div>
@@ -1743,6 +1741,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.5.1 · Settembre 2026</div>
+        <div class="cl-section">Fix</div>
+        <div class="cl-item"><strong>Scadenze abbonamento non rispettavano lo stato dell'atleta</strong> — la card "Scadenze imminenti" in Dashboard segnalava il rinnovo dell'abbonamento anche per atleti Sospesi o attualmente dentro un periodo di inattività registrato, cosa che non ha senso (non c'è nulla da rinnovare per chi non è al momento operativo). Ora questi casi vengono esclusi automaticamente.</div>
+        <div class="cl-item"><strong>Scadenze imminenti limitate a 8 voci, senza indicazione delle altre</strong> — con più di 8 scadenze contemporanee, le successive sparivano silenziosamente dalla vista. Ora la card mostra tutte le scadenze entro i 60 giorni, con scroll interno se sono numerose, invece di troncarle senza avviso.</div>
+        <div class="cl-section">Semplificazione — Abbonamenti</div>
+        <div class="cl-item"><strong>Rimossi i campi "Importo pagato" e "Metodo" dalla sezione Abbonamenti</strong> — erano scollegati dal reale tracciamento dei pagamenti (che vive in Amministrazione → Entrate, la stessa fonte usata per "Pagamenti mensili" in Anagrafiche): risultavano popolati solo se inseriti manualmente da questa sezione, sempre a €0,00 se il piano veniva assegnato dalla scheda atleta — la stessa incoerenza segnalata. La sezione "Abbonamenti soci" resta comunque utile come elenco di tutti i piani assegnati e per correggerne/eliminarne uno specifico.</div>
+        <div class="cl-item"><strong>Statistiche abbonamenti ricalcolate sulla fonte corretta</strong> — "Totale incassato", "Incasso per piano" e "Incassi per mese" ora si basano sulle entrate reali registrate in Amministrazione, non più sul campo "pagato" appena rimosso: i numeri restano quindi accurati e coerenti con il resto dell'app.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.5.0 · Settembre 2026</div>
@@ -2912,8 +2920,7 @@ function saveSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","w
         if(!DB.abbonamenti)DB.abbonamenti=[];
         DB.abbonamenti.push({id:uid(),socioId:obj.id,pianoId:piano.id,
           socioNome:`${obj.cognome} ${obj.nome}`,pianoNome:piano.nome,
-          inizio:inizioSelDate,scadenza:calcolaScadenzaPiano(piano.durata,inizioSelDate),
-          pagato:0,metodo:''});
+          inizio:inizioSelDate,scadenza:calcolaScadenzaPiano(piano.durata,inizioSelDate)});
       }
     }
   }
@@ -3972,7 +3979,7 @@ function renderStoricoAbb(){
   if(!lista.length){cont.innerHTML='<div class="empty"><div class="ei">📜</div><p>Nessun abbonamento trovato</p></div>';return;}
   const oggi=new Date().toISOString().slice(0,10);
   cont.innerHTML=`<div class="tw"><table>
-    <thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Pagato</th><th>Metodo</th><th>Stato</th></tr></thead>
+    <thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Stato</th></tr></thead>
     <tbody>${lista.map(a=>{
       const stato=!a.scadenza?'attivo':a.scadenza<oggi?'scaduto':'attivo';
       const diff=a.scadenza?Math.round((new Date(a.scadenza)-new Date())/86400000):null;
@@ -3982,8 +3989,6 @@ function renderStoricoAbb(){
         <td>${a.pianoNome}</td>
         <td>${a.inizio?formatDate(a.inizio):'—'}</td>
         <td>${a.scadenza?formatDate(a.scadenza):'—'}</td>
-        <td style="font-weight:600;">€${(a.pagato||0).toFixed(2)}</td>
-        <td>${a.metodo||'—'}</td>
         <td>${statoLabel}</td>
       </tr>`;
     }).join('')}</tbody>
@@ -3996,21 +4001,39 @@ function renderStatisticheAbb(){
   const oggi=new Date().toISOString().slice(0,10);
   const attivi=DB.abbonamenti.filter(a=>!a.scadenza||a.scadenza>=oggi).length;
   const scaduti=DB.abbonamenti.filter(a=>a.scadenza&&a.scadenza<oggi).length;
-  const totIncassato=DB.abbonamenti.reduce((s,a)=>s+parseFloat(a.pagato||0),0);
-  // Per piano
+  // Gli incassi vengono calcolati dalle entrate registrate in Amministrazione
+  // (la fonte reale dei pagamenti, usata anche per "Pagamenti mensili" in
+  // Anagrafiche), non più dal campo "pagato" dell'abbonamento — che restava
+  // spesso a 0 quando l'assegnazione del piano avveniva dalla scheda atleta.
+  const isQuotaEntrata=e=>/quota|abbonamento/i.test(e.cat||'')||/quota|abbonamento/i.test(e.descr||'');
+  const entrateQuota=(DB.entrate||[]).filter(isQuotaEntrata);
+  const totIncassato=entrateQuota.reduce((s,e)=>s+(parseFloat(e.importo)||0),0);
+  // Per piano: attribuzione "a miglior sforzo" — per ciascuna entrata, si
+  // considera il piano che risultava assegnato a quell'atleta alla data del
+  // pagamento (l'ultimo abbonamento con inizio <= data dell'entrata).
+  const abbPerSocio={};
+  (DB.abbonamenti||[]).forEach(a=>{if(!a.socioId||!a.inizio)return;(abbPerSocio[a.socioId]=abbPerSocio[a.socioId]||[]).push(a);});
+  Object.values(abbPerSocio).forEach(list=>list.sort((a,b)=>a.inizio.localeCompare(b.inizio)));
+  const pianoAllaData=(socioId,data)=>{
+    const list=abbPerSocio[socioId];if(!list||!data)return null;
+    let trovato=null;
+    for(const a of list){if(a.inizio<=data)trovato=a;else break;}
+    return trovato?trovato.pianoNome:null;
+  };
   const byPiano={};
-  DB.abbonamenti.forEach(a=>{
-    if(!byPiano[a.pianoNome])byPiano[a.pianoNome]={count:0,incasso:0};
-    byPiano[a.pianoNome].count++;
-    byPiano[a.pianoNome].incasso+=parseFloat(a.pagato||0);
+  entrateQuota.forEach(e=>{
+    const nome=pianoAllaData(e.socioId,e.data)||'Non attribuito';
+    if(!byPiano[nome])byPiano[nome]={count:0,incasso:0};
+    byPiano[nome].count++;
+    byPiano[nome].incasso+=parseFloat(e.importo)||0;
   });
-  // Per mese (ultimi 12 mesi)
+  // Per mese (ultimi 12 mesi), in base alla data effettiva del pagamento
   const byMese={};
-  DB.abbonamenti.filter(a=>a.inizio).forEach(a=>{
-    const mese=a.inizio.slice(0,7);
+  entrateQuota.filter(e=>e.data).forEach(e=>{
+    const mese=e.data.slice(0,7);
     if(!byMese[mese])byMese[mese]={count:0,incasso:0};
     byMese[mese].count++;
-    byMese[mese].incasso+=parseFloat(a.pagato||0);
+    byMese[mese].incasso+=parseFloat(e.importo)||0;
   });
   const mesi=Object.keys(byMese).sort().slice(-12);
   cont.innerHTML=`
@@ -4020,14 +4043,15 @@ function renderStatisticheAbb(){
       <div class="stat-card sc-blue"><div class="sl">Totale incassato</div><div class="sv">€${totIncassato.toFixed(2)}</div></div>
       <div class="stat-card sc-gold"><div class="sl">Totale abbonamenti</div><div class="sv">${DB.abbonamenti.length}</div></div>
     </div>
+    <div style="font-size:10.5px;color:var(--text3);margin:-10px 0 14px;">Gli incassi sono calcolati dalle entrate registrate in Amministrazione con categoria "Quota associativa"/"Abbonamento" (stessa fonte usata per "Pagamenti mensili" in Anagrafiche), non dal singolo abbonamento assegnato.</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       <div>
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:8px;">Per piano</div>
         ${Object.entries(byPiano).sort((a,b)=>b[1].count-a[1].count).map(([nome,d])=>`
           <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">
             <span style="font-size:12px;">${nome}</span>
-            <span style="font-size:12px;color:var(--text2);">${d.count} abb. · <strong style="color:var(--green);">€${d.incasso.toFixed(2)}</strong></span>
-          </div>`).join('')}
+            <span style="font-size:12px;color:var(--text2);">${d.count} pag. · <strong style="color:var(--green);">€${d.incasso.toFixed(2)}</strong></span>
+          </div>`).join('')||'<span style="font-size:12px;color:var(--text3);">Nessun incasso registrato</span>'}
       </div>
       <div>
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:8px;">Incassi per mese</div>
@@ -4045,7 +4069,7 @@ function renderStatisticheAbb(){
               <div style="background:var(--green);width:${perc}%;height:100%;border-radius:4px;"></div>
             </div>
           </div>`;
-        }).join('')}
+        }).join('')||'<span style="font-size:12px;color:var(--text3);">Nessun incasso registrato</span>'}
       </div>
     </div>`;
 }
@@ -4162,8 +4186,7 @@ function openModalAbbNuovo(){
   editAbbTargetId=null;
   openModal('modal-abb-socio','');
   document.getElementById('modal-abb-socio-title').textContent='Assegna abbonamento';
-  ['m-as-inizio','m-as-scadenza','m-as-pagato'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  const metodo=document.getElementById('m-as-metodo');if(metodo)metodo.selectedIndex=0;
+  ['m-as-inizio','m-as-scadenza'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 }
 function editAbb(id){
   const a=DB.abbonamenti.find(x=>x.id===id);if(!a)return;
@@ -4174,16 +4197,13 @@ function editAbb(id){
   document.getElementById('m-as-piano').value=a.pianoId||'';
   document.getElementById('m-as-inizio').value=a.inizio||'';
   document.getElementById('m-as-scadenza').value=a.scadenza||'';
-  document.getElementById('m-as-pagato').value=a.pagato||'';
-  document.getElementById('m-as-metodo').value=a.metodo||'Contanti';
 }
 function saveAbbSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
   const sId=document.getElementById('m-as-socio').value,pId=document.getElementById('m-as-piano').value;
   if(!sId||!pId){toast('Seleziona socio e piano','error');return;}
   const s=DB.soci.find(x=>x.id===sId),p=DB.piani.find(x=>x.id===pId);
   const dati={socioId:sId,pianoId:pId,socioNome:`${s.cognome} ${s.nome}`,pianoNome:p.nome,
-    inizio:document.getElementById('m-as-inizio').value,scadenza:document.getElementById('m-as-scadenza').value,
-    pagato:parseFloat(document.getElementById('m-as-pagato').value)||0,metodo:document.getElementById('m-as-metodo').value};
+    inizio:document.getElementById('m-as-inizio').value,scadenza:document.getElementById('m-as-scadenza').value};
   if(editAbbTargetId){
     const i=DB.abbonamenti.findIndex(x=>x.id===editAbbTargetId);
     if(i>=0)DB.abbonamenti[i]={...DB.abbonamenti[i],...dati};
@@ -4195,7 +4215,7 @@ function saveAbbSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura"
   editAbbTargetId=null;
   saveDB();closeModal('modal-abb-socio');renderAbbAttivi();renderDashboard();
 }
-function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=new Date().toISOString().slice(0,10);tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td>€${(parseFloat(a.pagato)||0).toFixed(2)}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><div class="tda"><button class="bico" onclick="editAbb('${a.id}')">✏️</button><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></div></td></tr>`;}).join('');}
+function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=new Date().toISOString().slice(0,10);tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><div class="tda"><button class="bico" onclick="editAbb('${a.id}')">✏️</button><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></div></td></tr>`;}).join('');}
 function deleteAbb(id){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Rimuovere?'))return;DB.abbonamenti=DB.abbonamenti.filter(x=>x.id!==id);saveDB();renderAbbAttivi();renderDashboard();}
 
 // ═══ GIORNI/ORARI ═════════════════════════════════════════
@@ -4982,8 +5002,20 @@ function renderDashboard(){
     addScad(n,'Visita medica (staff)',s.visitaScad);
     addScad(n,'🛡️ Formazione Safeguarding',s.safegScad);
   });
+  // Un atleta "attualmente" inattivo (sospeso, o oggi dentro un periodo di
+  // inattività registrato) non deve ricevere solleciti di rinnovo abbonamento:
+  // non ha senso ricordare di rinnovare un piano per chi non c'è in questo momento.
+  const isAttualmenteInattivo=s=>{
+    if(!s)return false;
+    if(s.stato==='sospeso')return true;
+    const oggiIso=now.toISOString().slice(0,10);
+    return (s.periodiInattivita||[]).some(p=>p.dal&&oggiIso>=p.dal&&(!p.al||oggiIso<=p.al));
+  };
   DB.abbonamenti.forEach(a=>{
-    if(a.scadenza){const diff=Math.round((new Date(a.scadenza)-now)/86400000);if(diff<=60)scad.push({nome:a.socioNome,tipo:`Abb. ${a.pianoNome}`,scad:a.scadenza,diff});}
+    if(!a.scadenza)return;
+    const socioAbb=DB.soci.find(x=>x.id===a.socioId);
+    if(isAttualmenteInattivo(socioAbb))return;
+    const diff=Math.round((new Date(a.scadenza)-now)/86400000);if(diff<=60)scad.push({nome:a.socioNome,tipo:`Abb. ${a.pianoNome}`,scad:a.scadenza,diff});
   });
   // Contratti sponsor in scadenza
   (DB.sponsor||[]).forEach(s=>{
@@ -5001,7 +5033,10 @@ function renderDashboard(){
   });
   scad.sort((a,b)=>a.diff-b.diff);
   if(!scad.length)cont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessuna scadenza imminente</p></div>';
-  else cont.innerHTML=scad.slice(0,8).map(s=>{const col=s.diff<0?'var(--red)':s.diff<7?'var(--red)':s.diff<14?'var(--yellow)':'var(--text2)';const lbl=s.diff<0?`Scaduta ${Math.abs(s.diff)}gg fa`:s.diff===0?'Oggi!':s.diff===1?'Domani':`${s.diff}gg`;return`<div class="scad-item"><div class="scad-dot" style="background:${col};"></div><div class="scad-info"><div class="scad-name">${s.nome}</div><div class="scad-detail">${s.tipo} · ${formatDate(s.scad)}</div></div><div class="scad-days" style="color:${col};font-weight:${s.diff<=7?'700':'400'};">${lbl}</div></div>`;}).join('');
+  else{
+    cont.style.maxHeight='340px';cont.style.overflowY='auto';
+    cont.innerHTML=scad.map(s=>{const col=s.diff<0?'var(--red)':s.diff<7?'var(--red)':s.diff<14?'var(--yellow)':'var(--text2)';const lbl=s.diff<0?`Scaduta ${Math.abs(s.diff)}gg fa`:s.diff===0?'Oggi!':s.diff===1?'Domani':`${s.diff}gg`;return`<div class="scad-item"><div class="scad-dot" style="background:${col};"></div><div class="scad-info"><div class="scad-name">${s.nome}</div><div class="scad-detail">${s.tipo} · ${formatDate(s.scad)}</div></div><div class="scad-days" style="color:${col};font-weight:${s.diff<=7?'700':'400'};">${lbl}</div></div>`;}).join('');
+  }
   // Quote mensili arretrate — segnalazione diretta e precisa basata sui
   // pagamenti effettivamente registrati, indipendente dalla scadenza "grezza"
   // dell'abbonamento (che segnala solo quando il piano stesso va rinnovato).
@@ -6626,7 +6661,7 @@ const GUIDA_VOCI=[
   {cat:'💳 Abbonamenti',titolo:'Gestire una tariffa diversa per il mese di iscrizione',testo:'Se il primo mese ha un prezzo diverso dai successivi (es. quota di iscrizione + quota ridotta a settembre, poi quota piena da ottobre), il modo corretto è assegnare all\'atleta un SECONDO abbonamento quando cambia la tariffa: 1) crea (se non esiste) un piano "Quota mensile" con il prezzo standard e durata "1 mese"; 2) nella scheda atleta, imposta la data di inizio dell\'abbonamento alla data reale di iscrizione (es. 15/09) — se il totale versato nel primo mese (iscrizione + quota ridotta) coincide con la quota piena, non serve nessun piano separato; 3) se invece il primo mese ha un totale diverso dalla quota a regime, crea un piano dedicato per quel mese (es. "Quota settembre ridotta") e assegnalo con inizio alla data di iscrizione — poi, quando parte la tariffa piena, assegna il piano standard con la sua data di inizio: l\'app userà automaticamente il piano corretto per ciascun periodo. In entrambi i casi, ricordati di registrare ogni pagamento in Amministrazione con categoria "Quota associativa" o "Abbonamento", altrimenti non verrà conteggiato.',tag:'tariffa mese iscrizione settembre ridotta piano cambio prezzo abbonamento sequenza'},
   {cat:'📊 Dashboard',titolo:'Quote mensili arretrate',testo:'La card "💳 Quote mensili arretrate" in Dashboard elenca direttamente gli atleti non in regola con la quota mensile (calcolato sui pagamenti reali, non sulla scadenza "grezza" dell\'abbonamento), con pulsanti per sollecitare subito il pagamento via email o WhatsApp. È distinta dalla card "Scadenze imminenti", che segnala invece quando un abbonamento/tessera/visita va rinnovato, indipendentemente da quanto sia stato effettivamente pagato.',tag:'dashboard arretrati quote mensili sollecito email whatsapp'},
   {cat:'💳 Abbonamenti',titolo:'Assegnare o cambiare l\'abbonamento di un atleta',testo:'Nella scheda dell\'atleta (tab Anagrafica), accanto al N° Maglia, il campo "Abbonamento" mostra il piano attualmente assegnato e lo stato dei pagamenti rispetto ad esso. Cambiando il piano dal menu e salvando la scheda, viene creato un nuovo abbonamento con data di inizio da oggi (lo storico dei piani precedenti resta conservato, non viene cancellato). È lo stesso dato mostrato/gestito nella pagina Abbonamenti — modificarlo da un punto o dall\'altro aggiorna la stessa informazione.',tag:'abbonamento scheda atleta piano assegnare cambiare maglia'},
-  {cat:'💳 Abbonamenti',titolo:'Modificare un abbonamento esistente',testo:'Nella pagina Abbonamenti, ogni riga della tabella "Abbonamenti attivi" ha ora anche un pulsante ✏️ (oltre a 🗑️) per modificare socio, piano, date, importo pagato e metodo di un abbonamento già assegnato, senza doverlo eliminare e ricreare da capo.',tag:'abbonamenti modifica piano importo scadenza'},
+  {cat:'💳 Abbonamenti',titolo:'Modificare un abbonamento esistente',testo:'Nella pagina Abbonamenti, ogni riga della tabella "Abbonamenti attivi" ha anche un pulsante ✏️ (oltre a 🗑️) per modificare socio, piano e date di un abbonamento già assegnato, senza doverlo eliminare e ricreare da capo. L\'effettivo incasso non si gestisce più da qui: viene registrato come entrata in Amministrazione e da lì alimenta sia "Pagamenti mensili" in Anagrafiche sia le Statistiche abbonamenti.',tag:'abbonamenti modifica piano date'},
   {cat:'👤 Anagrafiche',titolo:'Tessere, visita medica e assicurazione come flag in tabella',testo:'Nella tabella Atleti, le colonne Tessera ASD, Tessera FISR, Vis. Medica e Assicurazione mostrano un semplice ✓ (in regola) o ✗ (mancante/da registrare), invece del numero o della data per esteso — passa il mouse sopra per vedere il dettaglio (numero tessera, data di scadenza, ente/polizza). Le scadenze imminenti restano comunque segnalate con 60 giorni di anticipo in Dashboard, quindi qui basta sapere se la pratica è a posto o no.',tag:'tessere visita medica assicurazione flag tabella colonne semplificate'},
   {cat:'👤 Anagrafiche',titolo:'Verificare i moduli firmati a colpo d\'occhio',testo:'Nella tabella Anagrafiche → Atleti, la colonna \"Moduli\" mostra ✓ verde se sia il modulo iscrizione che quello privacy sono stati caricati, ⚠ se solo uno dei due, ✗ se nessuno. I link ai file vanno inseriti nella scheda atleta → tab Documenti.',tag:'moduli firmati badge iscrizione privacy tabella'},
   {cat:'👤 Anagrafiche',titolo:'Inserire i dati del documento d\'identità',testo:'Apri la scheda atleta → tab Anagrafica → sezione \"🏛️ Documento d\'identità\". Inserisci tipo documento, numero e data di scadenza: utile per le gare e per le procedure FISR.',tag:'documento identità carta numero scadenza atleta'},
