@@ -431,7 +431,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.4.2 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.5.0 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1298,6 +1298,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <div class="fgroup"><label>Stato</label><select class="fsel" id="m-s-stato"><option value="attivo">Attivo</option><option value="sospeso">Sospeso</option><option value="inattivo">Inattivo</option></select></div>
           </div>
         </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;flex-wrap:wrap;gap:6px;">
+            <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;">⏸️ Periodi di inattività</div>
+            <button class="btn btn-s btn-sm" onclick="addPeriodoInattivita()">+ Aggiungi periodo</button>
+          </div>
+          <div style="font-size:10.5px;color:var(--text3);margin-bottom:7px;">I mesi coperti da un periodo qui sotto non vengono conteggiati come dovuti nel calcolo dei pagamenti mensili — anche se in seguito l'atleta torna "Attivo". Lascia vuota la data "a" se il periodo è ancora in corso.</div>
+          <div id="m-s-periodi-inattivita-list"></div>
+        </div>
         <div class="fg">
           <div class="fgroup"><label>Data di nascita</label><input class="fi" id="m-s-nascita" type="date"></div>
           <div class="fgroup"><label>Luogo di nascita</label><input class="fi" id="m-s-luogo"></div>
@@ -1735,6 +1743,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.5.0 · Settembre 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Stato "Sospeso" escluso dai pagamenti</strong> — un atleta con stato "Sospeso" non compare più tra le quote arretrate in Dashboard, non è selezionabile come "Atleta collegato" in una nuova entrata/ricevuta, e il suo stato pagamenti mostra "⏸ Sospeso" invece di un giudizio di regolarità: resta congelato finché non torna Attivo o passa a Inattivo.</div>
+        <div class="cl-item"><strong>Periodi di inattività con date specifiche</strong> — nella scheda atleta (tab Anagrafica) è possibile registrare uno o più periodi di inattività (data inizio, data fine facoltativa se ancora in corso, motivo). I mesi coperti da un periodo NON vengono conteggiati come dovuti nel calcolo dei pagamenti mensili — a differenza di "Sospeso", l'atleta resta normalmente conteggiato per gli altri mesi, e il periodo resta valido anche se in seguito lo stato torna "Attivo" (utile per pause temporanee — infortuni, trasferimenti, ecc. — che non devono generare falsi arretrati).</div>
+        <div class="cl-item">Le selezioni "Atleta collegato" in Amministrazione e Genera documenti ora includono anche gli atleti "Inattivo" (possono comunque dover pagare mesi fuori dal periodo escluso), escludendo solo i "Sospeso".</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.4.2 · Settembre 2026</div>
@@ -2481,7 +2497,7 @@ let DB = {
 };
 let currentPage='dashboard', editingId=null, movTipo='entrata', eventoTipo='gara', convEventoId=null;
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
-let selectedGiorni={}, selectedImpiantoIcon='🏟️', tempDocs=[], tempFoto='';
+let selectedGiorni={}, selectedImpiantoIcon='🏟️', tempDocs=[], tempFoto='', tempPeriodiInattivita=[];
 let restoreTargetIdx=null;
 
 // ═══ STORAGE ══════════════════════════════════════════════
@@ -2617,7 +2633,7 @@ function openModal(id,mode){
     if(soWrap)soWrap.style.display=mode==='entrata'?'':'none';
     if(mode==='entrata'){
       const sel=document.getElementById('m-mov-socio');
-      if(sel){sel.innerHTML='<option value="">— Nessuno —</option>'+DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it')).map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');}
+      if(sel){sel.innerHTML='<option value="">— Nessuno —</option>'+DB.soci.filter(s=>s.stato!=='sospeso').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it')).map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');}
     }
   }
   if(id==='modal-impianto'){selectedImpiantoIcon='🏟️';document.querySelectorAll('.icon-opt').forEach(o=>o.classList.remove('sel'));const def=document.querySelector('.icon-opt[data-icon="🏟️"]');if(def)def.classList.add('sel');}
@@ -2625,7 +2641,7 @@ function openModal(id,mode){
 }
 function openModalSocio(id=null){
   if(!DB.macrogruppi)DB.macrogruppi=[];
-  editingId=id;currentEditId=id;tempDocs=[];tempFoto='';
+  editingId=id;currentEditId=id;tempDocs=[];tempFoto='';tempPeriodiInattivita=[];
   document.getElementById('modal-socio-title').textContent=id?'Modifica atleta':'Nuovo atleta';
   const btnElim=document.getElementById('btn-elimina-socio');
   if(btnElim)btnElim.style.display=id?'':'none';
@@ -2636,7 +2652,7 @@ function openModalSocio(id=null){
   const sm=document.getElementById('m-s-macrogruppo');
   if(sm)sm.innerHTML='<option value="">— Nessuno —</option>'+(DB.macrogruppi||[]).map(mg=>`<option value="${mg.id}">${mg.nome}</option>`).join('');
   showSocioTab('anagrafica');
-  renderTempDocs();
+  renderTempDocs();renderPeriodiInattivita();
   if(id){
     const s=DB.soci.find(x=>x.id===id);
     if(s){
@@ -2646,7 +2662,8 @@ function openModalSocio(id=null){
       if(s.macrogruppoId&&sm)sm.value=s.macrogruppoId;
       if(s.foto){document.getElementById('m-s-foto-wrap').innerHTML=`<img src="${s.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;} 
       tempFoto=s.foto||'';tempDocs=s.documenti?JSON.parse(JSON.stringify(s.documenti)):[];
-      renderTempDocs();renderQuoteAtleta();
+      tempPeriodiInattivita=s.periodiInattivita?JSON.parse(JSON.stringify(s.periodiInattivita)):[];
+      renderTempDocs();renderQuoteAtleta();renderPeriodiInattivita();
     }
   }
   renderAbbonamentoAtletaField();
@@ -2803,6 +2820,25 @@ function addDocDriveLink(){
   toast('Link collegato','success');
 }
 function renderTempDocs(){const c=document.getElementById('m-s-docs-list');if(!tempDocs.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun documento</span>';return;}c.innerHTML=tempDocs.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:7px;"><span>${d.url?'🔗':docEmoji(d.mime)}</span><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.tipo}</div><div style="font-size:10px;color:var(--text2);">${d.url?'Link Drive':d.nome}${d.note?' · '+d.note:''}</div></div>${d.url?`<a href="${d.url}" target="_blank" class="bico" title="Apri su Drive">↗️</a>`:`<a href="${d.data}" download="${d.nome}" class="bico" title="Scarica">⬇️</a>`}<button class="bico" onclick="tempDocs.splice(${i},1);renderTempDocs()">🗑️</button></div>`).join('');}
+// Periodi di inattività: righe editabili in linea, sincronizzate direttamente
+// nell'array temporaneo ad ogni modifica (niente pulsante "salva riga" a parte).
+function renderPeriodiInattivita(){
+  const c=document.getElementById('m-s-periodi-inattivita-list');
+  if(!c)return;
+  if(!tempPeriodiInattivita.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun periodo registrato</span>';return;}
+  c.innerHTML=tempPeriodiInattivita.map((p,i)=>`
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px;flex-wrap:wrap;">
+      <input class="fi" type="date" value="${p.dal||''}" style="max-width:140px;" onchange="tempPeriodiInattivita[${i}].dal=this.value">
+      <span style="font-size:11px;color:var(--text3);">→</span>
+      <input class="fi" type="date" value="${p.al||''}" placeholder="in corso" style="max-width:140px;" onchange="tempPeriodiInattivita[${i}].al=this.value">
+      <input class="fi" placeholder="Motivo (facoltativo)" value="${p.motivo||''}" style="flex:1;min-width:120px;" onchange="tempPeriodiInattivita[${i}].motivo=this.value">
+      <button class="bico" onclick="tempPeriodiInattivita.splice(${i},1);renderPeriodiInattivita()">🗑️</button>
+    </div>`).join('');
+}
+function addPeriodoInattivita(){
+  tempPeriodiInattivita.push({id:uid(),dal:'',al:'',motivo:''});
+  renderPeriodiInattivita();
+}
 function populateCorseSel(){const sel=document.getElementById('m-s-corso');if(sel)sel.innerHTML='<option value="">— Nessuno —</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');}
 
 // ═══ SOCI ═════════════════════════════════════════════════
@@ -2857,6 +2893,7 @@ function saveSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","w
     note:g('m-s-note'),
     foto:tempFoto||(editingId?DB.soci.find(x=>x.id===editingId)?.foto:''),
     documenti:tempDocs,
+    periodiInattivita:tempPeriodiInattivita.filter(p=>p.dal),
     creato:editingId?(DB.soci.find(x=>x.id===editingId)?.creato||new Date().toISOString()):new Date().toISOString()
   };
   if(editingId){const i=DB.soci.findIndex(x=>x.id===editingId);if(i>-1)DB.soci[i]=obj;}
@@ -3382,7 +3419,34 @@ function computeChecklist(s){
 // coperti rispetto ai mesi effettivamente trascorsi. Non sostituisce un
 // registro rate-per-rata: se in futuro serve un controllo mese per mese
 // puntuale, va introdotta una struttura dati dedicata.
+// Un mese (formato 'YYYY-MM') è escluso dal conteggio se ricade in un
+// periodo di inattività registrato per l'atleta — indipendentemente dallo
+// stato ATTUALE dell'atleta: un mese passato di inattività resta escluso
+// anche se nel frattempo l'atleta è stato riattivato.
+function meseEscluso(s,annoMese){
+  return (s.periodiInattivita||[]).some(p=>{
+    if(!p.dal)return false;
+    const dalMese=p.dal.slice(0,7);
+    const alMese=p.al?p.al.slice(0,7):'9999-12';
+    return annoMese>=dalMese&&annoMese<=alMese;
+  });
+}
+// Elenco dei mesi (YYYY-MM) da periodoInizio a periodoFine inclusi, per poter
+// contare/escludere mese per mese invece che con un semplice conteggio a blocco.
+function mesiTraDate(periodoInizio,periodoFine){
+  const mesi=[];
+  const cursor=new Date(periodoInizio.getFullYear(),periodoInizio.getMonth(),1);
+  const fine=new Date(periodoFine.getFullYear(),periodoFine.getMonth(),1);
+  while(cursor<=fine){
+    mesi.push(`${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}`);
+    cursor.setMonth(cursor.getMonth()+1);
+  }
+  return mesi;
+}
 function getStatoPagamentoMensile(s){
+  // "Sospeso" congela del tutto il conteggio: l'atleta non viene considerato
+  // né in regola né arretrato finché non torna attivo o viene messo inattivo.
+  if(s.stato==='sospeso')return{label:'⏸ Sospeso',ok:null};
   const oggi=new Date();
   // Le entrate collegano l'atleta tramite "socioId" e usano i campi "cat"
   // (categoria a tendina) e "descr" (descrizione libera).
@@ -3400,17 +3464,17 @@ function getStatoPagamentoMensile(s){
 
   if(!abbonamentiAtleta.length){
     // Nessun abbonamento mai assegnato: fallback ancorato a inizio stagione,
-    // conteggio per presenza di pagamento (non per importo atteso).
+    // conteggio per presenza di pagamento (non per importo atteso), escludendo
+    // comunque i mesi coperti da un periodo di inattività registrato.
     const stagione=getStagioneCorrente?getStagioneCorrente():null;
     if(!stagione||!stagione.inizio)return{label:'—',ok:null};
     const inizio=new Date(stagione.inizio);
     if(inizio>oggi)return{label:'—',ok:null};
-    let mesiTrascorsi=(oggi.getFullYear()-inizio.getFullYear())*12+(oggi.getMonth()-inizio.getMonth())+1;
-    if(mesiTrascorsi<1)mesiTrascorsi=1;
+    const mesiDovuti=mesiTraDate(inizio,oggi).filter(m=>!meseEscluso(s,m));
     const mesiPagati=new Set();
     (DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizio&&isQuotaEntrata(e))
       .forEach(e=>mesiPagati.add(e.data.slice(0,7)));
-    const arretrato=mesiTrascorsi-mesiPagati.size;
+    const arretrato=mesiDovuti.filter(m=>!mesiPagati.has(m)).length;
     if(arretrato<=0)return{label:'✅ in regola',ok:true};
     return{label:`⚠ ${arretrato} mes${arretrato>1?'i':'e'} arretrat${arretrato>1?'i':'o'}`,ok:false};
   }
@@ -3419,11 +3483,11 @@ function getStatoPagamentoMensile(s){
   const totalePagato=(DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizioComplessivo&&isQuotaEntrata(e))
     .reduce((sum,e)=>sum+(parseFloat(e.importo)||0),0);
 
-  // Somma l'importo ATTESO periodo per periodo, usando la quota mensile del
-  // piano attivo in ciascun periodo — gestisce correttamente prezzi diversi
+  // Somma l'importo ATTESO mese per mese (non più a blocco), usando la quota
+  // mensile del piano attivo in ciascun periodo — gestisce sia prezzi diversi
   // in mesi diversi (es. quota di iscrizione + mensile ridotta a settembre,
-  // quota piena da ottobre) se assegnati come abbonamenti distinti in sequenza.
-  let atteso=0;
+  // quota piena da ottobre) sia i mesi da escludere per inattività registrata.
+  let atteso=0,mesiEsclusiCount=0;
   for(let i=0;i<abbonamentiAtleta.length;i++){
     const a=abbonamentiAtleta[i];
     const quotaMensile=getQuotaMensilePiano(a.piano);
@@ -3438,8 +3502,10 @@ function getStatoPagamentoMensile(s){
     let periodoFine=(prossimo&&prossimo.inizio)?new Date(prossimo.inizio):oggi;
     if(periodoFine>oggi)periodoFine=oggi;
     if(periodoFine<=periodoInizio)continue;
-    const mesiPeriodo=(periodoFine.getFullYear()-periodoInizio.getFullYear())*12+(periodoFine.getMonth()-periodoInizio.getMonth())+1;
-    atteso+=quotaMensile*Math.max(1,mesiPeriodo);
+    mesiTraDate(periodoInizio,periodoFine).forEach(m=>{
+      if(meseEscluso(s,m))mesiEsclusiCount++;
+      else atteso+=quotaMensile;
+    });
   }
   const differenza=atteso-totalePagato;
   if(differenza<=0.5)return{label:'✅ in regola',ok:true};
@@ -3523,7 +3589,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     const cl=computeChecklist(s);
     const clCell=(c)=>`<td style="text-align:center;" title="${c.label}: ${c.ok?'fatto':'da fare'}">${c.ok?'<span style="color:var(--green);font-size:13px;">✓</span>':'<span style="color:var(--text3);font-size:13px;">✗</span>'}</td>`;
     const pagMens=getStatoPagamentoMensile(s);
-    const pagBadge=pagMens.ok===null?`<span class="badge bgy">—</span>`:`<span class="badge ${pagMens.ok?'bg':'br'}" style="font-size:10px;white-space:nowrap;">${pagMens.label}</span>`;
+    const pagBadge=`<span class="badge ${pagMens.ok===true?'bg':pagMens.ok===false?'br':'bgy'}" style="font-size:10px;white-space:nowrap;">${pagMens.label}</span>`;
     return`<tr>
       <td class="row-num sticky-col">${idx+1}</td>
       <td class="sticky-col"><div style="display:flex;align-items:center;gap:8px;">${renderAvatar(s,26)}<div style="min-width:0;"><div style="font-weight:600;font-size:12.5px;white-space:nowrap;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:9.5px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
@@ -3616,7 +3682,7 @@ function renderAbbonamentoAtletaField(){
   const s=DB.soci.find(x=>x.id===currentEditId);
   if(s&&statoEl){
     const pag=getStatoPagamentoMensile(s);
-    if(pag.ok!==null)statoEl.innerHTML=`<span class="badge ${pag.ok?'bg':'br'}" style="font-size:10px;">${pag.label}</span>`;
+    statoEl.innerHTML=`<span class="badge ${pag.ok===true?'bg':pag.ok===false?'br':'bgy'}" style="font-size:10px;">${pag.label}</span>`;
   }
 }
 
@@ -4470,7 +4536,7 @@ function editMovimento(tipo,id){
   if(tipo==='entrata'){
     const sel=document.getElementById('m-mov-socio');
     if(sel){
-      sel.innerHTML='<option value="">— Nessuno —</option>'+DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it')).map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
+      sel.innerHTML='<option value="">— Nessuno —</option>'+DB.soci.filter(s=>s.stato!=='sospeso').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it')).map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
       sel.value=m.socioId||'';
     }
   } else {
@@ -4941,7 +5007,7 @@ function renderDashboard(){
   // dell'abbonamento (che segnala solo quando il piano stesso va rinnovato).
   const arrCont=document.getElementById('ds-arretrati');
   if(arrCont){
-    const arretrati=DB.soci.filter(s=>(s.stato||'attivo')==='attivo').map(s=>({s,pag:getStatoPagamentoMensile(s)})).filter(x=>x.pag.ok===false);
+    const arretrati=DB.soci.filter(s=>s.stato!=='sospeso').map(s=>({s,pag:getStatoPagamentoMensile(s)})).filter(x=>x.pag.ok===false);
     if(!arretrati.length)arrCont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessun arretrato</p></div>';
     else arrCont.innerHTML=arretrati.map(({s,pag})=>`<div class="scad-item"><div class="scad-dot" style="background:var(--red);"></div><div class="scad-info"><div class="scad-name">${s.nome} ${s.cognome}</div><div class="scad-detail">${pag.label}</div></div><div style="display:flex;gap:4px;"><button class="bico" title="Sollecita via email" onclick="sollecitaQuotaEmail('${s.id}')">✉️</button><button class="bico" title="Sollecita via WhatsApp" onclick="sollecitaQuotaWhatsApp('${s.id}')">💬</button></div></div>`).join('');
   }
@@ -5618,7 +5684,7 @@ function initGeneraDocumenti(){
   ['doc-730-atleta','doc-giust-atleta','doc-visita-atleta','doc-ric-atleta','doc-certiscr-atleta','doc-attestato-atleta'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     sel.innerHTML='<option value="">— Seleziona atleta —</option>'+
-      DB.soci.filter(s=>s.stato==='attivo').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
+      DB.soci.filter(s=>s.stato!=='sospeso').sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
       .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
   });
   ['doc-volont-staff','doc-incarico-staff','doc-dutyofficer-staff','doc-cocoo-staff'].forEach(id=>{
@@ -6554,7 +6620,9 @@ const GUIDA_VOCI=[
   {cat:'👤 Anagrafiche',titolo:'Generare il certificato di iscrizione',testo:'Vai su Genera Documenti → Certificato di iscrizione. Seleziona l\'atleta: il documento certifica formalmente l\'iscrizione all\'ASD per la stagione sportiva in corso, con tessera ASD/FISR e firma del presidente.',tag:'certificato iscrizione documento atleta'},
   {cat:'👤 Anagrafiche',titolo:'Generare l\'attestato di frequenza',testo:'Vai su Genera Documenti → Attestato di frequenza. Seleziona l\'atleta e inserisci data inizio e data fine del periodo: il documento attesta la partecipazione alle attività nel periodo indicato, con firma del presidente.',tag:'attestato frequenza documento periodo atleta'},
   {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab "✅ Checklist" per il dettaglio con barra di avanzamento e link diretti alle sezioni da completare. Gli stessi 7 passi (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) sono visibili anche direttamente nella tabella Atleti, come colonne ✓/✗ contrassegnate con una spunta nel nome (es. "Corso ✓") per distinguerle dalle colonne dati omonime — così vedi lo stato di tutti gli atleti scorrendo l\'elenco, senza aprire ogni scheda singolarmente.',tag:'checklist nuovo iscritto onboarding passi tabella colonne'},
-  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" mostra "✅ in regola" o "⚠ N mesi arretrati". Il calcolo si basa sulla data di INIZIO dell\'abbonamento assegnato all\'atleta (non sulla data di creazione della scheda) e confronta il totale dei pagamenti ricevuti — entrate in Amministrazione con categoria "Quota associativa"/"Abbonamento" — con l\'importo atteso in base al/ai piano/i assegnato/i. Il mese in corso viene considerato dovuto fin dal giorno 1 (non è prorato sui giorni effettivi). Se l\'atleta non ha mai avuto un abbonamento assegnato, l\'app conta semplicemente i mesi con almeno un pagamento, da inizio stagione.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato'},
+  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" mostra "✅ in regola", "⚠ N mesi arretrati" oppure "⏸ Sospeso". Il calcolo si basa sulla data di INIZIO dell\'abbonamento assegnato all\'atleta (non sulla data di creazione della scheda) e confronta il totale dei pagamenti ricevuti — entrate in Amministrazione con categoria "Quota associativa"/"Abbonamento" — con l\'importo atteso in base al/ai piano/i assegnato/i, escludendo automaticamente gli eventuali mesi coperti da un periodo di inattività registrato (vedi voce dedicata). Il mese in corso viene considerato dovuto fin dal giorno 1 (non è prorato sui giorni effettivi). Un atleta "Sospeso" non viene mai valutato: resta neutro finché non torna Attivo o Inattivo. Se l\'atleta non ha mai avuto un abbonamento assegnato, l\'app conta semplicemente i mesi con almeno un pagamento, da inizio stagione.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato sospeso'},
+  {cat:'👤 Anagrafiche',titolo:'Sospeso vs Inattivo — quale usare',testo:'"Sospeso" congela del tutto l\'atleta: non compare tra le quote arretrate in Dashboard, non è selezionabile per registrare nuovi pagamenti/ricevute, e il suo stato pagamenti resta neutro ("⏸ Sospeso") finché non lo riporti ad Attivo o Inattivo — usalo per chi ha lasciato l\'associazione o è in una situazione da valutare, senza sapere ancora per quanto. "Inattivo" invece serve per pause temporanee con un periodo definito (infortunio, trasferimento, ecc.): l\'atleta resta normalmente conteggiato per gli altri mesi, e va abbinato a un "Periodo di inattività" (vedi voce dedicata) per escludere solo i mesi realmente non dovuti — altrimenti il solo stato "Inattivo" senza un periodo registrato non esclude nulla dal calcolo.',tag:'sospeso inattivo differenza stato atleta quando usare'},
+  {cat:'👤 Anagrafiche',titolo:'Registrare un periodo di inattività',testo:'Nella scheda atleta (tab Anagrafica), sotto ai campi Nome/Cognome/Stato, la sezione "⏸️ Periodi di inattività" permette di aggiungere uno o più intervalli (data inizio, data fine — lasciala vuota se il periodo è ancora in corso — e un motivo facoltativo). I mesi coperti da un periodo qui non vengono conteggiati come dovuti nel calcolo dei pagamenti mensili, e restano esclusi anche se in seguito riporti l\'atleta su "Attivo": è il periodo storico registrato a contare, non lo stato attuale.',tag:'periodo inattivita infortunio pausa mesi esclusi pagamenti'},
   {cat:'💳 Abbonamenti',titolo:'Gestire una tariffa diversa per il mese di iscrizione',testo:'Se il primo mese ha un prezzo diverso dai successivi (es. quota di iscrizione + quota ridotta a settembre, poi quota piena da ottobre), il modo corretto è assegnare all\'atleta un SECONDO abbonamento quando cambia la tariffa: 1) crea (se non esiste) un piano "Quota mensile" con il prezzo standard e durata "1 mese"; 2) nella scheda atleta, imposta la data di inizio dell\'abbonamento alla data reale di iscrizione (es. 15/09) — se il totale versato nel primo mese (iscrizione + quota ridotta) coincide con la quota piena, non serve nessun piano separato; 3) se invece il primo mese ha un totale diverso dalla quota a regime, crea un piano dedicato per quel mese (es. "Quota settembre ridotta") e assegnalo con inizio alla data di iscrizione — poi, quando parte la tariffa piena, assegna il piano standard con la sua data di inizio: l\'app userà automaticamente il piano corretto per ciascun periodo. In entrambi i casi, ricordati di registrare ogni pagamento in Amministrazione con categoria "Quota associativa" o "Abbonamento", altrimenti non verrà conteggiato.',tag:'tariffa mese iscrizione settembre ridotta piano cambio prezzo abbonamento sequenza'},
   {cat:'📊 Dashboard',titolo:'Quote mensili arretrate',testo:'La card "💳 Quote mensili arretrate" in Dashboard elenca direttamente gli atleti non in regola con la quota mensile (calcolato sui pagamenti reali, non sulla scadenza "grezza" dell\'abbonamento), con pulsanti per sollecitare subito il pagamento via email o WhatsApp. È distinta dalla card "Scadenze imminenti", che segnala invece quando un abbonamento/tessera/visita va rinnovato, indipendentemente da quanto sia stato effettivamente pagato.',tag:'dashboard arretrati quote mensili sollecito email whatsapp'},
   {cat:'💳 Abbonamenti',titolo:'Assegnare o cambiare l\'abbonamento di un atleta',testo:'Nella scheda dell\'atleta (tab Anagrafica), accanto al N° Maglia, il campo "Abbonamento" mostra il piano attualmente assegnato e lo stato dei pagamenti rispetto ad esso. Cambiando il piano dal menu e salvando la scheda, viene creato un nuovo abbonamento con data di inizio da oggi (lo storico dei piani precedenti resta conservato, non viene cancellato). È lo stesso dato mostrato/gestito nella pagina Abbonamenti — modificarlo da un punto o dall\'altro aggiorna la stessa informazione.',tag:'abbonamento scheda atleta piano assegnare cambiare maglia'},

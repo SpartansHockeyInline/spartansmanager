@@ -2,6 +2,15 @@
 
 ---
 
+## v5.5.0 · Settembre 2026
+
+### Nuove funzionalità
+- **Stato "Sospeso" escluso dai pagamenti** — un atleta con stato "Sospeso" non compare più tra le quote arretrate in Dashboard, non è selezionabile come "Atleta collegato" in una nuova entrata/ricevuta, e il suo stato pagamenti mostra "⏸ Sospeso" invece di un giudizio di regolarità: resta congelato finché non torna Attivo o passa a Inattivo.
+- **Periodi di inattività con date specifiche** — nella scheda atleta (tab Anagrafica) è possibile registrare uno o più periodi di inattività (data inizio, data fine facoltativa se ancora in corso, motivo). I mesi coperti da un periodo NON vengono conteggiati come dovuti nel calcolo dei pagamenti mensili — a differenza di "Sospeso", l'atleta resta normalmente conteggiato per gli altri mesi, e il periodo resta valido anche se in seguito lo stato torna "Attivo" (utile per pause temporanee — infortuni, trasferimenti, ecc. — che non devono generare falsi arretrati).
+- Le selezioni "Atleta collegato" in Amministrazione e Genera documenti ora includono anche gli atleti "Inattivo" (possono comunque dover pagare mesi fuori dal periodo escluso), escludendo solo i "Sospeso".
+
+---
+
 ## v5.4.2 · Settembre 2026
 
 ### ⚠ Fix critico — riapertura di un'entrata/uscita mostrava l'atleta/fornitore sbagliato
