@@ -2,6 +2,13 @@
 
 ---
 
+## v5.7.0 · Settembre 2026
+
+### Nuove funzionalità
+- **Book allenamenti** — nuova sezione "📔 Book allenamenti" per annotare esercizi e idee di ogni sessione. Ogni voce ha data (assegnabile liberamente, non legata a un corso o a un evento specifico) e istruttore, con quattro fasi strutturate (🔥 Riscaldamento, 🎯 Tecnica, 🧠 Tattica, 🏁 Defaticamento/Partitella) più un campo di note libere. Filtrabile per istruttore e per mese, visibile e compilabile da tutto lo staff — non solo da chi ha scritto una determinata sessione.
+
+---
+
 ## v5.6.1 · Settembre 2026
 
 ### Fix — Scadenze imminenti
