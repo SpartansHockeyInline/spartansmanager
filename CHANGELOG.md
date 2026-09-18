@@ -2,6 +2,13 @@
 
 ---
 
+## v5.6.0 · Settembre 2026
+
+### Nuove funzionalità
+- **Spazio utilizzato** — nuova card in Impostazioni ("📊 Calcola") che stima lo spazio occupato su Firebase, scomposto per capire cosa lo fa crescere: dati correnti del database, di cui allegati incorporati (foto profilo e file caricati direttamente, non i link Drive — quelli sono solo testo), backup automatici cloud (con conteggio delle copie), e backup locali sul dispositivo. Utile prima di popolare un dataset ricco (es. la futura demo) per capire quanto pesa, e per individuare se conviene preferire i link Drive invece di allegare file di grandi dimensioni. Google Drive non è invece verificabile dall'app: quello spazio è gestito interamente dal tuo account Google.
+
+---
+
 ## v5.5.1 · Settembre 2026
 
 ### Fix
