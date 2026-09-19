@@ -431,7 +431,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.7.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.7.1 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1764,6 +1764,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.7.1 · Settembre 2026</div>
+        <div class="cl-section">Fix — Book allenamenti</div>
+        <div class="cl-item"><strong>Istruttori selezionabili corretti</strong> — il campo Istruttore (sia nella modale "Nuova sessione" sia nel filtro dell'elenco) proponeva tutto lo Staff, inclusi dirigenti, segretario, tesoriere e altre cariche non necessariamente abilitate all'insegnamento. Ora attinge solo dai nominativi registrati in "Maestri/Tecnici" — la stessa lista già usata per assegnare l'istruttore a un corso.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.7.0 · Settembre 2026</div>
@@ -6244,7 +6250,7 @@ function initBookAllenamenti(){
   if(selIstr){
     const attuale=selIstr.value;
     selIstr.innerHTML='<option value="">Tutti gli istruttori</option>'+
-      (DB.staff||[]).sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
+      (DB.maestri||[]).sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
       .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
     selIstr.value=attuale;
   }
@@ -6296,7 +6302,7 @@ function openModalBookAllenamento(id){
   if(btnElim)btnElim.style.display=id?'':'none';
   const selIstr=document.getElementById('m-ba-istruttore');
   selIstr.innerHTML='<option value="">— Seleziona —</option>'+
-    (DB.staff||[]).sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
+    (DB.maestri||[]).sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`,'it'))
     .map(s=>`<option value="${s.id}">${s.cognome} ${s.nome}</option>`).join('');
   ['data','riscaldamento','tecnica','tattica','defaticamento','note'].forEach(k=>{
     const el=document.getElementById('m-ba-'+k);if(el)el.value='';
@@ -6321,7 +6327,7 @@ function saveBookAllenamento(){
   const data=document.getElementById('m-ba-data').value;
   const istruttoreId=document.getElementById('m-ba-istruttore').value;
   if(!data||!istruttoreId){toast('Data e istruttore sono obbligatori','error');return;}
-  const istruttore=(DB.staff||[]).find(s=>s.id===istruttoreId);
+  const istruttore=(DB.maestri||[]).find(s=>s.id===istruttoreId);
   const dati={
     data,istruttoreId,istruttoreNome:istruttore?`${istruttore.nome} ${istruttore.cognome}`:'',
     riscaldamento:document.getElementById('m-ba-riscaldamento').value,
@@ -6867,7 +6873,7 @@ const GUIDA_VOCI=[
   {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta, l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti. Ogni ricevuta generata (da qui o dall\'automatismo) viene anche salvata nel Registro Ricevute — vedi voce dedicata.',tag:'ricevuta pagamento documento generare metodo automatico amministrazione'},
   {cat:'💰 Amministrazione',titolo:'Registro Ricevute',testo:'Il tab "🧾 Ricevute" in Amministrazione elenca tutte le ricevute generate dall\'app, con numero progressivo, data, atleta, causale, importo e metodo. A differenza del semplice contatore usato per numerare le ricevute (che non conserva alcuna informazione sul passato), questo registro resta consultabile per sempre: se un PDF o una ricevuta stampata va perso, il pulsante 🔁 la rigenera identica, con lo stesso numero e gli stessi dati.',tag:'registro ricevute numero progressivo rigenera recupero'},
   {cat:'⚙️ Impostazioni',titolo:'Spazio utilizzato',testo:'La card "📊 Spazio utilizzato" in Impostazioni stima quanto pesa il database su Firebase, scomposto in: dati correnti, di cui allegati incorporati (foto e file caricati direttamente — non i link Drive, che sono solo testo), backup automatici cloud e backup locali sul dispositivo. Il pulsante "Calcola" interroga anche Firebase per i backup cloud, quindi può richiedere qualche secondo. Non è il valore esatto mostrato nella Console Firebase (che include anche overhead interno), ma una stima utile per seguire l\'andamento nel tempo e capire quale componente sta crescendo di più. Google Drive non è verificabile da qui: controllalo direttamente su drive.google.com.',tag:'spazio utilizzato firebase drive dimensione database allegati backup'},
-  {cat:'🏒 Corsi e squadre',titolo:'Book allenamenti',testo:'La sezione "📔 Book allenamenti" permette di annotare esercizi e idee per ogni sessione. Con "+ Nuova sessione" scegli data (libera, non legata a un corso specifico) e istruttore, poi compili le quattro fasi (🔥 Riscaldamento, 🎯 Tecnica, 🧠 Tattica, 🏁 Defaticamento/Partitella) e un campo di note libere — tutti i campi sono facoltativi tranne data e istruttore. L\'elenco è filtrabile per istruttore o per mese, ed è visibile a tutto lo staff: ogni istruttore può consultare le sessioni annotate dagli altri, non solo le proprie.',tag:'book allenamenti esercizi sessione riscaldamento tecnica tattica defaticamento istruttore'},
+  {cat:'🏒 Corsi e squadre',titolo:'Book allenamenti',testo:'La sezione "📔 Book allenamenti" permette di annotare esercizi e idee per ogni sessione. Con "+ Nuova sessione" scegli data (libera, non legata a un corso specifico) e istruttore — quest\'ultimo selezionabile solo tra i nominativi registrati in "Maestri/Tecnici" (non tra tutto lo Staff: dirigenti, segretario, tesoriere ecc. non compaiono, perché non necessariamente abilitati all\'insegnamento) — poi compili le quattro fasi (🔥 Riscaldamento, 🎯 Tecnica, 🧠 Tattica, 🏁 Defaticamento/Partitella) e un campo di note libere — tutti i campi sono facoltativi tranne data e istruttore. L\'elenco è filtrabile per istruttore o per mese, ed è visibile a tutto lo staff: ogni istruttore può consultare le sessioni annotate dagli altri, non solo le proprie.',tag:'book allenamenti esercizi sessione riscaldamento tecnica tattica defaticamento istruttore maestri tecnici'},
   {cat:'💰 Amministrazione',titolo:'Registrare un abbonamento o una quota gratuita',testo:'Per registrare un pagamento a zero euro (es. borsa di studio, quota omaggio) inserisci "0" nel campo importo di una nuova entrata: ora è accettato (prima veniva rifiutato come "dato mancante"). Perché lo stato pagamenti mensili dell\'atleta risulti "in regola" automaticamente, però, conviene creare un piano dedicato con prezzo 0 in Abbonamenti (es. "Quota omaggio") e assegnarlo all\'atleta dal campo Abbonamento nella sua scheda: a quel punto l\'app non calcola più nulla di dovuto per lui, indipendentemente dalle entrate registrate.',tag:'quota gratuita omaggio borsa di studio abbonamento zero'},
   {cat:'✅ Presenze',titolo:'Registro storico presenze — vista su tutti i corsi',testo:'Aprendo Presenze → Storico, l\'elenco mostra di default le sessioni di TUTTI i corsi insieme (con una colonna Corso per distinguerle), invece di richiedere prima di scegliere un corso specifico. Puoi comunque restringere la vista a un singolo corso dal menu a tendina in alto.',tag:'storico presenze tutti i corsi vista aggregata'},
   {cat:'👤 Anagrafiche',titolo:'Collegare un documento salvato su Google Drive',testo:'Nel tab Documenti della scheda atleta, oltre al pulsante "📎 Allega file" (per caricare un file direttamente nell\'app), c\'è ora un campo per incollare il link di un documento già salvato su Google Drive e collegarlo con "➕ Collega link" — utile per moduli scansionati o firmati con strumenti esterni (es. DocHub, Adobe), senza dover scaricare e ricaricare il file.',tag:'documenti drive link atleta scheda allegato collegamento'},

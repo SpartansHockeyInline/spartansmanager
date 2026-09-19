@@ -2,6 +2,13 @@
 
 ---
 
+## v5.7.1 · Settembre 2026
+
+### Fix — Book allenamenti
+- **Istruttori selezionabili corretti** — il campo Istruttore (sia nella modale "Nuova sessione" sia nel filtro dell'elenco) proponeva tutto lo Staff, inclusi dirigenti, segretario, tesoriere e altre cariche non necessariamente abilitate all'insegnamento. Ora attinge solo dai nominativi registrati in "Maestri/Tecnici" — la stessa lista già usata per assegnare l'istruttore a un corso.
+
+---
+
 ## v5.7.0 · Settembre 2026
 
 ### Nuove funzionalità
