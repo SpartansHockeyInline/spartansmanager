@@ -2,6 +2,13 @@
 
 ---
 
+## v5.8.0 · Settembre 2026
+
+### Nuove funzionalità
+- **Storico Abbigliamento** — nuova scheda "🧥 Abbigliamento" nell'anagrafica di ogni atleta, per registrare ogni capo/attrezzatura assegnato: 🛒 acquisto, 🎁 fornitura gratuita o 🔄 prestito di materiale didattico. Ogni evento ha articolo, data, note e — solo per gli acquisti — importo. I prestiti restano segnati come "in corso" finché non vengono marcati come restituiti (con relativa data), e finché sono aperti compaiono automaticamente in un nuovo promemoria di Dashboard, "🔄 Prestiti materiale in corso", con l'elenco di chi ha in mano cosa e da quando — utile per non perdere traccia del materiale didattico dato in prestito (es. caschi, pattini, protezioni condivise).
+
+---
+
 ## v5.7.1 · Settembre 2026
 
 ### Fix — Book allenamenti
