@@ -3625,9 +3625,12 @@ function mesiTraDate(periodoInizio,periodoFine){
   return mesi;
 }
 function getStatoPagamentoMensile(s){
-  // "Sospeso" congela del tutto il conteggio: l'atleta non viene considerato
-  // né in regola né arretrato finché non torna attivo o viene messo inattivo.
+  // "Sospeso" e "Inattivo" congelano del tutto il conteggio: l'atleta non
+  // viene considerato né in regola né arretrato finché non torna attivo.
+  // (Per un'assenza solo su alcuni mesi con date precise, senza cambiare lo
+  // stato generale, usare invece "Periodi di inattività" nella scheda atleta.)
   if(s.stato==='sospeso')return{label:'⏸ Sospeso',ok:null};
+  if(s.stato==='inattivo')return{label:'💤 Inattivo',ok:null};
   const oggi=new Date();
   // Le entrate collegano l'atleta tramite "socioId" e usano i campi "cat"
   // (categoria a tendina) e "descr" (descrizione libera).
@@ -4135,8 +4138,12 @@ function importFromCSV(){
         nome, cognome,
         nascita:parseDataItalianaISO(g(cols,'nascita')), luogo:g(cols,'luogo'), sesso:g(cols,'sesso'), cf:g(cols,'cf'),
         indirizzo:g(cols,'indirizzo'), tel:g(cols,'tel'), email:g(cols,'email'),
+        // Se il testo del CSV non trova corrispondenza tra i corsi configurati,
+        // NON sovrascrive l'abbinamento esistente col solo testo grezzo — altrimenti
+        // corsoNome (mostrato in tabella) e corsoId (usato dal pannello Iscritti)
+        // finiscono disallineati: l'atleta sembra assegnato ma non compare nel corso.
         corsoId:corsoTrovato?corsoTrovato.id:existing.corsoId,
-        corsoNome:corsoTrovato?corsoTrovato.nome:(g(cols,'corsoNome')||existing.corsoNome),
+        corsoNome:corsoTrovato?corsoTrovato.nome:existing.corsoNome,
         maglia:g(cols,'maglia'),
         visitaTipo:g(cols,'visitaTipo'), visitaScad:parseDataItalianaISO(g(cols,'visitaScad')), visitaMedico:g(cols,'visitaMedico'),
         allergie:g(cols,'allergie'), farmaci:g(cols,'farmaci'),
@@ -4164,7 +4171,13 @@ function importFromCSV(){
       indirizzo:g(cols,'indirizzo'),tel:g(cols,'tel'),
       email:g(cols,'email'),
       tipologia:(g(cols,'tipologia')||'atleta').toLowerCase(),
-      corsoId:corsoTrovato?corsoTrovato.id:'',corsoNome:corsoTrovato?corsoTrovato.nome:g(cols,'corsoNome'),
+      // Come sopra: se il testo non è stato riconosciuto, non lo mettiamo in
+      // corsoNome spacciandolo per un'assegnazione valida (corsoId resterebbe
+      // vuoto) — lo segnaliamo invece con un prefisso ⚠, così è chiaro a colpo
+      // d'occhio in tabella che va assegnato a mano dal menu Corso/Squadra,
+      // e la colonna "Corso ✓" (basata su corsoId) resta coerente con ✗.
+      corsoId:corsoTrovato?corsoTrovato.id:'',
+      corsoNome:corsoTrovato?corsoTrovato.nome:(g(cols,'corsoNome')?`⚠ ${g(cols,'corsoNome')} (da assegnare)`:''),
       maglia:g(cols,'maglia'),
       stato:'attivo',
       visitaTipo:g(cols,'visitaTipo'),visitaScad:parseDataItalianaISO(g(cols,'visitaScad')),
