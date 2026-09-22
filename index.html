@@ -142,6 +142,11 @@ nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 8px 60px;scrollbar-widt
 .tw table td.sticky-col{background:var(--surface);}
 .tw table .row-num.sticky-col{left:0;width:38px;}
 .tw table .sticky-col:not(.row-num){left:38px;min-width:150px;box-shadow:6px 0 8px -6px rgba(0,0,0,.18);}
+/* Vista "solo tabella" a tutto schermo (Anagrafiche), pensata per la stampa:
+   quando l'elemento .tw è in Fullscreen API, occupa tutto lo schermo con
+   sfondo pieno e la tabella resta scrollabile con intestazioni fisse. */
+.tw:fullscreen{max-height:100vh;background:var(--surface);padding:16px;}
+.tw:-webkit-full-screen{max-height:100vh;background:var(--surface);padding:16px;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead th{background:var(--surface2);padding:10px 13px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
 tbody tr{border-top:1px solid var(--border);transition:background var(--tr);}
@@ -358,6 +363,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   .cal-day{min-height:60px;}
   .cal-event{font-size:9px;}
   #impianti-grid{grid-template-columns:repeat(2,1fr)!important;}
+  .desktop-only{display:none!important;} /* Tutto schermo tabella: solo da PC */
 }
 @media(max-width:640px){
   #content{padding:12px;padding-bottom:40px;}
@@ -702,29 +708,30 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <button class="btn btn-p btn-sm" onclick="openModalSocio()">+ Nuovo atleta</button>
           <button class="btn btn-s btn-sm" onclick="openModal('modal-import-sheets','')">📊 Sheets</button>
           <button class="btn btn-s btn-sm" onclick="copiaLinkForm()" title="Copia il link del Google Form da inviare agli atleti">🔗 Copia link form</button>
+          <button class="btn btn-s btn-sm desktop-only" id="btn-fullscreen-soci" onclick="toggleFullscreenSoci()" title="Vista a tutto schermo, solo tabella — comoda per la stampa">⛶ Tutto schermo</button>
         </div>
         <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">Visualizzati: <strong id="soci-count">0</strong></div>
-        <div class="tw"><table>
+        <div class="tw" id="soci-table-wrap"><table>
           <thead>
           <tr>
             <th class="row-num sticky-col">#</th>
-            <th class="sortable sticky-col" onclick="sortSoci('cognome')" id="th-cognome">Atleta <span></span></th>
+            <th class="sortable sticky-col" onclick="sortSoci('cognome')" id="th-cognome" style="white-space:normal;min-width:120px;">Atleta <span></span></th>
             <th class="sortable" onclick="sortSoci('eta')" id="th-eta">Età <span></span></th>
-            <th class="sortable" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr">Cat. FISR <span></span></th>
-            <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome">Corso <span></span></th>
-            <th class="sortable" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd">Tessera ASD <span></span></th>
-            <th class="sortable" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr">Tessera FISR <span></span></th>
-            <th>Vis. Medica</th>
-            <th>Assicurazione</th>
-            <th>Abbonamento</th>
-            <th title="Anagrafica completa">Anagr. ✓</th>
-            <th title="Corso assegnato">Corso ✓</th>
-            <th title="Modulo iscrizione firmato">Iscr. ✓</th>
-            <th title="Modulo privacy firmato">Priv. ✓</th>
-            <th title="Primo pagamento ricevuto">Pag. ✓</th>
-            <th title="Tessera FISR presente">FISR ✓</th>
-            <th title="Certificato medico valido">Med. ✓</th>
-            <th>Pagamenti mensili</th>
+            <th class="sortable" onclick="sortSoci('categoriaFisr')" id="th-categoriaFisr" title="Categoria FISR">Cat. FISR <span></span></th>
+            <th class="sortable" onclick="sortSoci('corsoNome')" id="th-corsoNome" title="Corso/Squadra">Corso <span></span></th>
+            <th class="sortable" onclick="sortSoci('tesseraAsd')" id="th-tesseraAsd" title="Tessera ASD">Tess. ASD <span></span></th>
+            <th class="sortable" onclick="sortSoci('tesseraFisr')" id="th-tesseraFisr" title="Tessera FISR">Tess. FISR <span></span></th>
+            <th class="sortable" onclick="sortSoci('visita')" id="th-visita" title="Visita medica">Visita <span></span></th>
+            <th class="sortable" onclick="sortSoci('assic')" id="th-assic" title="Assicurazione">Assic. <span></span></th>
+            <th class="sortable" onclick="sortSoci('abb')" id="th-abb" title="Abbonamento">Abbon. <span></span></th>
+            <th class="sortable" onclick="sortSoci('ck-anagrafica')" id="th-ck-anagrafica" title="Anagrafica completa">Anagr. ✓ <span></span></th>
+            <th class="sortable" onclick="sortSoci('ck-corso')" id="th-ck-corso" title="Corso assegnato">Corso ✓ <span></span></th>
+            <th class="sortable" onclick="sortSoci('ck-iscrizione')" id="th-ck-iscrizione" title="Modulo iscrizione firmato">Iscr. ✓ <span></span></th>
+            <th class="sortable" onclick="sortSoci('ck-privacy')" id="th-ck-privacy" title="Modulo privacy firmato">Priv. ✓ <span></span></th>
+            <th class="sortable" onclick="sortSoci('ck-pagamento')" id="th-ck-pagamento" title="Primo pagamento ricevuto">Pag. ✓ <span></span></th>
+            <th class="sortable" onclick="sortSoci('ck-fisr')" id="th-ck-fisr" title="Tessera FISR presente">FISR ✓ <span></span></th>
+            <th class="sortable" onclick="sortSoci('ck-visita')" id="th-ck-visita" title="Certificato medico valido">Med. ✓ <span></span></th>
+            <th class="sortable" onclick="sortSoci('pagMens')" id="th-pagMens" title="Pagamenti mensili">Pag. mens. <span></span></th>
             <th class="sortable" onclick="sortSoci('stato')" id="th-stato">Stato <span></span></th>
             <th>Azioni</th>
           </tr>
@@ -1453,7 +1460,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       <div class="tab-panel" id="socio-tab-documenti">
         <div id="m-s-docs-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:9px;"></div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
-          <select class="fsel" id="m-s-doc-tipo" style="max-width:180px;">
+          <select class="fsel" id="m-s-doc-categoria" style="max-width:180px;">
             <option value="Documento d'identità">🪪 Documento d'identità</option>
             <option value="Visita medica">🏥 Visita medica</option>
             <option value="Modulo iscrizione">📋 Modulo iscrizione</option>
@@ -2651,7 +2658,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function formatDate(d){if(!d)return'—';const[y,m,g]=d.split('-');return`${g}/${m}/${y}`;}
 function updateBadges(){
   const bSoci=document.getElementById('badge-soci');
-  if(bSoci)bSoci.textContent=(DB.soci?.length||0)+(DB.staff?.length||0);
+  if(bSoci)bSoci.textContent=(DB.soci||[]).filter(s=>s.tipologia==='atleta'||s.tipologia==='amatore'||!s.tipologia).length;
 }
 function scadColor(d){if(!d)return'var(--text2)';const diff=(new Date(d)-new Date())/86400000;return diff<0?'var(--red)':diff<30?'var(--yellow)':'var(--green)';}
 function toast(msg,type='success'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast ${type}`;t.innerHTML=`<span>${{success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'}[type]||'ℹ️'}</span><span>${msg}</span>`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(40px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3200);}
@@ -2916,14 +2923,14 @@ function updateFotoInitials(){const n=document.getElementById('m-s-nome').value;
 function renderAvatar(s,size=32){const sz=`width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;`;if(s.foto)return`<img src="${s.foto}" class="av" style="${sz}border-radius:50%;object-fit:cover;">`;return`<div class="av" style="${sz}">${(s.nome?s.nome[0]:'')+(s.cognome?s.cognome[0]:'')}</div>`;}
 
 // ═══ DOCUMENTI SOCIO ══════════════════════════════════════
-function addDocSocio(e){const f=e.target.files[0];if(!f)return;if(f.size>3*1024*1024){toast('File max 3MB','error');return;}const tipo=document.getElementById('m-s-doc-tipo').value;const note=document.getElementById('m-s-doc-note').value;const r=new FileReader();r.onload=ev=>{tempDocs.push({id:uid(),tipo,note,nome:f.name,mime:f.type,data:ev.target.result,caricato:new Date().toISOString().slice(0,10)});renderTempDocs();document.getElementById('m-s-doc-file').value='';document.getElementById('m-s-doc-note').value='';toast('Documento allegato','success');};r.readAsDataURL(f);}
+function addDocSocio(e){const f=e.target.files[0];if(!f)return;if(f.size>3*1024*1024){toast('File max 3MB','error');return;}const tipo=document.getElementById('m-s-doc-categoria').value;const note=document.getElementById('m-s-doc-note').value;const r=new FileReader();r.onload=ev=>{tempDocs.push({id:uid(),tipo,note,nome:f.name,mime:f.type,data:ev.target.result,caricato:new Date().toISOString().slice(0,10)});renderTempDocs();document.getElementById('m-s-doc-file').value='';document.getElementById('m-s-doc-note').value='';toast('Documento allegato','success');};r.readAsDataURL(f);}
 function docEmoji(m){if(!m)return'📄';if(m.includes('pdf'))return'📕';if(m.includes('image'))return'🖼️';if(m.includes('word')||m.includes('document'))return'📝';return'📄';}
 function addDocDriveLink(){
   const urlEl=document.getElementById('m-s-doc-drive-url');
   const url=urlEl.value.trim();
   if(!url){toast('Incolla un link','error');return;}
   if(!/^https?:\/\//i.test(url)){toast('Il link deve iniziare con http:// o https://','error');return;}
-  const tipo=document.getElementById('m-s-doc-tipo').value;
+  const tipo=document.getElementById('m-s-doc-categoria').value;
   const note=document.getElementById('m-s-doc-note').value;
   tempDocs.push({id:uid(),tipo,note,url,nome:'Link Google Drive',caricato:new Date().toISOString().slice(0,10)});
   renderTempDocs();
@@ -3719,12 +3726,23 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     return true;
   });
 
-  // Calcola eta e categoria per ogni socio
+  // Calcola eta, categoria e tutti gli altri valori derivati usati anche
+  // per l'ordinamento (badge di stato, checklist, pagamenti) PRIMA di
+  // ordinare, così ogni colonna calcolata può essere ordinata al click.
+  const rank=v=>v===true?0:v===false?1:2; // ✓ prima, poi ✗, poi non disponibile (—)
   const listaArricchita=list.map(s=>{
     const eta=getEtaAnagrafica(s.nascita);
     const annoNascita=s.nascita?parseInt(s.nascita.slice(0,4)):null;
     const categoriaFisr=annoNascita?getCategoriaFisr(annoNascita):'—';
-    return{...s,eta,categoriaFisr};
+    const abb=getAbbStatoSocio(s.id);
+    const abbOk=abb?abb.stato==='attivo':null;
+    const visitaOk=s.visitaScad?!!(new Date(s.visitaScad)-new Date()>0):null;
+    const assicOk=s.assicurazione?s.assicurazione==='pagata':null;
+    const cl=computeChecklist(s);
+    const ckByKey={};
+    cl.forEach(c=>{ckByKey[c.key]=c.ok;});
+    const pagMens=getStatoPagamentoMensile(s);
+    return{...s,eta,categoriaFisr,_abb:abb,_abbOk:abbOk,_visitaOk:visitaOk,_assicOk:assicOk,_ck:ckByKey,_pagMens:pagMens};
   });
 
   // Ordinamento
@@ -3733,8 +3751,15 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     if(sociSortKey==='cognome'){va=`${a.cognome||''} ${a.nome||''}`.toLowerCase();vb=`${b.cognome||''} ${b.nome||''}`.toLowerCase();}
     else if(sociSortKey==='eta'){va=a.eta??999;vb=b.eta??999;}
     else if(sociSortKey==='categoriaFisr'){va=a.categoriaFisr||'';vb=b.categoriaFisr||'';}
+    else if(sociSortKey==='visita'){va=rank(a._visitaOk);vb=rank(b._visitaOk);}
+    else if(sociSortKey==='assic'){va=rank(a._assicOk);vb=rank(b._assicOk);}
+    else if(sociSortKey==='abb'){va=rank(a._abbOk);vb=rank(b._abbOk);}
+    else if(sociSortKey.startsWith('ck-')){const k=sociSortKey.slice(3);va=rank(a._ck[k]);vb=rank(b._ck[k]);}
+    else if(sociSortKey==='pagMens'){
+      // ✅ in regola sempre in cima, poi in ordine di etichetta (es. mesi arretrati)
+      va=a._pagMens.ok===true?'':a._pagMens.label;vb=b._pagMens.ok===true?'':b._pagMens.label;}
     else{va=(a[sociSortKey]||'').toString().toLowerCase();vb=(b[sociSortKey]||'').toString().toLowerCase();}
-    const cmp=typeof va==='number'?va-vb:va.localeCompare(vb,'it');
+    const cmp=typeof va==='number'?va-vb:va.toString().localeCompare(vb.toString(),'it');
     return sociSortDir==='asc'?cmp:-cmp;
   });
 
@@ -3766,7 +3791,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     const pagBadge=`<span class="badge ${pagMens.ok===true?'bg':pagMens.ok===false?'br':'bgy'}" style="font-size:10px;white-space:nowrap;">${pagMens.label}</span>`;
     return`<tr>
       <td class="row-num sticky-col">${idx+1}</td>
-      <td class="sticky-col"><div style="display:flex;align-items:center;gap:8px;">${renderAvatar(s,26)}<div style="min-width:0;"><div style="font-weight:600;font-size:12.5px;white-space:nowrap;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:9.5px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
+      <td class="sticky-col"><div style="display:flex;align-items:center;gap:8px;">${renderAvatar(s,26)}<div style="min-width:0;"><div style="font-weight:600;font-size:12.5px;white-space:normal;line-height:1.25;word-break:break-word;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:9.5px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
       <td style="font-weight:600;font-size:12px;">${s.eta!==null&&s.eta!==undefined?s.eta:'—'}</td>
       <td><span class="badge bgold" style="font-size:9.5px;">${s.categoriaFisr}</span></td>
       <td style="font-size:12px;">${s.corsoNome||'—'}</td>
@@ -3793,6 +3818,38 @@ function sortSoci(key){
   if(th)th.classList.add(sociSortDir==='asc'?'sort-asc':'sort-desc');
   applyFilters();
 }
+
+// ═══ VISTA A TUTTO SCHERMO TABELLA ANAGRAFICHE (per stampa) ═══
+// Usa la Fullscreen API sul solo contenitore della tabella (.tw), che non
+// include sidebar/topbar/filtri: a schermo intero resta visibile solo la
+// tabella con le intestazioni, pronta per essere stampata (Ctrl/Cmd+P) o
+// fotografata. Funziona solo da desktop (il pulsante è nascosto su mobile
+// via CSS, dove comunque la vista tabella diventa un elenco di card).
+function toggleFullscreenSoci(){
+  const el=document.getElementById('soci-table-wrap');
+  if(!el)return;
+  const fsEl=document.fullscreenElement||document.webkitFullscreenElement;
+  if(!fsEl){
+    const req=el.requestFullscreen||el.webkitRequestFullscreen;
+    if(!req){toast('Vista a tutto schermo non supportata da questo browser','warning');return;}
+    req.call(el).catch(()=>toast('Impossibile attivare la vista a tutto schermo','error'));
+  }else{
+    const exit=document.exitFullscreen||document.webkitExitFullscreen;
+    if(exit)exit.call(document);
+  }
+}
+document.addEventListener('fullscreenchange',()=>{
+  const btn=document.getElementById('btn-fullscreen-soci');
+  if(!btn)return;
+  const active=document.fullscreenElement===document.getElementById('soci-table-wrap');
+  btn.textContent=active?'✕ Esci da tutto schermo':'⛶ Tutto schermo';
+});
+document.addEventListener('webkitfullscreenchange',()=>{
+  const btn=document.getElementById('btn-fullscreen-soci');
+  if(!btn)return;
+  const active=document.webkitFullscreenElement===document.getElementById('soci-table-wrap');
+  btn.textContent=active?'✕ Esci da tutto schermo':'⛶ Tutto schermo';
+});
 
 function getAbbStatoSocio(socioId){
   const today=new Date().toISOString().slice(0,10);
