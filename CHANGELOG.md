@@ -2,6 +2,13 @@
 
 ---
 
+## v5.9.1 · Settembre 2026
+
+### Fix — Anagrafiche soci su smartphone
+- **Vista a card leggibile** — da smartphone la tabella Atleti (20 colonne) diventava un elenco di numeri e spunte senza etichetta, illeggibile senza affiancare la testata. Ogni valore ora mostra il nome del campo sopra di sé, e la card si apre con nome e maglia dell'atleta come intestazione. Per restare compatta, la card mostra solo i campi utili a colpo d'occhio (età, categoria, corso, abbonamento, pagamenti, stato); tessere, visita medica, assicurazione e checklist dettagliata restano un tocco più in là, nella scheda di modifica (✏️), già raggiungibile da ogni card.
+
+---
+
 ## v5.9.0 · Settembre 2026
 
 ### Nuove funzionalità

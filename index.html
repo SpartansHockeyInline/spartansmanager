@@ -349,6 +349,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   body{background:#fff;color:#000;}
   .print-content{display:block!important;}
 }
+/* Etichetta extra mostrata solo nella vista a card mobile (es. "Modifica"
+   accanto a un'icona che su desktop resta icon-only). */
+.mob-only-label{display:none;}
 /* ═══ RESPONSIVE ═══════════════════════════════════════════ */
 @media(max-width:1100px){
   :root{--sidebar:200px;}
@@ -393,6 +396,38 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   .tw table tr{display:block;margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);}
   .tw table td{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px;gap:8px;position:static!important;}
   .tw table td:last-child{border-bottom:none;}
+  /* Etichetta di riga: ogni <td data-label="..."> mostra il nome della colonna
+     prima del valore, così una card non è più un elenco di numeri/spunte
+     senza contesto (bug segnalato sulla vista Anagrafiche). */
+  .tw table td[data-label]::before{content:attr(data-label);font-weight:700;color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;margin-right:10px;}
+  /* Il valore (a destra dell'etichetta) può essere un badge con testo lungo
+     (es. "2 mesi arretrati"): se non ci sta accanto all'etichetta, va tutto
+     a capo (badge integro, mai tagliato a metà parola). */
+  .tw table td[data-label]{flex-wrap:wrap;row-gap:3px;}
+  .tw table td[data-label]>*{margin-left:auto;}
+  /* La prima cella "identificativa" (es. nome atleta) fa da intestazione
+     della card: niente etichetta, testo pieno larghezza, leggermente più
+     in risalto. */
+  .tw table td.mob-card-title{background:var(--surface2);font-size:13px;}
+  .tw table td.mob-card-actions{justify-content:center;background:var(--surface2);}
+  .tw table td.mob-card-actions .bico{width:100%;padding:8px;border-radius:6px;background:var(--surface3,rgba(255,255,255,.06));}
+  .mob-only-label{display:inline;}
+  /* Tabella Anagrafiche soci: su mobile è la vista più densa dell'app (20
+     colonne). Su una card mostriamo solo i campi utili a colpo d'occhio;
+     il resto (tessere, visita, assicurazione, checklist dettagliata) resta
+     a un tocco di distanza nella scheda atleta (✏️ Modifica). */
+  #soci-table-wrap tr>td:nth-child(1),
+  #soci-table-wrap tr>td:nth-child(6),
+  #soci-table-wrap tr>td:nth-child(7),
+  #soci-table-wrap tr>td:nth-child(8),
+  #soci-table-wrap tr>td:nth-child(9),
+  #soci-table-wrap tr>td:nth-child(11),
+  #soci-table-wrap tr>td:nth-child(12),
+  #soci-table-wrap tr>td:nth-child(13),
+  #soci-table-wrap tr>td:nth-child(14),
+  #soci-table-wrap tr>td:nth-child(15),
+  #soci-table-wrap tr>td:nth-child(16),
+  #soci-table-wrap tr>td:nth-child(17){display:none;}
   /* Ricerca globale mobile */
   #global-search{font-size:13px;padding:6px 10px;}
   #topbar .pt{font-size:13px;}
@@ -448,7 +483,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.9.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.9.1 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1810,6 +1845,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.9.1 · Settembre 2026</div>
+        <div class="cl-section">Fix — Anagrafiche soci su smartphone</div>
+        <div class="cl-item"><strong>Vista a card leggibile</strong> — da smartphone la tabella Atleti (20 colonne) diventava un elenco di numeri e spunte senza etichetta, illeggibile senza affiancare la testata. Ogni valore ora mostra il nome del campo sopra di sé, e la card si apre con nome e maglia dell'atleta come intestazione. Per restare compatta, la card mostra solo i campi utili a colpo d'occhio (età, categoria, corso, abbonamento, pagamenti, stato); tessere, visita medica, assicurazione e checklist dettagliata restano un tocco più in là, nella scheda di modifica (✏️), già raggiungibile da ogni card.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.9.0 · Settembre 2026</div>
@@ -3825,24 +3866,24 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     const visitaTitle=s.visitaScad?`Scadenza: ${formatDate(s.visitaScad)}${visitaValida?'':' (scaduta)'}`:'Nessuna visita registrata';
     const visitaBadge=`<span class="badge ${visitaValida?'bg':'bgy'}" title="${visitaTitle}">${visitaValida?'✓':'✗'}</span>`;
     const cl=computeChecklist(s);
-    const clCell=(c)=>`<td style="text-align:center;" title="${c.label}: ${c.ok?'fatto':'da fare'}">${c.ok?'<span style="color:var(--green);font-size:13px;">✓</span>':'<span style="color:var(--text3);font-size:13px;">✗</span>'}</td>`;
+    const clCell=(c)=>`<td data-label="${c.label}" style="text-align:center;" title="${c.label}: ${c.ok?'fatto':'da fare'}">${c.ok?'<span style="color:var(--green);font-size:13px;">✓</span>':'<span style="color:var(--text3);font-size:13px;">✗</span>'}</td>`;
     const pagMens=getStatoPagamentoMensile(s);
     const pagBadge=`<span class="badge ${pagMens.ok===true?'bg':pagMens.ok===false?'br':'bgy'}" style="font-size:10px;white-space:nowrap;">${pagMens.label}</span>`;
     return`<tr>
-      <td class="row-num sticky-col">${idx+1}</td>
-      <td class="sticky-col"><div style="display:flex;align-items:center;gap:8px;">${renderAvatar(s,26)}<div style="min-width:0;"><div style="font-weight:600;font-size:12.5px;white-space:normal;line-height:1.25;word-break:break-word;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:9.5px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
-      <td style="font-weight:600;font-size:12px;">${s.eta!==null&&s.eta!==undefined?s.eta:'—'}</td>
-      <td><span class="badge bgold" style="font-size:9.5px;">${s.categoriaFisr}</span></td>
-      <td style="font-size:12px;">${s.corsoNome||'—'}</td>
-      <td style="font-size:12px;white-space:nowrap;">${s.tesseraAsd||'—'}</td>
-      <td><span class="badge ${s.tesseraFisr?'bg':'bgy'}" title="${s.tesseraFisr?`N° ${s.tesseraFisr}${s.tesseraFisrScad?' — scad. '+formatDate(s.tesseraFisrScad):''}`:'Non registrata'}">${s.tesseraFisr?'✓':'✗'}</span></td>
-      <td>${visitaBadge}</td>
-      <td>${assicBadge}</td>
-      <td>${abbBadge}</td>
+      <td class="row-num sticky-col" data-label="#">${idx+1}</td>
+      <td class="sticky-col mob-card-title"><div style="display:flex;align-items:center;gap:8px;">${renderAvatar(s,26)}<div style="min-width:0;"><div style="font-weight:600;font-size:12.5px;white-space:normal;line-height:1.25;word-break:break-word;">${s.nome} ${s.cognome}</div>${s.maglia?`<div style="font-size:9.5px;color:var(--gold);">N° ${s.maglia}</div>`:''}</div></div></td>
+      <td data-label="Età" style="font-weight:600;font-size:12px;">${s.eta!==null&&s.eta!==undefined?s.eta:'—'}</td>
+      <td data-label="Cat. FISR"><span class="badge bgold" style="font-size:9.5px;">${s.categoriaFisr}</span></td>
+      <td data-label="Corso" style="font-size:12px;">${s.corsoNome||'—'}</td>
+      <td data-label="Tess. ASD" style="font-size:12px;white-space:nowrap;">${s.tesseraAsd||'—'}</td>
+      <td data-label="Tess. FISR"><span class="badge ${s.tesseraFisr?'bg':'bgy'}" title="${s.tesseraFisr?`N° ${s.tesseraFisr}${s.tesseraFisrScad?' — scad. '+formatDate(s.tesseraFisrScad):''}`:'Non registrata'}">${s.tesseraFisr?'✓':'✗'}</span></td>
+      <td data-label="Visita medica">${visitaBadge}</td>
+      <td data-label="Assicurazione">${assicBadge}</td>
+      <td data-label="Abbonamento">${abbBadge}</td>
       ${cl.map(clCell).join('')}
-      <td>${pagBadge}</td>
-      <td><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}" style="font-size:10.5px;">${s.stato||'attivo'}</span></td>
-      <td><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️</button></div></td>
+      <td data-label="Pagamenti mensili">${pagBadge}</td>
+      <td data-label="Stato"><span class="badge ${(s.stato||'attivo')==='attivo'?'bg':(s.stato==='sospeso'?'bo':'bgy')}" style="font-size:10.5px;">${s.stato||'attivo'}</span></td>
+      <td class="mob-card-actions"><div class="tda"><button class="bico" onclick="editSocio('${s.id}')">✏️<span class="mob-only-label"> Modifica</span></button></div></td>
     </tr>`;
   }).join('');
 }
