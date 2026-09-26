@@ -2,6 +2,16 @@
 
 ---
 
+## v5.9.0 · Settembre 2026
+
+### Nuove funzionalità
+- **Avviso di presenza multi-utente** — quando un altro utente è collegato all'app, compare accanto allo stato di sincronizzazione un indicatore "👥 N collegati" (con l'elenco delle email al passaggio del mouse/tocco), e un toast avvisa a ogni nuovo collegamento o scollegamento. Se quell'utente sta effettivamente scrivendo sul database (ha una modifica in corso di salvataggio), compare in alto un banner lampeggiante con il suo nome, per evitare di salvare nello stesso momento sovrascrivendo a vicenda le rispettive modifiche.
+
+### Miglioramenti
+- **Verbale Consiglio Direttivo — "Varie ed eventuali" automatico** — l'ordine del giorno generato include ora sempre, come ultimo punto, "Varie ed eventuali", in linea con la prassi degli altri facsimile verbali FISR/Skate Italia.
+
+---
+
 ## v5.8.0 · Settembre 2026
 
 ### Nuove funzionalità

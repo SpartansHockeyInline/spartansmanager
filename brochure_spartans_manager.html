@@ -401,7 +401,7 @@ footer .foot-links a:hover{color:var(--white);}
 <header class="hero">
   <div class="container hero-grid">
     <div>
-      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v5.8.0</span></div>
+      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v5.9.0</span></div>
       <h1>Tutto il tuo<br>club <span class="accent">in pista.</span><br>Un solo file.</h1>
       <p class="lead">
         Anagrafiche, presenze, abbonamenti, amministrazione, documenti e comunicazioni.
@@ -486,6 +486,11 @@ footer .foot-links a:hover{color:var(--white);}
         <span class="feature-icon">🔒</span>
         <h3>I tuoi dati, il tuo Firebase</h3>
         <p>Nessun abbonamento, nessun server terzo. I dati restano sul progetto Firebase gratuito della tua associazione.</p>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">👥</span>
+        <h3>Avviso di presenza multi-utente</h3>
+        <p>Sai sempre chi altro è collegato all'app in questo momento, e un banner lampeggiante ti avvisa se sta scrivendo sul database — così nessuno salva più alla cieca sopra il lavoro di un collega.</p>
       </div>
       <div class="feature">
         <span class="feature-icon">📔</span>
@@ -741,6 +746,20 @@ footer .foot-links a:hover{color:var(--white);}
     </div>
     <div class="cl-timeline">
 
+      <div class="cl-entry">
+        <div>
+          <div class="cl-version"><span class="v-prefix">v</span>5.9.0</div>
+          <div class="cl-date">Settembre 2026</div>
+        </div>
+        <div>
+          <h4>Avviso di presenza multi-utente</h4>
+          <ul>
+            <li>Indicatore "👥 N collegati" e toast quando un altro utente accede o si scollega dall'app</li>
+            <li>Banner lampeggiante con il nome dell'utente quando sta effettivamente scrivendo sul database, per evitare salvataggi simultanei che si sovrascrivono a vicenda</li>
+            <li>Il generatore di verbali del Consiglio Direttivo aggiunge ora sempre "Varie ed eventuali" come ultimo punto all'ordine del giorno</li>
+          </ul>
+        </div>
+      </div>
       <div class="cl-entry">
         <div>
           <div class="cl-version"><span class="v-prefix">v</span>5.8.0</div>
@@ -1268,7 +1287,7 @@ footer .foot-links a:hover{color:var(--white);}
   <div class="container">
     <div class="logo">SPARTANS <span>MANAGER</span></div>
     <div class="foot-links">
-      <span id="brochure-version-footer">v5.8.0</span>
+      <span id="brochure-version-footer">v5.9.0</span>
       <a href="#funzionalita">Funzionalità</a>
       <a href="#prezzo">Prezzo</a>
       <a href="#changelog">Changelog</a>
@@ -1286,7 +1305,7 @@ function toggleChangelog(btn){
 // e nel footer, così da non doverli più tenere allineati a mano — basta
 // aggiornare questa costante ad ogni nuova release (deve combaciare con la
 // prima voce del changelog qui sotto e con il changelog in-app/CHANGELOG.md).
-const BROCHURE_VERSION='v5.8.0';
+const BROCHURE_VERSION='v5.9.0';
 document.querySelectorAll('#brochure-version-hero,#brochure-version-footer').forEach(el=>el.textContent=BROCHURE_VERSION);
 // Il numero "di maglia" in hero riprende solo major.minor (es. "5.8"), come una
 // vera numerazione di maglia — niente patch, giusto per dare colpo d'occhio.

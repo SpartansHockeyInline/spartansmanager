@@ -206,6 +206,13 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 .toast.info{border-left-color:var(--blue);}
 @keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
 
+/* PRESENZA MULTI-UTENTE */
+#presence-banner{position:fixed;top:0;left:0;right:0;z-index:9998;background:var(--yellow);color:#3a2e00;font-size:12.5px;font-weight:600;text-align:center;padding:9px 16px;transform:translateY(-100%);transition:transform .25s ease;box-shadow:0 2px 10px rgba(0,0,0,.15);}
+#presence-banner.show{transform:translateY(0);animation:presenceBlink 1.15s ease-in-out infinite;}
+@keyframes presenceBlink{0%,100%{opacity:1;}50%{opacity:.5;}}
+.presence-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);padding:2px 7px;border:1px solid var(--border);border-radius:20px;cursor:default;flex-shrink:0;}
+.presence-badge .pb-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 4px var(--blue);}
+
 /* DRIVE BAR */
 #drive-bar{position:fixed;bottom:0;left:0;right:0;height:32px;z-index:200;background:var(--surface);border-top:1px solid var(--border);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 16px;gap:9px;font-size:11.5px;color:var(--text2);}
 #drive-bar .dleft{display:flex;align-items:center;gap:9px;min-width:0;overflow:hidden;}
@@ -431,13 +438,17 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   </div>
 </div>
 
+<!-- BANNER PRESENZA MULTI-UTENTE -->
+<div id="presence-banner"></div>
+
 <!-- DRIVE BAR -->
 <div id="drive-bar">
   <div class="dleft">
     <div class="ddot" id="drive-dot"></div>
     <span class="dlabel" id="drive-label">Non connesso</span>
+    <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.8.0 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.9.0 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1799,6 +1810,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v5.9.0 · Settembre 2026</div>
+        <div class="cl-section">Nuove funzionalità</div>
+        <div class="cl-item"><strong>Avviso di presenza multi-utente</strong> — quando un altro utente è collegato all'app, compare accanto allo stato di sincronizzazione un indicatore "👥 N collegati" (con l'elenco delle email al passaggio del mouse/tocco), e un toast avvisa a ogni nuovo collegamento o scollegamento. Se quell'utente sta effettivamente scrivendo sul database (ha una modifica in corso di salvataggio), compare in alto un banner lampeggiante con il suo nome, per evitare di salvare nello stesso momento sovrascrivendo a vicenda le rispettive modifiche.</div>
+        <div class="cl-section">Miglioramenti</div>
+        <div class="cl-item"><strong>Verbale Consiglio Direttivo — "Varie ed eventuali" automatico</strong> — l'ordine del giorno generato include ora sempre, come ultimo punto, "Varie ed eventuali", in linea con la prassi degli altri facsimile verbali FISR/Skate Italia.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.8.0 · Settembre 2026</div>
@@ -7110,7 +7129,8 @@ const GUIDA_VOCI=[
   {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
 
   {cat:'🏛️ Struttura',titolo:'Inserire i dati del Consiglio Direttivo',testo:'Vai su La mia struttura → sezione "⚖️ Consiglio Direttivo" → "+ Aggiungi membro". Inserisci ruolo, nome, cognome, dati anagrafici, CF, residenza, documento d\'identità per ciascun membro (Presidente, Vicepresidente, Tesoriere, Segretario, Consiglieri). Questi dati vengono riutilizzati automaticamente nei contratti, nei verbali e negli altri documenti generabili. Aggiorna questa sezione ogni volta che cambiano le cariche sociali.',tag:'presidente vicepresidente consiglio direttivo legale rappresentante struttura dati contratto verbale'},
-  {cat:'📄 Documenti',titolo:'Generare un verbale del Consiglio Direttivo',testo:'Vai su Genera documenti → card "🗳️ Verbale Consiglio Direttivo". Scegli il tipo di delibera (apertura conto corrente, contratto co.co.co., nomina Safeguarding, convocazione assemblea, quote associative, o testo libero per tutto il resto), compila i campi specifici, e per ogni consigliere presente segna "interessato/conflitto" se ha un interesse diretto nella delibera: verrà registrato come astenuto, con eventuale delega di rappresentanza per la firma. L\'elenco dei consiglieri viene letto automaticamente da "La mia struttura" — se è vuoto, aggiungili prima da lì.',tag:'verbale consiglio direttivo delibera conto corrente cocoo safeguarding assemblea quote conflitto interesse astensione delega'},
+  {cat:'📄 Documenti',titolo:'Generare un verbale del Consiglio Direttivo',testo:'Vai su Genera documenti → card "🗳️ Verbale Consiglio Direttivo". Scegli il tipo di delibera (apertura conto corrente, contratto co.co.co., nomina Safeguarding, convocazione assemblea, quote associative, o testo libero per tutto il resto), compila i campi specifici, e per ogni consigliere presente segna "interessato/conflitto" se ha un interesse diretto nella delibera: verrà registrato come astenuto, con eventuale delega di rappresentanza per la firma. L\'elenco dei consiglieri viene letto automaticamente da "La mia struttura" — se è vuoto, aggiungili prima da lì. Il verbale generato aggiunge sempre in automatico, come ultimo punto dell\'ordine del giorno, "Varie ed eventuali" — non serve indicarlo tu.',tag:'verbale consiglio direttivo delibera conto corrente cocoo safeguarding assemblea quote conflitto interesse astensione delega varie ed eventuali odg'},
+  {cat:'☁️ Sincronizzazione',titolo:'Capire chi altro è collegato e sta scrivendo',testo:'Quando un altro utente accede all\'app con le stesse credenziali del club, in basso a sinistra (accanto allo stato di connessione) compare un indicatore "👥 N collegati": passandoci sopra il mouse (o toccandolo su mobile) vedi le email di chi è collegato. A ogni nuovo collegamento o scollegamento ricevi anche un avviso a comparsa. Se quella persona ha in corso una modifica in salvataggio, in cima allo schermo lampeggia un banner giallo con il suo nome: è il segnale per aspettare qualche secondo prima di salvare a tua volta, così le due modifiche non si sovrascrivono a vicenda.',tag:'presenza utenti collegati multiutente conflitto scrittura simultanea banner sincronizzazione firebase'},
   {cat:'🏛️ Struttura',titolo:'Archiviare i documenti della struttura',testo:'Vai su La mia struttura → Documenti. Per ogni documento (Statuto, Atto Costitutivo, ecc.) inserisci nome, data e link al file su Drive: il nome diventa un link cliccabile che apre il documento.',tag:'documenti struttura statuto atto costitutivo drive link'},
 
   {cat:'🔍 Ricerca',titolo:'Cercare uno sponsor',testo:'La barra di ricerca globale in alto cerca anche tra gli sponsor: ragione sociale, categoria, referente e descrizione del contratto. Cliccando sul risultato si apre direttamente la scheda dello sponsor.',tag:'ricerca globale sponsor cercare'},
@@ -7583,11 +7603,13 @@ function fbInit(){
         }else{
           fbLoadData();
           fbStartLiveSync();
+          fbPresenceInit();
         }
         driveSetStatus('connected',_isDemo?'🎭 DEMO · demo@spartansmanager.app':'✓ Connesso · '+user.email);
         if(_isDemo)setTimeout(showDemoBanner,500);
       }else{
         const wasDemo=_isDemo;
+        fbPresenceStop();
         fbUser=null;
         _isDemo=false;
         if(wasDemo){
@@ -7690,6 +7712,10 @@ async function fbSaveNow(){
     console.error('Firebase save error:',e);
     driveSetStatus('error','⚠ Errore salvataggio Firebase');
     toast('Salvataggio Firebase fallito','error');
+  }finally{
+    // Piccolo ritardo prima di segnalare "fine scrittura", così gli altri
+    // utenti collegati fanno in tempo a vedere il banner prima che sparisca.
+    setTimeout(()=>fbPresenceSetScrivendo(false),1200);
   }
 }
 
@@ -7787,9 +7813,89 @@ function fbStartLiveSync(){
   });
 }
 
+// ═══ PRESENZA MULTI-UTENTE ═══════════════════════════════════
+// Traccia chi altro è collegato all'app in questo momento e chi sta
+// scrivendo sul database, per evitare che due persone lavorino "alla cieca"
+// senza sapere che un'altra sta modificando gli stessi dati in parallelo.
+let fbPresenceRef=null, fbPresenceConnRef=null;
+let _presenzaAltri={}; // uid -> {email, scrivendo}
+
+function fbPresenceInit(){
+  if(!fbDb||!fbUser||_isDemo)return;
+  fbPresenceRef=fbDb.ref('spartans/presence/'+fbUser.uid);
+  fbPresenceConnRef=fbDb.ref('.info/connected');
+  fbPresenceConnRef.on('value',snap=>{
+    if(snap.val()===true){
+      fbPresenceRef.onDisconnect().remove();
+      fbPresenceRef.set({email:fbUser.email,connesso:firebase.database.ServerValue.TIMESTAMP,scrivendo:false});
+    }
+  });
+  fbDb.ref('spartans/presence').on('value',snap=>{
+    const val=snap.val()||{};
+    const nuovi={};
+    Object.keys(val).forEach(uid=>{
+      if(uid===fbUser.uid)return; // ignora sé stesso
+      nuovi[uid]={email:val[uid].email||'utente sconosciuto',scrivendo:!!val[uid].scrivendo};
+    });
+    // notifiche di collegamento/scollegamento (solo differenze rispetto allo stato precedente)
+    Object.keys(nuovi).forEach(uid=>{
+      if(!_presenzaAltri[uid])toast(`👥 ${nuovi[uid].email} si è collegato all'app`,'info');
+    });
+    Object.keys(_presenzaAltri).forEach(uid=>{
+      if(!nuovi[uid])toast(`👋 ${_presenzaAltri[uid].email} si è disconnesso`,'info');
+    });
+    _presenzaAltri=nuovi;
+    renderPresenzaUI();
+  });
+}
+
+function fbPresenceStop(){
+  if(fbPresenceConnRef){fbPresenceConnRef.off();fbPresenceConnRef=null;}
+  if(fbDb)fbDb.ref('spartans/presence').off();
+  if(fbPresenceRef){fbPresenceRef.remove().catch(()=>{});fbPresenceRef=null;}
+  _presenzaAltri={};
+  renderPresenzaUI();
+}
+
+function fbPresenceSetScrivendo(flag){
+  if(!fbPresenceRef||_isDemo)return;
+  fbPresenceRef.update({scrivendo:flag,ultimaScrittura:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+}
+
+function renderPresenzaUI(){
+  const altri=Object.values(_presenzaAltri);
+  const badge=document.getElementById('presence-badge');
+  if(badge){
+    if(altri.length){
+      badge.style.display='';
+      badge.innerHTML=`<span class="pb-dot"></span>👥 ${altri.length} collegat${altri.length>1?'i':'o'}`;
+      badge.title=altri.map(u=>u.email).join(', ');
+    }else{
+      badge.style.display='none';
+    }
+  }
+  const scriventi=altri.filter(u=>u.scrivendo).map(u=>u.email);
+  const banner=document.getElementById('presence-banner');
+  if(banner){
+    if(scriventi.length){
+      banner.innerHTML=`✍️ <strong>${scriventi.join(', ')}</strong> st${scriventi.length>1?'anno':'a'} scrivendo sul database in questo momento — evita di salvare per non sovrascrivere le sue modifiche`;
+      banner.classList.add('show');
+    }else{
+      banner.classList.remove('show');
+    }
+  }
+}
+
+function mostraPresenzaDettaglio(){
+  const altri=Object.values(_presenzaAltri);
+  if(!altri.length){toast('Nessun altro utente collegato in questo momento','info');return;}
+  toast('👥 Collegati: '+altri.map(u=>u.email+(u.scrivendo?' (sta scrivendo)':'')).join(' · '),'info');
+}
+
 // Compatibilità con il resto del codice che chiama driveScheduleSave
 function driveScheduleSave(){
   if(!fbUser)return;
+  fbPresenceSetScrivendo(true);
   clearTimeout(fbSaveTimer);
   fbSaveTimer=setTimeout(fbSaveNow,2000);
 }
