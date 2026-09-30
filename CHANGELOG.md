@@ -2,6 +2,20 @@
 
 ---
 
+## v6.0.0 · Settembre 2026
+
+### Fix — Numerazione ricevute
+- **Le entrate a €0 non propongono più una ricevuta** — un'entrata registrata con importo zero (es. quota esonerata/agevolata) non fa più scattare la richiesta automatica "Generare la ricevuta?": non essendoci un incasso da documentare, non deve consumare un numero della sequenza ufficiale. L'esonero dal pagamento resta comunque tracciato in Amministrazione e va formalizzato con una delibera del Consiglio Direttivo.
+- **Annullamento reale delle ricevute** — nel registro (Amministrazione → Ricevute) ogni riga mostra ora uno stato (✓ valida / 🚫 ANNULLATA / 🧪 TEST) e un nuovo pulsante "🚫 Annulla", che richiede un motivo e marca la ricevuta come annullata senza mai alterare numero, data o importo originali. Sostituisce la precedente prassi manuale di modificare a mano il testo della causale.
+- **Modalità test separata dalla numerazione ufficiale** — la card "Ricevuta pagamento" in Genera documenti ha una nuova casella "🧪 Genera in modalità test": i documenti generati così sono numerati "TEST-0001" ecc. su un contatore Firebase indipendente e il PDF è marcato "DOCUMENTO DI PROVA — NON VALIDO", così una verifica di funzionamento non incrocia mai più, per errore, la numerazione delle ricevute realmente emesse.
+
+> Queste tre correzioni chiudono le "Azioni correttive" richiamate nella nota interna di regolarizzazione della numerazione delle ricevute (Settembre 2026), propedeutiche all'emissione delle ricevute nn. 1–14 e all'annullamento delle nn. 15–22/53/57-58.
+
+### Guida interna
+- Aggiornate le voci "Generare una ricevuta di pagamento", "Registro Ricevute" e "Registrare un abbonamento o una quota gratuita" nella sezione Sistema → Guida, per riflettere la modalità test, l'annullamento reale e l'esclusione delle entrate a €0 dalla generazione automatica.
+
+---
+
 ## v5.9.1 · Settembre 2026
 
 ### Fix — Anagrafiche soci su smartphone

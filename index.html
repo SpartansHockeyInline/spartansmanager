@@ -483,7 +483,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v5.9.1 · Settembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.0.0 · Settembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1026,7 +1026,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       <div class="tab-panel" id="amm-tab-ricevute">
         <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Registro di tutte le ricevute generate dall'app: numero, data, atleta e importo restano tracciati qui anche se la ricevuta stampata/PDF viene persa — puoi rigenerarla identica in qualsiasi momento.</div>
         <div class="tw"><table><thead><tr>
-          <th>N°</th><th>Data</th><th>Atleta</th><th>Causale</th><th>Importo</th><th>Metodo</th><th>Azioni</th>
+          <th>N°</th><th>Data</th><th>Atleta</th><th>Causale</th><th>Importo</th><th>Metodo</th><th>Stato</th><th>Azioni</th>
         </tr></thead><tbody id="ricevute-tbody"></tbody></table></div>
       </div>
     </div>
@@ -1242,6 +1242,10 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <select class="fsel" id="doc-ric-metodo"><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>POS</option><option>Altro</option></select>
           </div>
           <input class="fi" id="doc-ric-causale" placeholder="Causale (es. Quota associativa)" style="margin-bottom:8px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:8px;cursor:pointer;">
+            <input type="checkbox" id="doc-ric-test" style="width:auto;margin:0;">
+            🧪 Genera in modalità test (numerazione "TEST-", non incrementa il registro ufficiale)
+          </label>
           <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriDocumento('ricevuta')">📄 Genera documento</button>
         </div>
         <div class="card" style="border:1px solid var(--border);">
@@ -1845,6 +1849,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v6.0.0 · Settembre 2026</div>
+        <div class="cl-section">Fix — Numerazione ricevute</div>
+        <div class="cl-item"><strong>Le entrate a €0 non propongono più una ricevuta</strong> — un'entrata registrata con importo zero (es. quota esonerata/agevolata) non fa più scattare la richiesta automatica "Generare la ricevuta?": non essendoci un incasso da documentare, non deve consumare un numero della sequenza ufficiale. L'esonero dal pagamento resta comunque tracciato in Amministrazione e va formalizzato con una delibera del Consiglio Direttivo.</div>
+        <div class="cl-item"><strong>Annullamento reale delle ricevute</strong> — nel registro (Amministrazione → Ricevute) ogni riga mostra ora uno stato (✓ valida / 🚫 ANNULLATA / 🧪 TEST) e un nuovo pulsante "🚫 Annulla", che richiede un motivo e marca la ricevuta come annullata senza mai alterare numero, data o importo originali. Sostituisce la precedente prassi manuale di modificare a mano il testo della causale.</div>
+        <div class="cl-item"><strong>Modalità test separata dalla numerazione ufficiale</strong> — la card "Ricevuta pagamento" in Genera documenti ha una nuova casella "🧪 Genera in modalità test": i documenti generati così sono numerati "TEST-0001" ecc. su un contatore Firebase indipendente e il PDF è marcato "DOCUMENTO DI PROVA — NON VALIDO", così una verifica di funzionamento non incrocia mai più, per errore, la numerazione delle ricevute realmente emesse.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v5.9.1 · Settembre 2026</div>
@@ -2662,7 +2674,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v2.0 · Giugno 2025';
+const APP_VERSION = 'v6.0.0 · Settembre 2026';
 let DB = {
   struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
   soci:[],        // atleti
@@ -4907,7 +4919,11 @@ function saveMovimento(){if(_isDemo){toast("🎭 Modalità demo — sola lettura
   saveDB();closeModal('modal-movimento');renderAmministrazione();toast('Salvato','success');
   // Richiamo automatico: se è un'entrata collegata a un atleta, propone
   // subito di generare la ricevuta con gli stessi dati appena inseriti.
-  if(movTipo==='entrata'&&obj.socioId){
+  // Un'entrata a €0 (es. quota esonerata/gratuita) NON deve mai generare una
+  // ricevuta numerata: non c'è un incasso da documentare, e proporlo
+  // comunque aveva già causato in passato numeri "consumati" per errore
+  // (v6.0.0 — fix regolarizzazione numerazione ricevute).
+  if(movTipo==='entrata'&&obj.socioId&&obj.importo>0){
     setTimeout(()=>{
       if(confirm(`Generare la ricevuta per ${obj.socioNome} (€${obj.importo.toFixed(2)} · ${obj.descr})?`)){
         generaRicevutaRapida(obj.socioId,obj.importo,obj.descr,obj.metodo);
@@ -6119,7 +6135,12 @@ function initGeneraDocumenti(){
 // Genera una ricevuta dati socioId/importo/causale/metodo — usata sia dalla
 // card "Ricevuta pagamento" in Genera documenti sia dal richiamo automatico
 // proposto subito dopo aver registrato un'entrata in Amministrazione.
-function generaRicevutaRapida(socioId,importo,causale,metodo){
+// modoTest=true (v6.0.0): genera un documento chiaramente marcato "TEST",
+// usando un contatore Firebase SEPARATO da quello di produzione, così una
+// prova di funzionalità non "brucia" mai più un numero della sequenza
+// ufficiale (causa originaria del disallineamento numerato regolarizzato
+// con la nota interna).
+function generaRicevutaRapida(socioId,importo,causale,metodo,modoTest){
   const s=DB.soci.find(x=>x.id===socioId);
   if(!s){toast('Atleta non trovato per generare la ricevuta','error');return;}
   const st=DB.struttura;
@@ -6128,17 +6149,21 @@ function generaRicevutaRapida(socioId,importo,causale,metodo){
   const stagioneLbl=getStagioneCorrente()?.label||'';
   const oggi=new Date().toLocaleDateString('it-IT');
   const oggiIso=new Date().toISOString().slice(0,10);
-  const numRef=fbDb?fbDb.ref('spartans/contatori/ricevute'):null;
+  const contatore=modoTest?'spartans/contatori/ricevute_test':'spartans/contatori/ricevute';
+  const numRef=fbDb?fbDb.ref(contatore):null;
   const genera=(numRicevuta)=>{
-    const numFormattato=String(numRicevuta).padStart(4,'0');
+    const numFormattato=modoTest?`TEST-${String(numRicevuta).padStart(4,'0')}`:String(numRicevuta).padStart(4,'0');
+    const causaleDoc=modoTest?`[DOCUMENTO DI PROVA — NON VALIDO] ${causale||''}`.trim():(causale||'');
     const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
-      stagione:stagioneLbl,importo:importo||'',causale:causale||'',descr:causale||'',metodo:metodo||'Contanti',
+      stagione:stagioneLbl,importo:importo||'',causale:causaleDoc,descr:causaleDoc,metodo:metodo||'Contanti',
       numRicevuta:numFormattato,dataDoc:oggi,...ps});
     // Registro permanente: anche se il PDF/stampa va perso, questa riga
-    // resta tracciata e permette di rigenerare la ricevuta identica.
+    // resta tracciata e permette di rigenerare la ricevuta identica. Le
+    // ricevute di prova restano visibili nel registro (per trasparenza) ma
+    // marcate test:true, e non concorrono alla numerazione ufficiale.
     if(!DB.ricevute)DB.ricevute=[];
     DB.ricevute.push({id:uid(),numero:numFormattato,data:oggiIso,socioId:s.id,socioNome:`${s.nome} ${s.cognome}`,
-      importo:parseFloat(importo)||0,causale:causale||'',metodo:metodo||'Contanti'});
+      importo:parseFloat(importo)||0,causale:causale||'',metodo:metodo||'Contanti',...(modoTest?{test:true}:{})});
     saveDB();
     if(document.getElementById('ricevute-tbody'))renderRegistroRicevute();
     window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
@@ -6152,12 +6177,16 @@ function generaRicevutaRapida(socioId,importo,causale,metodo){
 function renderRegistroRicevute(){
   const tb=document.getElementById('ricevute-tbody');if(!tb)return;
   const elenco=(DB.ricevute||[]).slice().sort((a,b)=>b.numero.localeCompare(a.numero));
-  if(!elenco.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🧾</div><h3>Nessuna ricevuta ancora generata</h3></div></td></tr>';return;}
-  tb.innerHTML=elenco.map(r=>`<tr>
+  if(!elenco.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">🧾</div><h3>Nessuna ricevuta ancora generata</h3></div></td></tr>';return;}
+  tb.innerHTML=elenco.map(r=>{
+    const badge=r.test?'<span class="badge bgy">🧪 TEST</span>'
+      :(r.annullata?'<span class="badge br">🚫 ANNULLATA</span>'
+      :'<span class="badge bg">✓ valida</span>');
+    return`<tr${r.annullata?' style="opacity:.6;"':''}>
     <td>${r.numero}</td><td>${formatDate(r.data)}</td><td>${r.socioNome}</td><td>${r.causale||'—'}</td>
-    <td>€${(parseFloat(r.importo)||0).toFixed(2)}</td><td>${r.metodo||'—'}</td>
-    <td><button class="bico" title="Rigenera PDF identico" onclick="rigeneraRicevuta('${r.id}')">🔁</button></td>
-  </tr>`).join('');
+    <td>€${(parseFloat(r.importo)||0).toFixed(2)}</td><td>${r.metodo||'—'}</td><td>${badge}${r.motivoAnnullo?`<div style="font-size:11px;color:var(--text3);margin-top:2px;">${r.motivoAnnullo}</div>`:''}</td>
+    <td><button class="bico" title="Rigenera PDF identico" onclick="rigeneraRicevuta('${r.id}')">🔁</button>${(!r.test&&!r.annullata)?`<button class="bico" title="Annulla ricevuta" onclick="annullaRicevuta('${r.id}')">🚫</button>`:''}</td>
+  </tr>`;}).join('');
 }
 function rigeneraRicevuta(ricevutaId){
   const r=(DB.ricevute||[]).find(x=>x.id===ricevutaId);if(!r)return;
@@ -6166,10 +6195,26 @@ function rigeneraRicevuta(ricevutaId){
   const st=DB.struttura;
   const ps={asdNome:st.nome||'',asdIndirizzo:st.indirizzo||'',asdCap:st.cap||'',asdCitta:st.citta||'',
     asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''};
+  const causaleDoc=r.annullata?`[RICEVUTA ANNULLATA — ${r.motivoAnnullo||'vedi registro'}] ${r.causale||''}`.trim():(r.causale||'');
   const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
-    stagione:getStagioneCorrente()?.label||'',importo:r.importo||'',causale:r.causale||'',descr:r.causale||'',
+    stagione:getStagioneCorrente()?.label||'',importo:r.importo||'',causale:causaleDoc,descr:causaleDoc,
     metodo:r.metodo||'Contanti',numRicevuta:r.numero,dataDoc:formatDate(r.data),...ps});
   window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
+}
+// v6.0.0 — Annullamento reale di una ricevuta (sostituisce la prassi
+// manuale di modificare a mano il testo della causale in "ANNULLATA —").
+// Il numero, la data e l'importo originali NON vengono mai toccati: la
+// riga resta nel registro, marcata annullata:true con motivo e data
+// dell'annullo, così la sequenza numerica resta integra e verificabile.
+function annullaRicevuta(ricevutaId){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  const r=(DB.ricevute||[]).find(x=>x.id===ricevutaId);if(!r)return;
+  if(r.annullata){toast('Ricevuta già annullata','warning');return;}
+  const motivo=prompt(`Annullare la ricevuta n. ${r.numero} (${r.socioNome} · €${(parseFloat(r.importo)||0).toFixed(2)})?\nIndica il motivo dell'annullo (es. "duplicata della n. 54"):`);
+  if(motivo===null)return; // annullato dall'utente (Cancel)
+  if(!motivo.trim()){toast('Motivo obbligatorio per annullare una ricevuta','error');return;}
+  r.annullata=true;r.motivoAnnullo=motivo.trim();r.dataAnnullo=new Date().toISOString().slice(0,10);
+  saveDB();renderRegistroRicevute();toast('Ricevuta annullata','success');
 }
 function apriDocumento(tipo){
   const stagione=getStagioneCorrente()?.label||'';
@@ -6312,7 +6357,8 @@ function apriDocumento(tipo){
     const importo=document.getElementById('doc-ric-importo').value;
     const causale=document.getElementById('doc-ric-causale').value;
     const metodo=document.getElementById('doc-ric-metodo').value;
-    generaRicevutaRapida(id,importo,causale,metodo);
+    const modoTest=document.getElementById('doc-ric-test')?.checked||false;
+    generaRicevutaRapida(id,importo,causale,metodo,modoTest);
   }
 }
 
@@ -7125,12 +7171,12 @@ const GUIDA_VOCI=[
   {cat:'📋 Presenze',titolo:'Atleti con bassa frequenza',testo:'Vai su Registro presenze → Alert. Imposta la soglia (default 50%). Vengono mostrati tutti gli atleti con più di 3 sessioni registrate che sono sotto soglia. Da qui puoi contattarli direttamente.',tag:'alert bassa frequenza presenze'},
   {cat:'📅 Calendario',titolo:'Aggiungere una gara o un evento',testo:'Vai su Calendario → clicca su un giorno oppure usa i pulsanti "⚔️ + Gara" o "🏒 + Allenamento" in alto. Compila titolo, data, orario e luogo.',tag:'gara evento calendario aggiungere'},
   {cat:'📅 Calendario',titolo:'Esportare il calendario su Google Calendar',testo:'Vai su Calendario → clicca "📆 iCal". Viene scaricato un file .ics. Aprilo su Google Calendar (o Apple Calendar) per importare tutti gli eventi.',tag:'ical google calendar apple esportare'},
-  {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta, l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti. Ogni ricevuta generata (da qui o dall\'automatismo) viene anche salvata nel Registro Ricevute — vedi voce dedicata.',tag:'ricevuta pagamento documento generare metodo automatico amministrazione'},
-  {cat:'💰 Amministrazione',titolo:'Registro Ricevute',testo:'Il tab "🧾 Ricevute" in Amministrazione elenca tutte le ricevute generate dall\'app, con numero progressivo, data, atleta, causale, importo e metodo. A differenza del semplice contatore usato per numerare le ricevute (che non conserva alcuna informazione sul passato), questo registro resta consultabile per sempre: se un PDF o una ricevuta stampata va perso, il pulsante 🔁 la rigenera identica, con lo stesso numero e gli stessi dati.',tag:'registro ricevute numero progressivo rigenera recupero'},
+  {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta (con importo maggiore di zero), l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti — un\'entrata a €0 (quota esonerata/gratuita) non lo propone più, perché non c\'è un incasso da documentare. Ogni ricevuta generata (da qui o dall\'automatismo) viene anche salvata nel Registro Ricevute — vedi voce dedicata. Per verificare che la funzione stia funzionando correttamente senza toccare la numerazione ufficiale, spunta "🧪 Genera in modalità test": il documento sarà numerato "TEST-0001" ecc. su un contatore separato e marcato "DOCUMENTO DI PROVA — NON VALIDO".',tag:'ricevuta pagamento documento generare metodo automatico amministrazione test prova numerazione'},
+  {cat:'💰 Amministrazione',titolo:'Registro Ricevute',testo:'Il tab "🧾 Ricevute" in Amministrazione elenca tutte le ricevute generate dall\'app, con numero progressivo, data, atleta, causale, importo, metodo e stato (✓ valida / 🚫 ANNULLATA / 🧪 TEST). A differenza del semplice contatore usato per numerare le ricevute (che non conserva alcuna informazione sul passato), questo registro resta consultabile per sempre: se un PDF o una ricevuta stampata va perso, il pulsante 🔁 la rigenera identica, con lo stesso numero e gli stessi dati. Se una ricevuta è stata emessa per errore (es. duplicata), usa il pulsante 🚫 "Annulla": chiede il motivo e marca la riga come annullata, senza mai modificare numero, data o importo originali — la sequenza numerica resta così sempre integra e verificabile, invece di doverlo segnalare a mano nel testo della causale.',tag:'registro ricevute numero progressivo rigenera recupero annulla annullata stato test'},
   {cat:'⚙️ Impostazioni',titolo:'Spazio utilizzato',testo:'La card "📊 Spazio utilizzato" in Impostazioni stima quanto pesa il database su Firebase, scomposto in: dati correnti, di cui allegati incorporati (foto e file caricati direttamente — non i link Drive, che sono solo testo), backup automatici cloud e backup locali sul dispositivo. Il pulsante "Calcola" interroga anche Firebase per i backup cloud, quindi può richiedere qualche secondo. Non è il valore esatto mostrato nella Console Firebase (che include anche overhead interno), ma una stima utile per seguire l\'andamento nel tempo e capire quale componente sta crescendo di più. Google Drive non è verificabile da qui: controllalo direttamente su drive.google.com.',tag:'spazio utilizzato firebase drive dimensione database allegati backup'},
   {cat:'🏒 Corsi e squadre',titolo:'Book allenamenti',testo:'La sezione "📔 Book allenamenti" permette di annotare esercizi e idee per ogni sessione. Con "+ Nuova sessione" scegli data (libera, non legata a un corso specifico) e istruttore — quest\'ultimo selezionabile solo tra i nominativi registrati in "Maestri/Tecnici" (non tra tutto lo Staff: dirigenti, segretario, tesoriere ecc. non compaiono, perché non necessariamente abilitati all\'insegnamento) — poi compili le quattro fasi (🔥 Riscaldamento, 🎯 Tecnica, 🧠 Tattica, 🏁 Defaticamento/Partitella) e un campo di note libere — tutti i campi sono facoltativi tranne data e istruttore. L\'elenco è filtrabile per istruttore o per mese, ed è visibile a tutto lo staff: ogni istruttore può consultare le sessioni annotate dagli altri, non solo le proprie.',tag:'book allenamenti esercizi sessione riscaldamento tecnica tattica defaticamento istruttore maestri tecnici'},
   {cat:'👤 Anagrafiche',titolo:'Storico Abbigliamento (acquisti, forniture, prestiti)',testo:'Nella scheda di ogni atleta, la tab "🧥 Abbigliamento" tiene traccia di ogni capo o attrezzatura assegnata: scegli il tipo di evento — 🛒 Acquisto (con importo), 🎁 Fornitura gratuita, oppure 🔄 Prestito di materiale didattico — indica l\'articolo, la data e note facoltative (taglia, condizioni, numero di serie...), poi "➕ Aggiungi evento". Per i prestiti, finché non li marchi come "✅ Segna restituito" restano segnalati come "⏳ In prestito" sia nella scheda dell\'atleta sia — automaticamente — nel nuovo promemoria di Dashboard "🔄 Prestiti materiale in corso", che elenca su tutti gli atleti chi ha in mano cosa e da quando: utile per non perdere traccia di caschi, pattini o altre protezioni condivise dati in prestito. Acquisti e forniture gratuite restano invece solo nello storico dell\'atleta, come promemoria di cosa gli è stato dato nel tempo.',tag:'abbigliamento storico acquisto fornitura gratuita prestito materiale didattico dashboard promemoria restituito'},
-  {cat:'💰 Amministrazione',titolo:'Registrare un abbonamento o una quota gratuita',testo:'Per registrare un pagamento a zero euro (es. borsa di studio, quota omaggio) inserisci "0" nel campo importo di una nuova entrata: ora è accettato (prima veniva rifiutato come "dato mancante"). Perché lo stato pagamenti mensili dell\'atleta risulti "in regola" automaticamente, però, conviene creare un piano dedicato con prezzo 0 in Abbonamenti (es. "Quota omaggio") e assegnarlo all\'atleta dal campo Abbonamento nella sua scheda: a quel punto l\'app non calcola più nulla di dovuto per lui, indipendentemente dalle entrate registrate.',tag:'quota gratuita omaggio borsa di studio abbonamento zero'},
+  {cat:'💰 Amministrazione',titolo:'Registrare un abbonamento o una quota gratuita',testo:'Per registrare un pagamento a zero euro (es. borsa di studio, quota omaggio) inserisci "0" nel campo importo di una nuova entrata: ora è accettato (prima veniva rifiutato come "dato mancante"). Non essendoci un incasso da documentare, un\'entrata a €0 non fa scattare la proposta automatica di generare una ricevuta: l\'esonero dal pagamento resta comunque tracciato qui in Amministrazione, ma va formalizzato a parte (es. con una delibera del Consiglio Direttivo), non con una ricevuta numerata. Perché lo stato pagamenti mensili dell\'atleta risulti "in regola" automaticamente, conviene inoltre creare un piano dedicato con prezzo 0 in Abbonamenti (es. "Quota omaggio") e assegnarlo all\'atleta dal campo Abbonamento nella sua scheda: a quel punto l\'app non calcola più nulla di dovuto per lui, indipendentemente dalle entrate registrate.',tag:'quota gratuita omaggio borsa di studio abbonamento zero esonero delibera'},
   {cat:'✅ Presenze',titolo:'Registro storico presenze — vista su tutti i corsi',testo:'Aprendo Presenze → Storico, l\'elenco mostra di default le sessioni di TUTTI i corsi insieme (con una colonna Corso per distinguerle), invece di richiedere prima di scegliere un corso specifico. Puoi comunque restringere la vista a un singolo corso dal menu a tendina in alto.',tag:'storico presenze tutti i corsi vista aggregata'},
   {cat:'👤 Anagrafiche',titolo:'Collegare un documento salvato su Google Drive',testo:'Nel tab Documenti della scheda atleta, oltre al pulsante "📎 Allega file" (per caricare un file direttamente nell\'app), c\'è ora un campo per incollare il link di un documento già salvato su Google Drive e collegarlo con "➕ Collega link" — utile per moduli scansionati o firmati con strumenti esterni (es. DocHub, Adobe), senza dover scaricare e ricaricare il file.',tag:'documenti drive link atleta scheda allegato collegamento'},
   {cat:'📄 Documenti',titolo:'Generare la certificazione per il 730',testo:'Vai su Genera Documenti → Certificazione quota (730). Seleziona l\'atleta e il documento si pre-compila con i dati anagrafici, la tessera ASD e i dati del genitore. Stampalo e firmalo.',tag:'730 certificazione fiscale documento'},
@@ -7714,7 +7760,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='4.0.0';
+    const CURRENT_VER='6.0.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
