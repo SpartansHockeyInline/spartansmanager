@@ -2,6 +2,13 @@
 
 ---
 
+## v6.0.2 · Ottobre 2026
+
+### Fix — Categoria "Iscrizione" mancante nei movimenti
+- **Nuova categoria "Iscrizione associativa"** nel modulo entrate/uscite — prima l'iscrizione andava registrata come "Quota associativa" (unica categoria disponibile che si avvicinava), ma questo la faceva sommare al conteggio mensile delle quote usato per gli arretrati in Dashboard, come se fosse una rata ricorrente invece che un versamento una tantum. Rinominare solo la causale non risolveva il problema perché il controllo guarda anche il campo Categoria, non solo il testo libero. Ora selezionando "Iscrizione associativa" come categoria l'importo resta tracciato in Amministrazione ma esce dal calcolo di regolarità mensile.
+
+---
+
 ## v6.0.1 · Ottobre 2026
 
 ### Fix — Mesi arretrati conteggiati in doppio dopo un cambio di piano

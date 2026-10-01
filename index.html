@@ -483,7 +483,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.0.1 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.0.2 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1753,7 +1753,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="fgroup"><label>Data *</label><input class="fi" id="m-mov-data" type="date"></div>
         <div class="fgroup"><label>Importo (€) *</label><input class="fi" id="m-mov-importo" type="number" step="0.01"></div>
         <div class="fgroup s2"><label>Descrizione *</label><input class="fi" id="m-mov-descr"></div>
-        <div class="fgroup"><label>Categoria</label><select class="fsel" id="m-mov-cat"><option>Quota associativa</option><option>Abbonamento</option><option>Lezione privata</option><option>Affitto impianto</option><option>Gara/Evento</option><option>Attrezzatura</option><option>Utenze</option><option>Stipendio</option><option>Rimborso/compenso staff</option><option>Altro</option></select></div>
+        <div class="fgroup"><label>Categoria</label><select class="fsel" id="m-mov-cat"><option>Quota associativa</option><option>Abbonamento</option><option>Iscrizione associativa</option><option>Lezione privata</option><option>Affitto impianto</option><option>Gara/Evento</option><option>Attrezzatura</option><option>Utenze</option><option>Stipendio</option><option>Rimborso/compenso staff</option><option>Altro</option></select></div>
         <div class="fgroup" id="m-mov-socio-wrap" style="display:none;"><label>Atleta collegato</label><select class="fsel" id="m-mov-socio"><option value="">— Nessuno —</option></select></div>
         <div class="fgroup" id="m-mov-fornitore-wrap" style="display:none;"><label>Fornitore</label><select class="fsel" id="m-mov-fornitore"><option value="">— Nessuno —</option></select></div>
         <div class="fgroup"><label>Metodo</label><select class="fsel" id="m-mov-metodo"><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>POS</option><option>Altro</option></select></div>
@@ -1870,6 +1870,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v6.0.2 · Ottobre 2026</div>
+        <div class="cl-section">Fix — Categoria "Iscrizione" mancante nei movimenti</div>
+        <div class="cl-item"><strong>Nuova categoria "Iscrizione associativa" nel modulo entrate/uscite</strong> — prima non esisteva una categoria dedicata per la quota di iscrizione una tantum: andava registrata come "Quota associativa", che però fa scattare il conteggio mensile delle quote (usato per "mesi arretrati" in Dashboard) sommando quell'importo come se fosse una rata ricorrente. Risultato: un atleta che aveva versato iscrizione + prima mensilità poteva risultare "in regola" anche per il mese successivo, non ancora pagato. Rinominare solo il testo della causale non bastava, perché il controllo guarda anche il campo Categoria. Ora basta selezionare "Iscrizione associativa" come categoria per escludere l'importo dal conteggio delle quote mensili.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v6.0.1 · Ottobre 2026</div>
@@ -2702,7 +2708,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.0.1 · Ottobre 2026';
+const APP_VERSION = 'v6.0.2 · Ottobre 2026';
 let DB = {
   struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
   soci:[],        // atleti
@@ -7886,7 +7892,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.0.1';
+    const CURRENT_VER='6.0.2';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
