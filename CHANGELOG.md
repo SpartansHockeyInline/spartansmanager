@@ -2,6 +2,15 @@
 
 ---
 
+## v6.0.1 · Ottobre 2026
+
+### Fix — Mesi arretrati conteggiati in doppio dopo un cambio di piano
+- **Corretto il doppio conteggio del mese di passaggio tra due abbonamenti** — quando a un atleta viene assegnato un nuovo piano (es. un aumento di quota mensile), il mese in cui avviene il cambio veniva contato due volte nel calcolo "mesi arretrati" in Dashboard: una come ultimo mese del piano precedente, una come primo mese di quello nuovo. Riscontrato dopo l'aumento della quota mensile a €40: due atleti risultavano con un mese arretrato in più del dovuto, e il problema peggiorava (un mese arretrato in più per ogni piano aggiuntivo) se si provava ad "aggiustare" la situazione assegnando un ulteriore abbonamento. Il calcolo ora chiude il periodo del piano uscente all'ultimo giorno del mese precedente a quello in cui inizia il piano successivo, così ogni mese viene attribuito a un solo piano e non si somma più.
+
+> Nessun impatto sugli atleti che non hanno mai cambiato piano/abbonamento: per loro il calcolo era già corretto. L'anomalia si manifestava solo da quando esisteva più di un'assegnazione di abbonamento per lo stesso atleta.
+
+---
+
 ## v6.0.0 · Settembre 2026
 
 ### Fix — Numerazione ricevute
