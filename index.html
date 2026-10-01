@@ -1032,8 +1032,10 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <select class="fsel" id="ric-man-atleta"><option value="">— Seleziona atleta —</option></select>
             <input class="fi" id="ric-man-numero" placeholder="Numero da forzare (es. 0007)">
           </div>
+          <div style="font-size:11px;color:var(--text3);margin:-2px 0 6px;">— oppure, se non è un atleta/socio (es. donatore esterno, o nominativo di prova per un numero da annullare) —</div>
+          <input class="fi" id="ric-man-nome-libero" placeholder="Nominativo libero (es. Mario Rossi, oppure \"Prova tecnica\")" style="margin-bottom:6px;width:100%;">
           <div class="fg" style="margin-bottom:6px;">
-            <input class="fi" id="ric-man-importo" placeholder="Importo (€)">
+            <input class="fi" id="ric-man-importo" placeholder="Importo (€) — anche 0 per una prova senza incasso">
             <select class="fsel" id="ric-man-metodo"><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>POS</option><option>Altro</option></select>
           </div>
           <div class="fg" style="margin-bottom:6px;">
@@ -6238,9 +6240,20 @@ function componiCausaleRegolarizzazione(){
 function emettiRicevutaManuale(){
   if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
   const socioId=document.getElementById('ric-man-atleta').value;
-  if(!socioId){toast('Seleziona un atleta','error');return;}
-  const s=DB.soci.find(x=>x.id===socioId);
-  if(!s){toast('Atleta non trovato','error');return;}
+  const nomeLibero=document.getElementById('ric-man-nome-libero').value.trim();
+  let s=null;
+  if(socioId){
+    s=DB.soci.find(x=>x.id===socioId);
+    if(!s){toast('Atleta non trovato','error');return;}
+  } else if(nomeLibero){
+    // Nessun atleta/socio collegato (es. donatore esterno, o nominativo di
+    // prova per un numero poi da annullare): la ricevuta resta comunque
+    // tracciata nel registro, solo senza socioId e senza CF/tessera.
+    const parti=nomeLibero.split(' ');
+    s={nome:parti[0]||nomeLibero,cognome:parti.slice(1).join(' ')||'',cf:'',tesseraAsd:''};
+  } else {
+    toast('Seleziona un atleta oppure indica un nominativo libero','error');return;
+  }
   const numeroRaw=document.getElementById('ric-man-numero').value.trim();
   if(!numeroRaw){toast('Indica il numero da forzare','error');return;}
   const numFormattato=String(parseInt(numeroRaw,10)).padStart(4,'0');
@@ -6249,11 +6262,13 @@ function emettiRicevutaManuale(){
   if(esistente){
     if(!confirm(`Il numero ${numFormattato} risulta già presente nel registro (${esistente.socioNome}, €${(parseFloat(esistente.importo)||0).toFixed(2)}). Vuoi procedere comunque e creare un duplicato?`))return;
   }
-  const importo=document.getElementById('ric-man-importo').value;
+  const importoRaw=document.getElementById('ric-man-importo').value;
+  const importo=importoRaw===''?0:parseFloat(importoRaw);
   const metodo=document.getElementById('ric-man-metodo').value;
   const causale=document.getElementById('ric-man-causale').value.trim();
   if(!causale){toast('Causale obbligatoria — usa "Componi causale di regolarizzazione" o scrivila a mano','error');return;}
-  if(!confirm(`Emettere la ricevuta n. ${numFormattato} per ${s.nome} ${s.cognome} (€${(parseFloat(importo)||0).toFixed(2)})?\nQuesto numero verrà scritto così com'è, senza passare dal contatore automatico.`))return;
+  const socioNome=`${s.nome} ${s.cognome}`.trim();
+  if(!confirm(`Emettere la ricevuta n. ${numFormattato} per ${socioNome||'(nominativo non specificato)'} (€${(importo||0).toFixed(2)})?\nQuesto numero verrà scritto così com'è, senza passare dal contatore automatico.`))return;
   const st=DB.struttura;
   const ps={asdNome:st.nome||'',asdIndirizzo:st.indirizzo||'',asdCap:st.cap||'',asdCitta:st.citta||'',
     asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''};
@@ -6263,18 +6278,27 @@ function emettiRicevutaManuale(){
     stagione:getStagioneCorrente()?.label||'',importo:importo||'',causale,descr:causale,metodo:metodo||'Contanti',
     numRicevuta:numFormattato,dataDoc:oggi,...ps});
   if(!DB.ricevute)DB.ricevute=[];
-  DB.ricevute.push({id:uid(),numero:numFormattato,data:oggiIso,socioId:s.id,socioNome:`${s.nome} ${s.cognome}`,
-    importo:parseFloat(importo)||0,causale,metodo:metodo||'Contanti',manuale:true});
+  DB.ricevute.push({id:uid(),numero:numFormattato,data:oggiIso,...(socioId?{socioId}:{}),socioNome,
+    importo:importo||0,causale,metodo:metodo||'Contanti',manuale:true});
   saveDB();renderRegistroRicevute();toast(`Ricevuta n. ${numFormattato} emessa`,'success');
   window.open(`${BASE_URL}modulo_ricevuta.html?${p}`,'_blank');
-  ['ric-man-atleta','ric-man-numero','ric-man-importo','ric-man-causale-orig','ric-man-data-storica','ric-man-causale'].forEach(id=>{
+  ['ric-man-atleta','ric-man-nome-libero','ric-man-numero','ric-man-importo','ric-man-causale-orig','ric-man-data-storica','ric-man-causale'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
 }
 function rigeneraRicevuta(ricevutaId){
   const r=(DB.ricevute||[]).find(x=>x.id===ricevutaId);if(!r)return;
-  const s=DB.soci.find(x=>x.id===r.socioId);
-  if(!s){toast('Atleta non più presente in anagrafica','error');return;}
+  let s=r.socioId?DB.soci.find(x=>x.id===r.socioId):null;
+  if(!s){
+    // v6.0.0 — ricevuta emessa manualmente senza socioId (donatore esterno
+    // o numero di prova): ricostruiamo un nominativo "al volo" dal nome
+    // salvato sulla ricevuta stessa, invece di bloccare la ristampa.
+    if(r.socioId){toast('Atleta non più presente in anagrafica','error');return;}
+    const nomeSalvato=(r.socioNome||'').trim();
+    if(!nomeSalvato){toast('Nominativo non disponibile per questa ricevuta','error');return;}
+    const parti=nomeSalvato.split(' ');
+    s={nome:parti[0]||nomeSalvato,cognome:parti.slice(1).join(' ')||'',cf:'',tesseraAsd:''};
+  }
   const st=DB.struttura;
   const ps={asdNome:st.nome||'',asdIndirizzo:st.indirizzo||'',asdCap:st.cap||'',asdCitta:st.citta||'',
     asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''};
@@ -7256,7 +7280,7 @@ const GUIDA_VOCI=[
   {cat:'📅 Calendario',titolo:'Esportare il calendario su Google Calendar',testo:'Vai su Calendario → clicca "📆 iCal". Viene scaricato un file .ics. Aprilo su Google Calendar (o Apple Calendar) per importare tutti gli eventi.',tag:'ical google calendar apple esportare'},
   {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta (con importo maggiore di zero), l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti — un\'entrata a €0 (quota esonerata/gratuita) non lo propone più, perché non c\'è un incasso da documentare. Ogni ricevuta generata (da qui o dall\'automatismo) viene anche salvata nel Registro Ricevute — vedi voce dedicata. Per verificare che la funzione stia funzionando correttamente senza toccare la numerazione ufficiale, spunta "🧪 Genera in modalità test": il documento sarà numerato "TEST-0001" ecc. su un contatore separato e marcato "DOCUMENTO DI PROVA — NON VALIDO".',tag:'ricevuta pagamento documento generare metodo automatico amministrazione test prova numerazione'},
   {cat:'💰 Amministrazione',titolo:'Registro Ricevute',testo:'Il tab "🧾 Ricevute" in Amministrazione elenca tutte le ricevute generate dall\'app, con numero progressivo, data, atleta, causale, importo, metodo e stato (✓ valida / 🚫 ANNULLATA / 🧪 TEST / ✍️ manuale). A differenza del semplice contatore usato per numerare le ricevute (che non conserva alcuna informazione sul passato), questo registro resta consultabile per sempre: se un PDF o una ricevuta stampata va perso, il pulsante 🔁 la rigenera identica, con lo stesso numero e gli stessi dati. Se una ricevuta è stata emessa per errore (es. duplicata), usa il pulsante 🚫 "Annulla": chiede il motivo e marca la riga come annullata, senza mai modificare numero, data o importo originali — la sequenza numerica resta così sempre integra e verificabile, invece di doverlo segnalare a mano nel testo della causale.',tag:'registro ricevute numero progressivo rigenera recupero annulla annullata stato test'},
-  {cat:'💰 Amministrazione',titolo:'Emissione manuale con numero forzato (regolarizzazione)',testo:'Nel tab "🧾 Ricevute", aprendo "⚠️ Emissione manuale con numero forzato" puoi emettere una ricevuta scrivendo tu stesso il numero, senza passare dal contatore automatico — serve esclusivamente per coprire un numero mancante dalla sequenza ufficiale (es. una regolarizzazione concordata con il commercialista), MAI per l\'uso quotidiano: per le ricevute normali resta il generatore in "Genera documenti". Compila atleta, numero da forzare, importo, metodo; per la causale puoi scrivere "Causale originale" e "Data storica del versamento" e cliccare "📋 Componi causale di regolarizzazione" per ottenere automaticamente la formula concordata con il commercialista — la data stampata sul documento resta comunque quella di emissione effettiva (oggi), mai quella storica. Se il numero indicato esiste già nel registro, l\'app avvisa prima di procedere. Le ricevute emesse così sono segnalate nel registro con il badge "✍️ manuale".',tag:'regolarizzazione numero forzato manuale emissione commercialista'},
+  {cat:'💰 Amministrazione',titolo:'Emissione manuale con numero forzato (regolarizzazione)',testo:'Nel tab "🧾 Ricevute", aprendo "⚠️ Emissione manuale con numero forzato" puoi emettere una ricevuta scrivendo tu stesso il numero, senza passare dal contatore automatico — serve esclusivamente per coprire un numero mancante dalla sequenza ufficiale (es. una regolarizzazione concordata con il commercialista), MAI per l\'uso quotidiano: per le ricevute normali resta il generatore in "Genera documenti". Compila atleta (oppure, se non è un socio/atleta — es. donatore esterno o numero di prova da annullare — il campo "Nominativo libero"), numero da forzare, importo (anche 0, per un numero di prova senza incasso), metodo; per la causale puoi scrivere "Causale originale" e "Data storica del versamento" e cliccare "📋 Componi causale di regolarizzazione" per ottenere automaticamente la formula concordata con il commercialista — la data stampata sul documento resta comunque quella di emissione effettiva (oggi), mai quella storica. Se il numero indicato esiste già nel registro, l\'app avvisa prima di procedere. Le ricevute emesse così sono segnalate nel registro con il badge "✍️ manuale"; anche senza atleta collegato, la ristampa (🔄) funziona normalmente.',tag:'regolarizzazione numero forzato manuale emissione commercialista nominativo libero'},
   {cat:'⚙️ Impostazioni',titolo:'Spazio utilizzato',testo:'La card "📊 Spazio utilizzato" in Impostazioni stima quanto pesa il database su Firebase, scomposto in: dati correnti, di cui allegati incorporati (foto e file caricati direttamente — non i link Drive, che sono solo testo), backup automatici cloud e backup locali sul dispositivo. Il pulsante "Calcola" interroga anche Firebase per i backup cloud, quindi può richiedere qualche secondo. Non è il valore esatto mostrato nella Console Firebase (che include anche overhead interno), ma una stima utile per seguire l\'andamento nel tempo e capire quale componente sta crescendo di più. Google Drive non è verificabile da qui: controllalo direttamente su drive.google.com.',tag:'spazio utilizzato firebase drive dimensione database allegati backup'},
   {cat:'🏒 Corsi e squadre',titolo:'Book allenamenti',testo:'La sezione "📔 Book allenamenti" permette di annotare esercizi e idee per ogni sessione. Con "+ Nuova sessione" scegli data (libera, non legata a un corso specifico) e istruttore — quest\'ultimo selezionabile solo tra i nominativi registrati in "Maestri/Tecnici" (non tra tutto lo Staff: dirigenti, segretario, tesoriere ecc. non compaiono, perché non necessariamente abilitati all\'insegnamento) — poi compili le quattro fasi (🔥 Riscaldamento, 🎯 Tecnica, 🧠 Tattica, 🏁 Defaticamento/Partitella) e un campo di note libere — tutti i campi sono facoltativi tranne data e istruttore. L\'elenco è filtrabile per istruttore o per mese, ed è visibile a tutto lo staff: ogni istruttore può consultare le sessioni annotate dagli altri, non solo le proprie.',tag:'book allenamenti esercizi sessione riscaldamento tecnica tattica defaticamento istruttore maestri tecnici'},
   {cat:'👤 Anagrafiche',titolo:'Storico Abbigliamento (acquisti, forniture, prestiti)',testo:'Nella scheda di ogni atleta, la tab "🧥 Abbigliamento" tiene traccia di ogni capo o attrezzatura assegnata: scegli il tipo di evento — 🛒 Acquisto (con importo), 🎁 Fornitura gratuita, oppure 🔄 Prestito di materiale didattico — indica l\'articolo, la data e note facoltative (taglia, condizioni, numero di serie...), poi "➕ Aggiungi evento". Per i prestiti, finché non li marchi come "✅ Segna restituito" restano segnalati come "⏳ In prestito" sia nella scheda dell\'atleta sia — automaticamente — nel nuovo promemoria di Dashboard "🔄 Prestiti materiale in corso", che elenca su tutti gli atleti chi ha in mano cosa e da quando: utile per non perdere traccia di caschi, pattini o altre protezioni condivise dati in prestito. Acquisti e forniture gratuite restano invece solo nello storico dell\'atleta, come promemoria di cosa gli è stato dato nel tempo.',tag:'abbigliamento storico acquisto fornitura gratuita prestito materiale didattico dashboard promemoria restituito'},
