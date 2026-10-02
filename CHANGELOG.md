@@ -2,6 +2,29 @@
 
 ---
 
+## v6.1.1 · Ottobre 2026
+
+### Correzione — Fattura elettronica obbligatoria, non più esonerata
+- **La v6.1.0 presupponeva un esonero non più in vigore**: la soglia dei 65.000 € di ricavi commerciali (DL 119/2018) che esentava le ASD in regime 398/91 dalla fattura elettronica è stata abrogata gradualmente dal DL 36/2022 (Decreto PNRR 2) — obbligo dal 1° luglio 2022 per chi supera 25.000 €, e dal 1° gennaio 2024 per **tutte** le ASD con partita IVA, senza più alcuna soglia. La fattura ordinaria di carta introdotta in v6.1.0 non ha quindi più valore fiscale per le sponsorizzazioni.
+- **Generatore XML FatturaPA**: il registro fatture (Amministrazione → 📄 Fatture) genera ora, per ogni riga (fattura, nota di credito, nota di debito), il file XML nel formato FatturaPA (FPR12) da caricare manualmente sul servizio gratuito "Fatture e Corrispettivi" dell'Agenzia delle Entrate — l'app non effettua alcun invio automatico al Sistema di Interscambio.
+- **Nuovi campi richiesti dal tracciato XML**: "La mia struttura" ha Provincia e Regime fiscale (RF01 ordinario / RF19 forfettario); la scheda sponsor ha CAP, Comune, Provincia, Codice Destinatario SdI e PEC — tutti necessari per compilare correttamente l'anagrafica del cessionario nel file.
+- **Da verificare prima del primo invio reale**: l'XML è stato costruito seguendo la documentazione pubblica del tracciato FatturaPA (nomi ed ordine degli elementi), ma non è stato validato contro lo schema XSD ufficiale da questa applicazione né da un validatore esterno. Prima di trasmettere una fattura vera, usa la funzione "Controlla file" del portale Entrate (segnala eventuali errori di formato senza alcuna conseguenza fiscale) oppure fai verificare il file al commercialista.
+
+---
+
+## v6.1.0 · Ottobre 2026
+
+### Nuovo — Impianto fatture sponsor
+- **Registro fatture dedicato** (Amministrazione → 📄 Fatture) — la precedente "🧾 Genera fattura" nella scheda sponsor apriva solo un documento stampabile senza lasciare traccia nel gestionale: non c'era modo di sapere quali numeri erano già stati usati, né di correggere un errore se non rigenerando lo stesso numero (rischio di doppioni). Ora ogni fattura emessa viene registrata in modo permanente (numero, data, sponsor, imponibile, aliquota IVA, imposta, totale), con numerazione progressiva dedicata — separata da quella delle ricevute — che si azzera a ogni nuovo anno (formato `NNNN/AAAA`, es. `0001/2026`) e non torna mai indietro una volta avanzata.
+- **Scomposizione IVA corretta** — il documento non riporta più la dicitura "operazione fuori campo IVA", non corretta per le sponsorizzazioni (che sono imponibili IVA ad aliquota ordinaria, con detrazione forfettaria del 50% solo sul lato della liquidazione interna dell'associazione, non sull'importo addebitato allo sponsor). Ora il modulo calcola automaticamente imponibile, imposta e totale a partire dall'importo complessivo incassato indicato nel contratto sponsor (resta quello il dato che alimenta l'entrata in Amministrazione), con aliquota IVA configurabile per singolo sponsor (default 22%).
+- **Nota di credito / nota di debito al posto dell'"annulla"** — a differenza delle ricevute, una fattura non si annulla né si rinumera mai una volta emessa. Due nuovi pulsanti nel registro (➖ nota di credito, per importi in diminuzione o fatture duplicate/errate; ➕ nota di debito, per importi aggiuntivi) generano un nuovo documento che riferisce sempre numero e data della fattura originale, consumando un numero della stessa sequenza annuale. La fattura originale resta sempre visibile e intatta nello storico.
+- **Fattura ordinaria, non elettronica** — l'app non genera né trasmette alcun file XML/SdI. Verificato (fonti pubbliche, DL 119/2018): le ASD in regime 398/91 con ricavi commerciali annui (sponsorizzazioni comprese) non superiori a 65.000 € sono esonerate dall'obbligo di fattura elettronica — una fattura ordinaria stampata/PDF, con il contenuto minimo richiesto dall'art. 21 DPR 633/1972, è sufficiente. Da riconfermare con il commercialista che questa soglia sia rimasta invariata dopo la riforma IVA 2026 (passaggio da esclusione a esenzione, obbligo di partita IVA) prima di superarla o in caso di dubbio.
+- **Nuovi campi in "La mia struttura"**: CAP e IBAN, riportati automaticamente sulle fatture generate.
+
+> Prima di generare la prima fattura reale con questa versione: il vecchio contatore `spartans/contatori/fatture` (usato dalla versione precedente, priva di registro) va eliminato dalla Console Firebase — conteneva solo numeri di prova mai effettivamente registrati da nessuna parte. La nuova numerazione annuale parte da zero in autonomia non appena il vecchio nodo viene rimosso.
+
+---
+
 ## v6.0.2 · Ottobre 2026
 
 ### Fix — Categoria "Iscrizione" mancante nei movimenti

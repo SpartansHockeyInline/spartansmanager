@@ -401,7 +401,7 @@ footer .foot-links a:hover{color:var(--white);}
 <header class="hero">
   <div class="container hero-grid">
     <div>
-      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v6.0.0</span></div>
+      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v6.1.1</span></div>
       <h1>Tutto il tuo<br>club <span class="accent">in pista.</span><br>Un solo file.</h1>
       <p class="lead">
         Anagrafiche, presenze, abbonamenti, amministrazione, documenti e comunicazioni.
@@ -475,7 +475,7 @@ footer .foot-links a:hover{color:var(--white);}
       <div class="feature">
         <span class="feature-icon">🤝</span>
         <h3>Gestione sponsor</h3>
-        <p>Anagrafica, contratti con importo e scadenze, fatture generabili e collegamento automatico alle entrate in Amministrazione.</p>
+        <p>Anagrafica, contratti con importo e scadenze, collegamento automatico alle entrate in Amministrazione e fatture elettroniche con registro numerato, nota di credito/debito e file XML pronto per il portale dell'Agenzia delle Entrate.</p>
       </div>
       <div class="feature">
         <span class="feature-icon">🛡️</span>
@@ -745,6 +745,61 @@ footer .foot-links a:hover{color:var(--white);}
       <p>Lo storico delle versioni, dalla migrazione su Firebase fino all'ultima release.</p>
     </div>
     <div class="cl-timeline">
+
+      <div class="cl-entry">
+        <div>
+          <div class="cl-version"><span class="v-prefix">v</span>6.1.1</div>
+          <div class="cl-date">Ottobre 2026</div>
+        </div>
+        <div>
+          <h4>Fattura elettronica per gli sponsor</h4>
+          <ul>
+            <li>Generatore del file XML in formato FatturaPA, pronto da caricare sul servizio gratuito "Fatture e Corrispettivi" dell'Agenzia delle Entrate — nessuna soglia di esonero: obbligatorio per tutte le ASD con partita IVA dal 2024</li>
+            <li>Nuovi campi anagrafici (CAP, Comune, Provincia, Codice Destinatario SdI, PEC per lo sponsor; Provincia e Regime fiscale per l'associazione) necessari a compilare correttamente il documento</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cl-entry">
+        <div>
+          <div class="cl-version"><span class="v-prefix">v</span>6.1.0</div>
+          <div class="cl-date">Ottobre 2026</div>
+        </div>
+        <div>
+          <h4>Registro fatture sponsor</h4>
+          <ul>
+            <li>Ogni fattura emessa a uno sponsor viene ora registrata in modo permanente (numero, data, imponibile, IVA, totale), con numerazione progressiva dedicata che si azzera a ogni nuovo anno</li>
+            <li>Scomposizione automatica di imponibile, aliquota e imposta IVA dall'importo del contratto sponsor, con aliquota configurabile per singolo sponsor</li>
+            <li>Nota di credito e nota di debito al posto del semplice annullamento: ogni correzione riferisce sempre la fattura originale, che resta intatta nello storico</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cl-entry">
+        <div>
+          <div class="cl-version"><span class="v-prefix">v</span>6.0.2</div>
+          <div class="cl-date">Ottobre 2026</div>
+        </div>
+        <div>
+          <h4>Categoria "Iscrizione" nei movimenti</h4>
+          <ul>
+            <li>Nuova categoria dedicata "Iscrizione associativa" per i movimenti, separata da "Quota associativa": evita che la quota di iscrizione una tantum venga conteggiata per errore tra le quote mensili nel calcolo degli arretrati</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cl-entry">
+        <div>
+          <div class="cl-version"><span class="v-prefix">v</span>6.0.1</div>
+          <div class="cl-date">Ottobre 2026</div>
+        </div>
+        <div>
+          <h4>Calcolo arretrati dopo un cambio di piano</h4>
+          <ul>
+            <li>Corretto il doppio conteggio del mese di passaggio quando un atleta cambia abbonamento (es. aumento della quota mensile): ogni mese viene ora attribuito a un solo piano</li>
+          </ul>
+        </div>
+      </div>
 
       <div class="cl-entry">
         <div>
@@ -1316,7 +1371,7 @@ footer .foot-links a:hover{color:var(--white);}
   <div class="container">
     <div class="logo">SPARTANS <span>MANAGER</span></div>
     <div class="foot-links">
-      <span id="brochure-version-footer">v6.0.0</span>
+      <span id="brochure-version-footer">v6.1.1</span>
       <a href="#funzionalita">Funzionalità</a>
       <a href="#prezzo">Prezzo</a>
       <a href="#changelog">Changelog</a>
@@ -1334,7 +1389,7 @@ function toggleChangelog(btn){
 // e nel footer, così da non doverli più tenere allineati a mano — basta
 // aggiornare questa costante ad ogni nuova release (deve combaciare con la
 // prima voce del changelog qui sotto e con il changelog in-app/CHANGELOG.md).
-const BROCHURE_VERSION='v6.0.0';
+const BROCHURE_VERSION='v6.1.1';
 document.querySelectorAll('#brochure-version-hero,#brochure-version-footer').forEach(el=>el.textContent=BROCHURE_VERSION);
 // Il numero "di maglia" in hero riprende solo major.minor (es. "5.8"), come una
 // vera numerazione di maglia — niente patch, giusto per dare colpo d'occhio.

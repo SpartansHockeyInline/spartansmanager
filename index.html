@@ -483,7 +483,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.0.2 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.1.1 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -684,9 +684,18 @@ tbody td{padding:10px 13px;vertical-align:middle;}
               <div class="fgroup"><label>Tipologia giuridica</label><select class="fsel" id="s-tipo"><option>ASD</option><option>SSD</option><option>Polisportiva</option><option>Privata</option></select></div>
               <div class="fgroup"><label>Natura struttura</label><select class="fsel" id="s-natura"><option>Club</option><option>Palestra</option><option>Accademia</option><option>Centro sportivo</option></select></div>
               <div class="fgroup"><label>Anno costituzione</label><input class="fi" id="s-anno" type="number"></div>
-              <div class="fgroup"><label>Città</label><input class="fi" id="s-citta"></div>
+              <div class="fgroup"><label>Comune (Città)</label><input class="fi" id="s-citta"></div>
+              <div class="fgroup"><label>CAP</label><input class="fi" id="s-cap" placeholder="es. 70028"></div>
+              <div class="fgroup"><label>Provincia (sigla)</label><input class="fi" id="s-provincia" placeholder="es. BA" maxlength="2" style="text-transform:uppercase;"></div>
               <div class="fgroup"><label>Affiliazione federale</label><input class="fi" id="s-affiliazione" placeholder="es. FISR"></div>
-              <div class="fgroup s2"><label>Indirizzo</label><input class="fi" id="s-indirizzo"></div>
+              <div class="fgroup"><label>Regime fiscale fattura (cod. FatturaPA)</label>
+                <select class="fsel" id="s-regime-fiscale">
+                  <option value="RF01">RF01 — Ordinario</option>
+                  <option value="RF19">RF19 — Forfettario</option>
+                </select>
+              </div>
+              <div class="fgroup s2"><label>Indirizzo (via e numero)</label><input class="fi" id="s-indirizzo"></div>
+              <div class="fgroup s2"><label>IBAN (per fatture/pagamenti)</label><input class="fi" id="s-iban" placeholder="IT.."></div>
               <div class="fgroup s2"><label>Descrizione</label><textarea class="fta" id="s-descr"></textarea></div>
             </div>
             <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
@@ -964,6 +973,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tab" onclick="showTab('amm','rendiconto');renderRendiconto()">📈 Rendiconto</div>
         <div class="tab" onclick="showTab('amm','solleciti');renderSolleciti()">🔔 Solleciti</div>
         <div class="tab" onclick="showTab('amm','ricevute');renderRegistroRicevute()">🧾 Ricevute</div>
+        <div class="tab" onclick="showTab('amm','fatture');renderRegistroFatture()">📄 Fatture</div>
       </div>
       <div class="tab-panel active" id="amm-tab-entrate">
         <div style="display:flex;justify-content:flex-end;margin-bottom:11px;"><button class="btn btn-p btn-sm" onclick="openModal('modal-movimento','entrata')">+ Nuova entrata</button></div>
@@ -1049,6 +1059,14 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="tw"><table><thead><tr>
           <th>N°</th><th>Data</th><th>Atleta</th><th>Causale</th><th>Importo</th><th>Metodo</th><th>Stato</th><th>Azioni</th>
         </tr></thead><tbody id="ricevute-tbody"></tbody></table></div>
+      </div>
+      <div class="tab-panel" id="amm-tab-fatture">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">
+          Registro di tutte le fatture emesse agli sponsor, comprese le eventuali note di credito/debito. Dal 1° gennaio 2024 (DL 36/2022) <strong>tutte</strong> le ASD con partita IVA devono emettere fattura elettronica, senza più soglie di esonero: per ogni riga puoi scaricare il file XML (formato FatturaPA) con "⬇️" e caricarlo sul portale "Fatture e Corrispettivi" dell'Agenzia delle Entrate (servizio gratuito, invio manuale) — verifica il file con la funzione "Controlla file" del portale prima di trasmetterlo per davvero. La numerazione si azzera a ogni nuovo anno (formato NNNN/AAAA) e non è mai modificabile a mano: un errore si corregge sempre con una nota di credito o di debito, mai annullando o rinumerando la fattura originale. Per emettere una fattura apri la scheda dello sponsor interessato → "🧾 Genera fattura".
+        </div>
+        <div class="tw"><table><thead><tr>
+          <th>N°</th><th>Data</th><th>Sponsor</th><th>Tipo</th><th>Imponibile / IVA</th><th>Totale</th><th>Azioni</th>
+        </tr></thead><tbody id="fatture-tbody"></tbody></table></div>
       </div>
     </div>
 
@@ -1872,6 +1890,24 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.1.1 · Ottobre 2026</div>
+        <div class="cl-section">Correzione — Fattura elettronica obbligatoria, non più esonerata</div>
+        <div class="cl-item"><strong>Generatore XML FatturaPA</strong> — la v6.1.0 presupponeva che le ASD sotto i 65.000 € di ricavi commerciali fossero esonerate dalla fattura elettronica (DL 119/2018). Quell'esonero è stato abrogato gradualmente dal DL 36/2022 (Decreto PNRR 2): dal 1° gennaio 2024 l'obbligo di fattura elettronica vale per <strong>tutte</strong> le ASD con partita IVA, senza soglie. Il registro fatture ora genera, per ogni riga, il file XML in formato FatturaPA (FPR12) da caricare manualmente sul portale gratuito "Fatture e Corrispettivi" dell'Agenzia delle Entrate — nessun invio automatico dall'app, ma il file è pronto per il caricamento.</div>
+        <div class="cl-item"><strong>Nuovi campi obbligatori per l'XML</strong> — "La mia struttura" ha ora Provincia e Regime fiscale (RF01/RF19); la scheda sponsor ha CAP, Comune, Provincia, Codice Destinatario SdI e PEC, necessari per compilare correttamente l'anagrafica del cessionario nel file XML.</div>
+        <div class="cl-item"><strong>Verifica prima dell'invio reale</strong> — l'XML è costruito seguendo la documentazione pubblica del tracciato FatturaPA, ma non è stato validato contro lo schema XSD ufficiale da questa applicazione: prima di trasmettere una fattura vera, usa la funzione "Controlla file" del portale Entrate (segnala eventuali errori senza conseguenze) o fai verificare il file al commercialista.</div>
+      </div>
+
+      <div class="cl-entry">
+        <div class="cl-ver">v6.1.0 · Ottobre 2026</div>
+        <div class="cl-section">Nuovo — Impianto fatture sponsor</div>
+        <div class="cl-item"><strong>Registro fatture dedicato (Amministrazione → 📄 Fatture)</strong> — la precedente "Genera fattura" nella scheda sponsor apriva solo un documento stampabile senza lasciare traccia nel gestionale. Ora ogni fattura emessa viene registrata in modo permanente (numero, data, sponsor, imponibile, IVA, totale), con numerazione progressiva dedicata che si azzera a ogni nuovo anno (formato NNNN/AAAA) e non torna mai indietro.</div>
+        <div class="cl-item"><strong>Scomposizione IVA corretta</strong> — il documento non riporta più la dicitura "fuori campo IVA" (non corretta per le sponsorizzazioni, che sono imponibili): ora calcola imponibile, aliquota e imposta a partire dall'importo totale incassato indicato nel contratto sponsor, con aliquota IVA configurabile per singolo sponsor (default 22%).</div>
+        <div class="cl-item"><strong>Nota di credito / nota di debito al posto dell'"annulla"</strong> — una fattura non si annulla né si rinumera mai una volta emessa: i nuovi pulsanti ➖/➕ nel registro emettono una nota di credito (importo in diminuzione) o di debito (importo aggiuntivo) che riferisce sempre numero e data della fattura originale, consumando un numero della stessa sequenza. La fattura originale resta sempre visibile e intatta.</div>
+        <div class="cl-item"><strong>Fattura ordinaria, non elettronica</strong> — l'app non genera né trasmette file XML/SdI: sotto la soglia di esonero prevista per le ASD in regime 398/91 (ricavi commerciali annui ≤ 65.000 €, art. 10-bis D.L. 119/2018) è sufficiente una fattura ordinaria stampata/PDF. Verificare con il commercialista che la soglia resti valida dopo la riforma IVA 2026 prima di superarla.</div>
+        <div class="cl-item"><strong>Nuovi campi "La mia struttura"</strong> — aggiunti CAP e IBAN, riportati in automatico sulle fatture.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.0.2 · Ottobre 2026</div>
         <div class="cl-section">Fix — Categoria "Iscrizione" mancante nei movimenti</div>
         <div class="cl-item"><strong>Nuova categoria "Iscrizione associativa" nel modulo entrate/uscite</strong> — prima non esisteva una categoria dedicata per la quota di iscrizione una tantum: andava registrata come "Quota associativa", che però fa scattare il conteggio mensile delle quote (usato per "mesi arretrati" in Dashboard) sommando quell'importo come se fosse una rata ricorrente. Risultato: un atleta che aveva versato iscrizione + prima mensilità poteva risultare "in regola" anche per il mese successivo, non ancora pagato. Rinominare solo il testo della causale non bastava, perché il controllo guarda anche il campo Categoria. Ora basta selezionare "Iscrizione associativa" come categoria per escludere l'importo dal conteggio delle quote mensili.</div>
@@ -2499,7 +2535,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         </div>
         <div class="fgroup"><label>Codice Fiscale</label><input class="fi" id="m-sp-cf"></div>
         <div class="fgroup"><label>Partita IVA</label><input class="fi" id="m-sp-piva"></div>
-        <div class="fgroup s2"><label>Indirizzo</label><input class="fi" id="m-sp-indirizzo"></div>
+        <div class="fgroup s2"><label>Indirizzo (via e numero)</label><input class="fi" id="m-sp-indirizzo" placeholder="es. Via Roma 1"></div>
+        <div class="fgroup"><label>CAP</label><input class="fi" id="m-sp-cap" placeholder="es. 70100"></div>
+        <div class="fgroup"><label>Comune</label><input class="fi" id="m-sp-comune" placeholder="es. Bari"></div>
+        <div class="fgroup"><label>Provincia (sigla)</label><input class="fi" id="m-sp-provincia" placeholder="es. BA" maxlength="2" style="text-transform:uppercase;"></div>
+        <div class="fgroup"><label>Codice Destinatario SdI</label><input class="fi" id="m-sp-codice-dest" placeholder="7 caratteri, o 0000000 se assente" maxlength="7"></div>
+        <div class="fgroup"><label>PEC (se non hai il Codice Destinatario)</label><input class="fi" id="m-sp-pec" type="email" placeholder="pec@sponsor.it"></div>
         <div class="fgroup"><label>Telefono</label><input class="fi" id="m-sp-tel"></div>
         <div class="fgroup"><label>Email</label><input class="fi" id="m-sp-email" type="email"></div>
         <div class="fgroup"><label>Sito web</label><input class="fi" id="m-sp-web" placeholder="https://..."></div>
@@ -2525,7 +2566,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="fg">
           <div class="fgroup s2"><label>Descrizione / causale economica</label><input class="fi" id="m-sp-contratto-descr" placeholder="es. Sponsorizzazione tecnica stagione 2025/26"></div>
           <div class="fgroup s2"><label>Oggetto della sponsorizzazione (controprestazioni ASD)</label><textarea class="fta" id="m-sp-contratto-oggetto" placeholder="es. Apposizione del marchio su: divise da gara, banner 3x1m a bordo pista, pagine social (Facebook, Instagram)" rows="3"></textarea></div>
-          <div class="fgroup"><label>Importo (€)</label><input class="fi" id="m-sp-contratto-importo" type="number" step="0.01"></div>
+          <div class="fgroup"><label>Importo (€) — totale incassato, IVA compresa</label><input class="fi" id="m-sp-contratto-importo" type="number" step="0.01"></div>
+          <div class="fgroup"><label>Aliquota IVA (%)</label><input class="fi" id="m-sp-contratto-iva" type="number" step="0.01" placeholder="22" value="22"></div>
           <div class="fgroup"><label>Periodicità</label>
             <select class="fsel" id="m-sp-contratto-periodicita">
               <option value="una_tantum">Una tantum</option>
@@ -2708,9 +2750,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.0.2 · Ottobre 2026';
+const APP_VERSION = 'v6.1.1 · Ottobre 2026';
 let DB = {
-  struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
+  struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',cap:'',provincia:'',regimeFiscale:'RF01',iban:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
   soci:[],        // atleti
   staff:[],       // dirigenti, tecnici, ecc.
   macrogruppi:[], // livello superiore ai corsi
@@ -2915,7 +2957,7 @@ document.addEventListener('click',e=>{if(e.target.classList.contains('mo'))close
 // ═══ STRUTTURA ════════════════════════════════════════════
 function loadStrutturaForm(){
   const s=DB.struttura;
-  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr','affiliazione']
+  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','iban','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)el.value=s[k]||'';});
   document.getElementById('logo-nome-display').textContent=s.nome||'Spartans';
   const pw=document.getElementById('logo-preview-wrap');
@@ -2924,7 +2966,7 @@ function loadStrutturaForm(){
   renderConsiglioDirettivoList();
 }
 function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
-  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','indirizzo','descr','affiliazione']
+  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','iban','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)DB.struttura[k]=el.value;});
   document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
 
@@ -6892,11 +6934,13 @@ function openModalSponsor(id=null){
   document.getElementById('modal-sponsor').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
   document.getElementById('m-sp-contratto-periodicita').value='una_tantum';
   document.getElementById('m-sp-contratto-pagato').value='no';
+  document.getElementById('m-sp-contratto-iva').value='22';
   if(id){
     const s=DB.sponsor.find(x=>x.id===id);
     if(s){
       const map={nome:'m-sp-nome',cat:'m-sp-cat',stato:'m-sp-stato',cf:'m-sp-cf',piva:'m-sp-piva',
-        indirizzo:'m-sp-indirizzo',tel:'m-sp-tel',email:'m-sp-email',web:'m-sp-web',
+        indirizzo:'m-sp-indirizzo',cap:'m-sp-cap',comune:'m-sp-comune',provincia:'m-sp-provincia',
+        codiceDest:'m-sp-codice-dest',pec:'m-sp-pec',tel:'m-sp-tel',email:'m-sp-email',web:'m-sp-web',
         referente:'m-sp-referente',referenteTel:'m-sp-referente-tel',logo:'m-sp-logo',note:'m-sp-note'};
       Object.entries(map).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&s[k]!==undefined)el.value=s[k];});
       const lr=s.legaleRapp||{};
@@ -6904,7 +6948,7 @@ function openModalSponsor(id=null){
         cf:'m-sp-lr-cf',residenza:'m-sp-lr-residenza',ci:'m-sp-lr-ci'};
       Object.entries(lrmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&lr[k]!==undefined)el.value=lr[k];});
       const c=s.contratto||{};
-      const cmap={descr:'m-sp-contratto-descr',oggetto:'m-sp-contratto-oggetto',importo:'m-sp-contratto-importo',periodicita:'m-sp-contratto-periodicita',
+      const cmap={descr:'m-sp-contratto-descr',oggetto:'m-sp-contratto-oggetto',importo:'m-sp-contratto-importo',aliquotaIva:'m-sp-contratto-iva',periodicita:'m-sp-contratto-periodicita',
         inizio:'m-sp-contratto-inizio',scadenza:'m-sp-contratto-scadenza',pagato:'m-sp-contratto-pagato',allegato:'m-sp-contratto-allegato'};
       Object.entries(cmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&c[k]!==undefined)el.value=c[k];});
     }
@@ -6927,6 +6971,7 @@ function saveSponsor(){
     descr:g('m-sp-contratto-descr'),
     oggetto:g('m-sp-contratto-oggetto'),
     importo:g('m-sp-contratto-importo'),
+    aliquotaIva:g('m-sp-contratto-iva')||'22',
     periodicita:g('m-sp-contratto-periodicita')||'una_tantum',
     inizio:g('m-sp-contratto-inizio'),
     scadenza:g('m-sp-contratto-scadenza'),
@@ -6936,6 +6981,8 @@ function saveSponsor(){
   const obj={
     id:editingId||uid(),nome,cat:g('m-sp-cat'),stato:g('m-sp-stato')||'attivo',
     cf:g('m-sp-cf'),piva:g('m-sp-piva'),indirizzo:g('m-sp-indirizzo'),
+    cap:g('m-sp-cap'),comune:g('m-sp-comune'),provincia:g('m-sp-provincia').toUpperCase(),
+    codiceDest:g('m-sp-codice-dest').toUpperCase(),pec:g('m-sp-pec'),
     tel:g('m-sp-tel'),email:g('m-sp-email'),web:g('m-sp-web'),
     referente:g('m-sp-referente'),referenteTel:g('m-sp-referente-tel'),
     logo:g('m-sp-logo'),note:g('m-sp-note'),contratto,legaleRapp,
@@ -6977,27 +7024,243 @@ function deleteSponsor(id){
   saveDB();renderSponsor();renderAmministrazione();renderDashboard();toast('Sponsor eliminato','success');
 }
 
+// ═══ FATTURE SPONSOR (v6.1.1) ═════════════════════════════
+// Impianto di numerazione dedicato alle fatture, separato da quello delle
+// ricevute. Dal 1° gennaio 2024 (DL 36/2022, Decreto PNRR 2) TUTTE le ASD
+// con partita IVA devono emettere fattura elettronica per sponsorizzazioni
+// e pubblicità, senza più alcuna soglia di esonero (l'esonero del DL
+// 119/2018 fino a 65.000 € di ricavi commerciali è stato abrogato). Qui si
+// genera quindi: numerazione corretta, contenuto minimo di legge (art. 21
+// DPR 633/1972), scomposizione IVA, il file XML in formato FatturaPA per il
+// caricamento manuale sul portale "Fatture e Corrispettivi" dell'Agenzia
+// delle Entrate, e un vero meccanismo di nota di credito/debito al posto
+// di un "annulla" (una fattura elettronica accettata non si annulla né si
+// rinumera mai).
+//
+// Numerazione: un contatore per anno (spartans/contatori/fatture/<anno>),
+// così si azzera automaticamente a ogni gennaio — prassi comune, ma la
+// scelta tra numerazione annuale e pluriennale continua va confermata col
+// commercialista prima della prima fattura realmente emessa. Note di
+// credito/debito consumano un numero della STESSA sequenza (non una loro
+// numerazione separata) e riportano sempre numero e data della fattura
+// originale: mai annullate, mai rinumerate, mai nascoste dal registro.
+function _calcolaScompostoIva(totaleLordo, aliquotaPct){
+  const tot=parseFloat(totaleLordo)||0;
+  const aliq=parseFloat(aliquotaPct);
+  const aliquota=(isNaN(aliq)||aliq<0)?22:aliq;
+  const imponibile=aliquota>0?tot/(1+aliquota/100):tot;
+  const imposta=tot-imponibile;
+  return{imponibile,aliquota,imposta,totale:tot};
+}
 function generaFatturaSponsor(id){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
   const s=(DB.sponsor||[]).find(x=>x.id===id);if(!s)return;
   const c=s.contratto||{};
-  const curr=getStagioneCorrente?getStagioneCorrente():null;
-  const stagione=curr?curr.label:'';
-  const oggi=new Date().toISOString().slice(0,10);
-  const ps=DB.struttura?{asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||'',asdTel:DB.struttura.telefono||'',asdIndirizzo:DB.struttura.indirizzo||DB.struttura.descr||'',asdCap:DB.struttura.cap||'',asdCitta:DB.struttura.citta||'',asdEmail:DB.struttura.email||''}:{};
-  const numRef=fbDb?fbDb.ref('spartans/contatori/fatture'):null;
-  const generaDoc=(numFattura)=>{
-    const p=new URLSearchParams({
-      sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
-      sponsorEmail:s.email||'',descr:c.descr||'Sponsorizzazione',importo:c.importo||'',
-      periodicita:c.periodicita||'',stagione,numFattura:String(numFattura).padStart(4,'0'),
-      dataDoc:oggi,...ps
-    });
-    window.open(`${BASE_URL}modulo_fattura_sponsor.html?${p}`,'_blank');
+  if(!c.importo){toast('Inserisci prima l\'importo del contratto','error');return;}
+  const scomp=_calcolaScompostoIva(c.importo,c.aliquotaIva);
+  const fmt=n=>'€ '+n.toFixed(2).replace('.',',');
+  const msg=`Emettere fattura a ${s.nome}?\n\nImponibile: ${fmt(scomp.imponibile)}\nIVA (${scomp.aliquota}%): ${fmt(scomp.imposta)}\nTotale: ${fmt(scomp.totale)}\n\nIl numero verrà assegnato automaticamente dal contatore ufficiale e non sarà più modificabile: eventuali errori si correggono con una nota di credito, non con un nuovo tentativo.`;
+  if(!confirm(msg))return;
+  const anno=new Date().getFullYear();
+  const numRef=fbDb?fbDb.ref(`spartans/contatori/fatture/${anno}`):null;
+  const generaDoc=(n)=>{
+    const numFormattato=`${String(n).padStart(4,'0')}/${anno}`;
+    const oggiIso=new Date().toISOString().slice(0,10);
+    if(!DB.fatture)DB.fatture=[];
+    const rec={id:uid(),numero:numFormattato,anno,data:oggiIso,tipo:'fattura',
+      sponsorId:s.id,sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
+      sponsorCap:s.cap||'',sponsorComune:s.comune||'',sponsorProvincia:s.provincia||'',sponsorCodiceDest:s.codiceDest||'',sponsorPec:s.pec||'',
+      descr:c.descr||'Sponsorizzazione',imponibile:scomp.imponibile,aliquotaIva:scomp.aliquota,imposta:scomp.imposta,totale:scomp.totale};
+    DB.fatture.push(rec);
+    saveDB();
+    if(document.getElementById('fatture-tbody'))renderRegistroFatture();
+    apriModuloFattura(rec);
   };
   if(numRef){
-    numRef.transaction(n=>(n||0)+1).then(res=>{generaDoc(res.snapshot.val());}).catch(()=>generaDoc(Date.now().toString().slice(-4)));
+    numRef.transaction(n=>(n||0)+1).then(res=>generaDoc(res.snapshot.val())).catch(()=>{toast('Errore nel contatore fatture — riprova','error');});
   }else{
-    generaDoc(Date.now().toString().slice(-4));
+    toast('Connessione al contatore non disponibile — fattura non emessa','error');
+  }
+}
+function apriModuloFattura(rec){
+  const curr=getStagioneCorrente?getStagioneCorrente():null;
+  const stagione=curr?curr.label:'';
+  const st=DB.struttura||{};
+  const ps={asdNome:st.nome||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdTel:st.telefono||'',
+    asdIndirizzo:st.indirizzo||st.descr||'',asdCap:st.cap||'',asdCitta:st.citta||'',asdEmail:st.email||'',asdIban:st.iban||''};
+  const rif=rec.fatturaRiferimentoId?(DB.fatture||[]).find(f=>f.id===rec.fatturaRiferimentoId):null;
+  const p=new URLSearchParams({
+    tipoDoc:rec.tipo,numFattura:rec.numero,dataDoc:formatDate(rec.data),
+    sponsorNome:rec.sponsorNome,sponsorCf:rec.sponsorCf||'',sponsorPiva:rec.sponsorPiva||'',sponsorIndirizzo:rec.sponsorIndirizzo||'',
+    descr:rec.descr||'',imponibile:rec.imponibile.toFixed(2),aliquotaIva:rec.aliquotaIva,imposta:rec.imposta.toFixed(2),totale:rec.totale.toFixed(2),
+    stagione,causaleNota:rec.causale||'',
+    ...(rif?{rifNumero:rif.numero,rifData:formatDate(rif.data)}:{}),
+    ...ps
+  });
+  window.open(`${BASE_URL}modulo_fattura_sponsor.html?${p}`,'_blank');
+}
+// Genera il file XML FatturaPA (formato FPR12, verso privati) per
+// l'upload manuale sul portale "Fatture e Corrispettivi" dell'Agenzia
+// delle Entrate. Costruito a mano sulla base della documentazione
+// pubblica del tracciato FatturaPA v1.2: struttura e nomi degli elementi
+// sono corretti per quanto verificabile da qui, ma un XML generato senza
+// una libreria/validatore dedicato va sempre controllato — il portale
+// stesso lo valida e lo scarta se mal formato, quindi un errore qui è un
+// problema di comodità, non di conformità fiscale: non invierà mai una
+// fattura "sbagliata ma accettata". Prima del primo invio reale, usa la
+// funzione "Controlla file" del portale (o fai verificare a Chimienti)
+// prima di proseguire con l'invio.
+function _escapeXml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function generaXmlFatturaPA(rec){
+  const st=DB.struttura||{};
+  const tipoDocMap={fattura:'TD01',nota_credito:'TD04',nota_debito:'TD05'};
+  const tipoDocumento=rec.tipoDocXml||tipoDocMap[rec.tipo]||'TD01';
+  const progressivo=String(rec.numero).replace(/[^0-9]/g,'').padStart(5,'0')||'00001';
+  const numeroDoc=rec.numero;
+  const dataDoc=rec.data; // già YYYY-MM-DD
+  const regimeFiscale=st.regimeFiscale||'RF01';
+  const codiceDest=(rec.sponsorCodiceDest||'').trim()||'0000000';
+  const pecDest=(!rec.sponsorCodiceDest&&rec.sponsorPec)?rec.sponsorPec.trim():'';
+  const cedPiva=(st.piva||'').replace(/^IT/i,'');
+  const cesPiva=(rec.sponsorPiva||'').replace(/^IT/i,'');
+  let causale=rec.descr||'Sponsorizzazione';
+  if(rec.fatturaRiferimentoId){
+    const rif=(DB.fatture||[]).find(f=>f.id===rec.fatturaRiferimentoId);
+    if(rif)causale=`${rec.tipo==='nota_credito'?'Nota di credito':'Nota di debito'} a rettifica della fattura n. ${rif.numero} del ${formatDate(rif.data)}. Motivo: ${rec.causale||''}`;
+  }
+  const iban=(st.iban||'').trim();
+  const datiPagamento=iban?`<DatiPagamento><CondizioniPagamento>TP02</CondizioniPagamento><DettaglioPagamento><ModalitaPagamento>MP05</ModalitaPagamento><ImportoPagamento>${rec.totale.toFixed(2)}</ImportoPagamento><IBAN>${_escapeXml(iban)}</IBAN></DettaglioPagamento></DatiPagamento>`:'';
+  const sedeCed=`<Sede><Indirizzo>${_escapeXml(st.indirizzo||'')}</Indirizzo><CAP>${_escapeXml(st.cap||'00000')}</CAP><Comune>${_escapeXml(st.citta||'')}</Comune><Provincia>${_escapeXml((st.provincia||'').toUpperCase())}</Provincia><Nazione>IT</Nazione></Sede>`;
+  const sedeCes=`<Sede><Indirizzo>${_escapeXml(rec.sponsorIndirizzo||'')}</Indirizzo><CAP>${_escapeXml(rec.sponsorCap||'00000')}</CAP><Comune>${_escapeXml(rec.sponsorComune||'')}</Comune><Provincia>${_escapeXml((rec.sponsorProvincia||'').toUpperCase())}</Provincia><Nazione>IT</Nazione></Sede>`;
+  const idFiscaleCes=cesPiva?`<IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${_escapeXml(cesPiva)}</IdCodice></IdFiscaleIVA>`:'';
+  const cfCes=rec.sponsorCf?`<CodiceFiscale>${_escapeXml(rec.sponsorCf)}</CodiceFiscale>`:'';
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<p:FatturaElettronica xmlns:p="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" versione="FPR12">
+<FatturaElettronicaHeader>
+<DatiTrasmissione>
+<IdTrasmittente><IdPaese>IT</IdPaese><IdCodice>${_escapeXml(cedPiva)}</IdCodice></IdTrasmittente>
+<ProgressivoInvio>${progressivo}</ProgressivoInvio>
+<FormatoTrasmissione>FPR12</FormatoTrasmissione>
+<CodiceDestinatario>${_escapeXml(codiceDest)}</CodiceDestinatario>
+${pecDest?`<PECDestinatario>${_escapeXml(pecDest)}</PECDestinatario>`:''}
+</DatiTrasmissione>
+<CedentePrestatore>
+<DatiAnagrafici>
+<IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${_escapeXml(cedPiva)}</IdCodice></IdFiscaleIVA>
+${st.cf?`<CodiceFiscale>${_escapeXml(st.cf)}</CodiceFiscale>`:''}
+<Anagrafica><Denominazione>${_escapeXml(st.nome||'')}</Denominazione></Anagrafica>
+<RegimeFiscale>${regimeFiscale}</RegimeFiscale>
+</DatiAnagrafici>
+${sedeCed}
+</CedentePrestatore>
+<CessionarioCommittente>
+<DatiAnagrafici>
+${idFiscaleCes}${cfCes}
+<Anagrafica><Denominazione>${_escapeXml(rec.sponsorNome||'')}</Denominazione></Anagrafica>
+</DatiAnagrafici>
+${sedeCes}
+</CessionarioCommittente>
+</FatturaElettronicaHeader>
+<FatturaElettronicaBody>
+<DatiGenerali>
+<DatiGeneraliDocumento>
+<TipoDocumento>${tipoDocumento}</TipoDocumento>
+<Divisa>EUR</Divisa>
+<Data>${dataDoc}</Data>
+<Numero>${_escapeXml(numeroDoc)}</Numero>
+<Causale>${_escapeXml(causale)}</Causale>
+</DatiGeneraliDocumento>
+</DatiGenerali>
+<DatiBeniServizi>
+<DettaglioLinee>
+<NumeroLinea>1</NumeroLinea>
+<Descrizione>${_escapeXml(rec.descr||'Sponsorizzazione')}</Descrizione>
+<PrezzoUnitario>${rec.imponibile.toFixed(2)}</PrezzoUnitario>
+<PrezzoTotale>${rec.imponibile.toFixed(2)}</PrezzoTotale>
+<AliquotaIVA>${rec.aliquotaIva.toFixed(2)}</AliquotaIVA>
+</DettaglioLinee>
+<DatiRiepilogo>
+<AliquotaIVA>${rec.aliquotaIva.toFixed(2)}</AliquotaIVA>
+<ImponibileImporto>${rec.imponibile.toFixed(2)}</ImponibileImporto>
+<Imposta>${rec.imposta.toFixed(2)}</Imposta>
+<EsigibilitaIVA>I</EsigibilitaIVA>
+</DatiRiepilogo>
+</DatiBeniServizi>
+${datiPagamento}
+</FatturaElettronicaBody>
+</p:FatturaElettronica>`;
+}
+function scaricaXmlFattura(fatturaId){
+  const r=(DB.fatture||[]).find(x=>x.id===fatturaId);if(!r)return;
+  if(!DB.struttura?.piva){toast('Inserisci la Partita IVA dell\'associazione in "La mia struttura" prima di generare l\'XML','error');return;}
+  const xml=generaXmlFatturaPA(r);
+  const blob=new Blob([xml],{type:'application/xml'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`IT${(DB.struttura.piva||'').replace(/^IT/i,'')}_${r.numero.replace('/','-')}.xml`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  toast('XML generato — verificalo con "Controlla file" sul portale Fatture e Corrispettivi prima di inviarlo','info');
+}
+function renderRegistroFatture(){
+  const tb=document.getElementById('fatture-tbody');if(!tb)return;
+  const elenco=(DB.fatture||[]).slice().sort((a,b)=>b.data.localeCompare(a.data)||b.numero.localeCompare(a.numero));
+  if(!elenco.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🧾</div><h3>Nessuna fattura ancora emessa</h3></div></td></tr>';return;}
+  const fmt=n=>'€'+(parseFloat(n)||0).toFixed(2);
+  const tipoLabel={fattura:'Fattura',nota_credito:'Nota di credito',nota_debito:'Nota di debito'};
+  const tipoBadge={fattura:'bg',nota_credito:'bo',nota_debito:'by'};
+  tb.innerHTML=elenco.map(r=>{
+    const rif=r.fatturaRiferimentoId?(DB.fatture||[]).find(f=>f.id===r.fatturaRiferimentoId):null;
+    return`<tr>
+    <td>${r.numero}</td><td>${formatDate(r.data)}</td><td>${r.sponsorNome}</td>
+    <td><span class="badge ${tipoBadge[r.tipo]||'bg'}">${tipoLabel[r.tipo]||r.tipo}</span>${rif?`<div style="font-size:11px;color:var(--text3);margin-top:2px;">rif. n. ${rif.numero}</div>`:''}</td>
+    <td>${fmt(r.imponibile)}<div style="font-size:10px;color:var(--text2);">IVA ${r.aliquotaIva}%: ${fmt(r.imposta)}</div></td>
+    <td style="font-weight:700;">${fmt(r.totale)}</td>
+    <td><div class="tda"><button class="bico" title="Rigenera documento identico" onclick="rigeneraFattura('${r.id}')">🔁</button><button class="bico" title="Scarica XML FatturaPA per il portale Entrate" onclick="scaricaXmlFattura('${r.id}')">⬇️</button>${r.tipo==='fattura'?`<button class="bico" title="Nota di credito" onclick="emettiNotaFattura('${r.id}','nota_credito')">➖</button><button class="bico" title="Nota di debito" onclick="emettiNotaFattura('${r.id}','nota_debito')">➕</button>`:''}</div></td>
+  </tr>`;}).join('');
+}
+function rigeneraFattura(fatturaId){
+  const r=(DB.fatture||[]).find(x=>x.id===fatturaId);if(!r)return;
+  apriModuloFattura(r);
+}
+// Nota di credito (importo in diminuzione/azzeramento) o nota di debito
+// (importo aggiuntivo): MAI un "annulla" sulla fattura originale, che resta
+// intatta nel registro. Consuma il prossimo numero della stessa sequenza
+// annuale delle fatture e riporta sempre il riferimento (numero e data)
+// del documento che corregge.
+function emettiNotaFattura(fatturaId,tipo){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  const orig=(DB.fatture||[]).find(x=>x.id===fatturaId);if(!orig)return;
+  const etichetta=tipo==='nota_credito'?'nota di credito':'nota di debito';
+  const causale=prompt(`Emettere una ${etichetta} a rettifica della fattura n. ${orig.numero} del ${formatDate(orig.data)} (${orig.sponsorNome}, €${orig.totale.toFixed(2)})?\nIndica il motivo (es. "fattura duplicata", "importo errato", "integrazione corrispettivo non fatturato"):`);
+  if(causale===null)return;
+  if(!causale.trim()){toast('Motivo obbligatorio per emettere la nota','error');return;}
+  const importoRaw=prompt(`Importo della ${etichetta} (€, IVA compresa). Lascia vuoto per rettificare l'intero importo della fattura originale (€${orig.totale.toFixed(2)}):`);
+  if(importoRaw===null)return;
+  const totaleNota=importoRaw.trim()===''?orig.totale:(parseFloat(importoRaw)||0);
+  if(totaleNota<=0){toast('Importo non valido','error');return;}
+  const scomp=_calcolaScompostoIva(totaleNota,orig.aliquotaIva);
+  const anno=new Date().getFullYear();
+  const numRef=fbDb?fbDb.ref(`spartans/contatori/fatture/${anno}`):null;
+  const generaDoc=(n)=>{
+    const numFormattato=`${String(n).padStart(4,'0')}/${anno}`;
+    const oggiIso=new Date().toISOString().slice(0,10);
+    if(!DB.fatture)DB.fatture=[];
+    const rec={id:uid(),numero:numFormattato,anno,data:oggiIso,tipo,
+      sponsorId:orig.sponsorId,sponsorNome:orig.sponsorNome,sponsorCf:orig.sponsorCf||'',sponsorPiva:orig.sponsorPiva||'',sponsorIndirizzo:orig.sponsorIndirizzo||'',
+      sponsorCap:orig.sponsorCap||'',sponsorComune:orig.sponsorComune||'',sponsorProvincia:orig.sponsorProvincia||'',sponsorCodiceDest:orig.sponsorCodiceDest||'',sponsorPec:orig.sponsorPec||'',
+      descr:orig.descr||'',imponibile:scomp.imponibile,aliquotaIva:scomp.aliquota,imposta:scomp.imposta,totale:scomp.totale,
+      fatturaRiferimentoId:orig.id,causale:causale.trim(),
+      tipoDocXml:tipo==='nota_credito'?'TD04':'TD05'};
+    DB.fatture.push(rec);
+    saveDB();
+    if(document.getElementById('fatture-tbody'))renderRegistroFatture();
+    apriModuloFattura(rec);
+    toast(`${etichetta.charAt(0).toUpperCase()+etichetta.slice(1)} n. ${numFormattato} emessa`,'success');
+  };
+  if(numRef){
+    numRef.transaction(n=>(n||0)+1).then(res=>generaDoc(res.snapshot.val())).catch(()=>{toast('Errore nel contatore fatture — riprova','error');});
+  }else{
+    toast('Connessione al contatore non disponibile — documento non emesso','error');
   }
 }
 
@@ -7344,7 +7607,7 @@ const GUIDA_VOCI=[
   {cat:'🤝 Sponsor',titolo:'Generare il contratto di sponsorizzazione',testo:'Apri la scheda dello sponsor → sezione Documenti → \"📄 Genera contratto di sponsorizzazione\". Il documento riporta i dati di entrambe le parti (ASD e sponsor), i rispettivi legali rappresentanti, l\'oggetto, la durata e il corrispettivo, pronto per la doppia firma. Inserisci i dati del Presidente in \"La mia struttura\" → IDS perché vengano riportati correttamente.',tag:'contratto sponsorizzazione generare documento firma'},
   {cat:'🤝 Sponsor',titolo:'Archiviare il contratto firmato',testo:'Dopo la firma, carica la scansione su Drive e incolla il link nel campo \"Contratto firmato\" nella scheda sponsor.',tag:'contratto firmato allegato archiviare drive sponsor'},
   {cat:'🤝 Sponsor',titolo:'Collegare il contratto a un\'entrata in Amministrazione',testo:'Nella scheda sponsor, imposta \"Stato pagamento\" su \"Incassato\" e inserisci l\'importo: l\'app crea automaticamente un\'entrata in Amministrazione con il badge 🤝 sponsor. Se modifichi importo o stato, l\'entrata si aggiorna; se elimini lo sponsor, l\'entrata collegata viene rimossa.',tag:'sponsor entrata amministrazione incassato collegamento automatico'},
-  {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva, dati ASD e sponsor, descrizione e importo del contratto.',tag:'fattura sponsor generare documento numerazione'},
+  {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva (azzerata a ogni anno), dati ASD e sponsor, descrizione, imponibile, IVA e totale. La fattura viene anche registrata in modo permanente in Amministrazione → \"📄 Fatture\", da cui puoi scaricare il file XML (⬇️) da caricare sul portale \"Fatture e Corrispettivi\" dell\'Agenzia delle Entrate — obbligatorio per tutte le ASD con partita IVA dal 2024, senza soglie di esonero. Per correggere un errore NON si annulla la fattura: dal registro si emette una nota di credito (➖) o di debito (➕) che riferisce la fattura originale, la quale resta sempre intatta.',tag:'fattura sponsor generare documento numerazione nota di credito nota di debito xml sdi fatturapa'},
   {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
 
   {cat:'🏛️ Struttura',titolo:'Inserire i dati del Consiglio Direttivo',testo:'Vai su La mia struttura → sezione "⚖️ Consiglio Direttivo" → "+ Aggiungi membro". Inserisci ruolo, nome, cognome, dati anagrafici, CF, residenza, documento d\'identità per ciascun membro (Presidente, Vicepresidente, Tesoriere, Segretario, Consiglieri). Questi dati vengono riutilizzati automaticamente nei contratti, nei verbali e negli altri documenti generabili. Aggiorna questa sezione ogni volta che cambiano le cariche sociali.',tag:'presidente vicepresidente consiglio direttivo legale rappresentante struttura dati contratto verbale'},
@@ -7835,7 +8098,7 @@ function fbInit(){
           // Pulizia completa dopo sessione demo
           fbListenerActive=false;
           localStorage.removeItem('spartans_db');
-          DB={struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},soci:[],staff:[],macrogruppi:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],quoteAtleti:[],valutazioni:{},fisrLetture:{},fisrStagioniCustom:{generali:{},campionati:{}}};
+          DB={struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',cap:'',provincia:'',regimeFiscale:'RF01',iban:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},soci:[],staff:[],macrogruppi:[],piani:[],abbonamenti:[],corsi:[],impianti:[],maestri:[],entrate:[],uscite:[],eventi:[],presenze:{},stagioni:[],stagioniArchivio:[],quoteAtleti:[],valutazioni:{},fisrLetture:{},fisrStagioniCustom:{generali:{},campionati:{}}};
           const banner=document.getElementById('demo-banner');if(banner)banner.remove();
         }
         driveSetStatus('','Non connesso');
@@ -7892,7 +8155,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.0.2';
+    const CURRENT_VER='6.1.1';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

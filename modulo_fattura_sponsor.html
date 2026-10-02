@@ -11,6 +11,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
 .header{display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--red);padding-bottom:10px;margin-bottom:16px;}
 .ht{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;line-height:1.1;}
 .hs{font-size:11px;color:#666;margin-top:2px;}
+.doctype{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
 .section{margin-bottom:14px;break-inside:avoid;}
 .st{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:#fff;background:var(--red);padding:5px 10px;margin-bottom:8px;border-radius:var(--radius) var(--radius) 0 0;}
 .st.gold{background:var(--gold);}.st.dark{background:var(--dark);}
@@ -23,11 +24,18 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
 .firma-line{width:100%;border-bottom:1px solid var(--dark);height:40px;}
 .firma-label{font-size:10px;color:#666;text-align:center;}
 .footer{border-top:1px solid var(--border);padding-top:8px;margin-top:14px;font-size:10px;color:#999;text-align:center;}
-table.righe{width:100%;border-collapse:collapse;margin-bottom:10px;}
+.rif-box{background:#fff8e6;border:1px solid var(--gold);border-radius:var(--radius);padding:8px 10px;margin-bottom:14px;font-size:11.5px;}
+table.righe{width:100%;border-collapse:collapse;margin-bottom:6px;}
 table.righe th{font-family:'Oswald',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#fff;background:var(--dark);padding:7px 10px;text-align:left;}
 table.righe td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:12.5px;}
 table.righe td.num{text-align:right;font-weight:700;}
 .tot-row td{font-weight:700;font-size:14px;border-top:2px solid var(--dark);border-bottom:none;background:#fafafa;}
+.riepilogo-iva{width:260px;margin:0 0 0 auto;}
+.riepilogo-iva table{width:100%;border-collapse:collapse;}
+.riepilogo-iva td{padding:4px 8px;font-size:12px;border-bottom:1px solid var(--border);}
+.riepilogo-iva tr:last-child td{font-weight:700;font-size:13.5px;border-top:2px solid var(--dark);border-bottom:none;}
+.riepilogo-iva td:last-child{text-align:right;}
+.note-legale{font-size:10.5px;color:#666;font-style:italic;margin-top:8px;}
 @media print{body{font-size:12px;}.page{padding:8mm 10mm;}.no-print{display:none;}@page{size:A4;margin:0;}}
 @media screen{body{background:#eee;}.page{background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.15);margin:20px auto;}
 .print-btn{position:fixed;bottom:24px;right:24px;background:var(--red);color:#fff;border:none;padding:12px 24px;border-radius:30px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(192,57,43,.4);letter-spacing:1px;z-index:100;}
@@ -39,24 +47,33 @@ table.righe td.num{text-align:right;font-weight:700;}
   <div class="header">
     <div style="flex:1;">
       <div class="ht">ASD Spartans Hockey Inline</div>
-      <div class="hs">Fattura / Ricevuta sponsorizzazione</div>
-      <div class="hs" style="color:var(--red);font-size:10px;">Stagione sportiva <span id="f-stagione-head"></span></div>
+      <div class="hs" id="f-stagione-wrap">Stagione sportiva <span id="f-stagione-head"></span></div>
+      <div class="doctype" id="f-doctype" style="color:var(--red);">FATTURA</div>
     </div>
     <div style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--gold);text-align:right;flex-shrink:0;">
-      N° Fattura<br><strong id="f-numero">_______</strong><br>
+      N°<br><strong id="f-numero">_______</strong><br>
       <span style="font-size:10px;color:#666;font-weight:400;">Data <span id="f-data-doc">_______</span></span>
     </div>
   </div>
 
-  <div class="section"><div class="st">Dati dell'Associazione</div>
+  <div class="rif-box no-print-if-empty" id="f-rif-box" style="display:none;">
+    A rettifica della fattura n. <strong id="f-rif-numero"></strong> del <strong id="f-rif-data"></strong>.
+    Motivo: <span id="f-rif-causale"></span>
+  </div>
+
+  <div class="section"><div class="st">Cedente / Prestatore</div>
     <div class="grid g3">
       <div class="field"><label>Denominazione</label><div class="fval" id="f-asd-nome">ASD Spartans Hockey Inline</div></div>
-      <div class="field"><label>Codice Fiscale ASD</label><div class="fval" id="f-cf-asd">&nbsp;</div></div>
-      <div class="field"><label>Sede legale</label><div class="fval" id="f-asd-indirizzo">&nbsp;</div></div>
+      <div class="field"><label>Partita IVA</label><div class="fval" id="f-asd-piva">&nbsp;</div></div>
+      <div class="field"><label>Codice Fiscale</label><div class="fval" id="f-cf-asd">&nbsp;</div></div>
+    </div>
+    <div class="grid g3" style="margin-top:6px;">
+      <div class="field" style="grid-column:span 2;"><label>Sede legale</label><div class="fval" id="f-asd-indirizzo">&nbsp;</div></div>
+      <div class="field"><label>IBAN</label><div class="fval" id="f-asd-iban">&nbsp;</div></div>
     </div>
   </div>
 
-  <div class="section"><div class="st gold">Dati dello Sponsor</div>
+  <div class="section"><div class="st gold">Cessionario / Committente</div>
     <div class="grid g3" style="margin-bottom:6px;">
       <div class="field"><label>Ragione sociale</label><div class="fval" id="f-sponsor-nome">&nbsp;</div></div>
       <div class="field"><label>Codice Fiscale</label><div class="fval" id="f-sponsor-cf">&nbsp;</div></div>
@@ -67,16 +84,22 @@ table.righe td.num{text-align:right;font-weight:700;}
     </div>
   </div>
 
-  <div class="section"><div class="st dark">Dettaglio sponsorizzazione</div>
+  <div class="section"><div class="st dark">Dettaglio</div>
     <table class="righe">
-      <thead><tr><th>Descrizione</th><th>Periodicità</th><th style="text-align:right;">Importo</th></tr></thead>
+      <thead><tr><th>Descrizione</th><th style="text-align:right;">Imponibile</th></tr></thead>
       <tbody>
-        <tr><td id="f-descr">Sponsorizzazione</td><td id="f-periodicita">—</td><td class="num" id="f-importo">€ 0,00</td></tr>
-        <tr class="tot-row"><td colspan="2">Totale</td><td class="num" id="f-totale">€ 0,00</td></tr>
+        <tr><td id="f-descr">Sponsorizzazione</td><td class="num" id="f-imponibile">€ 0,00</td></tr>
       </tbody>
     </table>
-    <div style="font-size:11px;color:#666;font-style:italic;">
-      Operazione fuori campo IVA ai sensi della normativa applicabile alle associazioni sportive dilettantistiche, salvo diversa indicazione contrattuale.
+    <div class="riepilogo-iva">
+      <table>
+        <tr><td>Imponibile</td><td id="f-riep-imponibile">€ 0,00</td></tr>
+        <tr><td>IVA (<span id="f-riep-aliquota">22</span>%)</td><td id="f-riep-imposta">€ 0,00</td></tr>
+        <tr><td>Totale fattura</td><td id="f-riep-totale">€ 0,00</td></tr>
+      </table>
+    </div>
+    <div class="note-legale">
+      Operazione imponibile IVA ai sensi dell'art. 21 DPR 633/1972. Associazione sportiva dilettantistica in regime di cui alla legge 398/1991: detrazione forfettaria dell'imposta ai sensi dell'art. 74, sesto comma, DPR 633/1972 — non incide sull'importo addebitato al cliente. Fattura elettronica trasmessa tramite Sistema di Interscambio (SdI).
     </div>
   </div>
 
@@ -90,7 +113,7 @@ table.righe td.num{text-align:right;font-weight:700;}
 (function(){
   const p=new URLSearchParams(window.location.search);
   const get=k=>p.get(k)||'';
-  const set=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=get(key)||'\u00a0';};
+  const set=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=get(key)||' ';};
   function generaTimbro(){
     const nome    = get('asdNome')     ? get('asdNome').toUpperCase() : '';
     const via     = get('asdIndirizzo')|| '';
@@ -114,13 +137,29 @@ table.righe td.num{text-align:right;font-weight:700;}
     svg += '</svg>';
     return svg;
   }
-  const periodicitaLabel={una_tantum:'Una tantum',annuale:'Annuale',mensile:'Mensile'};
+
+  const tipoDoc=get('tipoDoc')||'fattura';
+  const titoli={fattura:'FATTURA',nota_credito:'NOTA DI CREDITO',nota_debito:'NOTA DI DEBITO'};
+  const coloriDoc={fattura:'var(--red)',nota_credito:'#1a6e3a',nota_debito:'#a9681a'};
+  document.getElementById('f-doctype').textContent=titoli[tipoDoc]||'FATTURA';
+  document.getElementById('f-doctype').style.color=coloriDoc[tipoDoc]||'var(--red)';
+  document.title=(titoli[tipoDoc]||'Fattura')+' sponsor — ASD Spartans Hockey Inline';
+
+  if(get('rifNumero')){
+    document.getElementById('f-rif-box').style.display='block';
+    document.getElementById('f-rif-numero').textContent=get('rifNumero');
+    document.getElementById('f-rif-data').textContent=get('rifData');
+    document.getElementById('f-rif-causale').textContent=get('causaleNota')||'—';
+  }
 
   set('f-asd-nome','asdNome');
+  set('f-asd-piva','asdPiva');
   set('f-cf-asd','asdCf');
   set('f-asd-indirizzo','asdIndirizzo');
+  set('f-asd-iban','asdIban');
   set('f-data-doc','dataDoc');
   set('f-stagione-head','stagione');
+  if(!get('stagione'))document.getElementById('f-stagione-wrap').style.display='none';
   set('f-asd-nome-footer','asdNome');
   set('f-asd-email-footer','asdEmail');
   set('f-numero','numFattura');
@@ -131,12 +170,14 @@ table.righe td.num{text-align:right;font-weight:700;}
   set('f-sponsor-indirizzo','sponsorIndirizzo');
 
   set('f-descr','descr');
-  document.getElementById('f-periodicita').textContent=periodicitaLabel[get('periodicita')]||'—';
 
-  const importoNum=parseFloat(get('importo'))||0;
-  const importoFmt='\u20ac '+importoNum.toFixed(2).replace('.',',');
-  document.getElementById('f-importo').textContent=importoFmt;
-  document.getElementById('f-totale').textContent=importoFmt;
+  const fmt=n=>'€ '+(parseFloat(n)||0).toFixed(2).replace('.',',');
+  const imponibile=get('imponibile'), imposta=get('imposta'), totale=get('totale'), aliquota=get('aliquotaIva')||'22';
+  document.getElementById('f-imponibile').textContent=fmt(imponibile);
+  document.getElementById('f-riep-imponibile').textContent=fmt(imponibile);
+  document.getElementById('f-riep-aliquota').textContent=aliquota;
+  document.getElementById('f-riep-imposta').textContent=fmt(imposta);
+  document.getElementById('f-riep-totale').textContent=fmt(totale);
 
   const tb=document.getElementById('timbro-box');
   if(tb)tb.innerHTML=generaTimbro();
