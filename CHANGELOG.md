@@ -2,6 +2,14 @@
 
 ---
 
+## v6.1.2 · Ottobre 2026
+
+### Fix — Comunicati FISR, scaricamento intermittente
+- **Terzo proxy CORS di riserva** (`api.codetabs.com`) aggiunto ai due esistenti (`corsproxy.io`, `api.allorigins.win`). Il sito FISR non espone un'API: l'app legge la pagina pubblica tramite servizi di CORS-proxy gratuiti e condivisi con chiunque altro li usi nel mondo, senza alcuna garanzia di disponibilità — da qui i fallimenti "ogni tanto" (non un bug nel parser, che darebbe un fallimento costante, non intermittente). Il terzo tentativo riduce la probabilità che tutti i proxy risultino irraggiungibili nella stessa richiesta.
+- **Non risolto alla radice**: resta una dipendenza da infrastruttura pubblica non garantita. Se le interruzioni restano frequenti, la soluzione solida è un proxy dedicato (es. un Cloudflare Worker gratuito, sotto il controllo dell'associazione e non condiviso con altri utenti).
+
+---
+
 ## v6.1.1 · Ottobre 2026
 
 ### Correzione — Fattura elettronica obbligatoria, non più esonerata

@@ -483,7 +483,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.1.1 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.1.2 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1890,6 +1890,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.1.2 · Ottobre 2026</div>
+        <div class="cl-section">Fix — Comunicati FISR, scaricamento intermittente</div>
+        <div class="cl-item"><strong>Terzo proxy CORS di riserva</strong> — lo scaricamento dei comunicati FISR passa da servizi di CORS-proxy pubblici e gratuiti (il sito FISR non fornisce un'API), che ogni tanto risultano sovraccarichi o irraggiungibili: prima dei due tentativi disponibili, ora ne viene provato un terzo prima di mostrare il messaggio "collegati direttamente al sito FISR". Non elimina il problema alla radice (resta una dipendenza da infrastruttura condivisa e non garantita), ma ne riduce la frequenza.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.1.1 · Ottobre 2026</div>
         <div class="cl-section">Correzione — Fattura elettronica obbligatoria, non più esonerata</div>
         <div class="cl-item"><strong>Generatore XML FatturaPA</strong> — la v6.1.0 presupponeva che le ASD sotto i 65.000 € di ricavi commerciali fossero esonerate dalla fattura elettronica (DL 119/2018). Quell'esonero è stato abrogato gradualmente dal DL 36/2022 (Decreto PNRR 2): dal 1° gennaio 2024 l'obbligo di fattura elettronica vale per <strong>tutte</strong> le ASD con partita IVA, senza soglie. Il registro fatture ora genera, per ogni riga, il file XML in formato FatturaPA (FPR12) da caricare manualmente sul portale gratuito "Fatture e Corrispettivi" dell'Agenzia delle Entrate — nessun invio automatico dall'app, ma il file è pronto per il caricamento.</div>
@@ -2750,7 +2756,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.1.1 · Ottobre 2026';
+const APP_VERSION = 'v6.1.2 · Ottobre 2026';
 let DB = {
   struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',cap:'',provincia:'',regimeFiscale:'RF01',iban:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
   soci:[],        // atleti
@@ -7693,27 +7699,44 @@ function fisrStagioniAttive(){
   // sia di correggere un link rotto senza aspettare un aggiornamento dell'app.
   return {...base, ...custom};
 }
-// Proxy CORS per bypassare le restrizioni CORS del sito FISR
+// Proxy CORS per bypassare le restrizioni CORS del sito FISR. Sono tutti
+// servizi pubblici gratuiti e condivisi (nessuno sotto il nostro controllo):
+// la causa più probabile dei fallimenti intermittenti è che uno di loro sia
+// temporaneamente sovraccarico o limitato, non un problema di parsing — un
+// terzo tentativo (v6.1.2) riduce la probabilità che TUTTI falliscano nella
+// stessa richiesta, ma resta un palliativo: se le interruzioni continuano a
+// essere frequenti, la soluzione robusta è un proxy dedicato (es. Cloudflare
+// Worker gratuito) non condiviso con altri utenti di questi servizi.
 const CORS_PROXY = 'https://corsproxy.io/?';
 const CORS_PROXY_FALLBACK = 'https://api.allorigins.win/raw?url=';
+const CORS_PROXY_FALLBACK2 = 'https://api.codetabs.com/v1/proxy?quest=';
 
-// Scarica l'HTML di una pagina FISR provando il proxy principale, e in caso di
-// fallimento (errore di rete o nessun comunicato individuato) un proxy di riserva.
-// Il cache-buster nella query forza i proxy a non restituire una risposta cachata.
+// Scarica l'HTML di una pagina FISR provando in sequenza fino a tre proxy
+// CORS pubblici, fermandosi al primo che risponde con almeno un comunicato
+// individuabile. Il cache-buster nella query forza i proxy a non restituire
+// una risposta cachata.
 async function fetchFisrHtml(url){
   const cacheBuster = (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
   const targetUrl = url + cacheBuster;
-  try{
-    const r = await fetch(CORS_PROXY + encodeURIComponent(targetUrl), {cache:'no-store'});
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const html = await r.text();
-    if(parseComunicatiFisr(html).length) return html;
-    throw new Error('Nessun comunicato trovato con il proxy principale');
-  }catch(e){
-    const r2 = await fetch(CORS_PROXY_FALLBACK + encodeURIComponent(targetUrl), {cache:'no-store'});
-    if(!r2.ok) throw new Error('HTTP ' + r2.status);
-    return await r2.text();
+  const tentativi = [
+    {nome:'principale', build:()=>CORS_PROXY + encodeURIComponent(targetUrl)},
+    {nome:'riserva 1', build:()=>CORS_PROXY_FALLBACK + encodeURIComponent(targetUrl)},
+    {nome:'riserva 2', build:()=>CORS_PROXY_FALLBACK2 + encodeURIComponent(targetUrl)},
+  ];
+  let ultimoErrore=null;
+  for(const t of tentativi){
+    try{
+      const r = await fetch(t.build(), {cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const html = await r.text();
+      if(parseComunicatiFisr(html).length) return html;
+      throw new Error(`Nessun comunicato trovato con il proxy ${t.nome}`);
+    }catch(e){
+      console.warn(`FISR: proxy ${t.nome} non disponibile —`, e.message);
+      ultimoErrore=e;
+    }
   }
+  throw ultimoErrore || new Error('Tutti i proxy CORS non disponibili');
 }
 
 // Chiavi di storage distinte per categoria (generali vs campionati), per non sovrascrivere i dati dell'altra tab
@@ -8155,7 +8178,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.1.1';
+    const CURRENT_VER='6.1.2';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
