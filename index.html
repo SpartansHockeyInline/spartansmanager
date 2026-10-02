@@ -483,7 +483,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.1.4 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.1.5 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -571,10 +571,6 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <div id="ds-eventi"><div class="empty"><div class="ei">📅</div><p>Nessun evento</p></div></div>
           </div>
           <div class="card">
-            <div class="card-title">📋 Comunicati FISR</div>
-            <div id="ds-fisr"><div class="empty"><div class="ei">✅</div><p>Nessun nuovo comunicato</p></div></div>
-          </div>
-          <div class="card">
             <div class="card-title">⚠️ Scadenze imminenti</div>
             <div id="ds-scadenze"><div class="empty"><div class="ei">✅</div><p>Nessuna scadenza</p></div></div>
           </div>
@@ -587,9 +583,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <div id="ds-prestiti"><div class="empty"><div class="ei">✅</div><p>Nessun prestito in corso</p></div></div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-title">📊 Riepilogo</div>
-          <div id="ds-riepilogo" style="display:flex;flex-direction:column;gap:7px;"></div>
+        <div>
+          <div class="card">
+            <div class="card-title">📊 Riepilogo</div>
+            <div id="ds-riepilogo" style="display:flex;flex-direction:column;gap:7px;"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📋 Nuovi comunicati FISR</div>
+            <div id="ds-fisr"><div class="empty"><div class="ei">✅</div><p>Nessun nuovo comunicato</p></div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1894,6 +1896,13 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.1.5 · Ottobre 2026</div>
+        <div class="cl-section">Correzione — Card Dashboard: solo i comunicati realmente nuovi</div>
+        <div class="cl-item"><strong>Cambiata la definizione di "nuovo"</strong>: la card mostrava tutti i comunicati non ancora segnati come "visti" da nessuno in struttura — se il pulsante "✓ Segna tutti come visti" non viene mai usato, con il tempo diventa l'intero storico della stagione, non una vera notifica. Ora la card confronta ogni caricamento con quello precedente e mostra solo i comunicati apparsi nel frattempo: tipicamente nessuno, o uno-due quando la FISR pubblica davvero qualcosa di nuovo.</div>
+        <div class="cl-item"><strong>Spostata sulla destra, sotto il Riepilogo economico</strong> (prima era in colonna sinistra, sopra Scadenze imminenti).</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.1.4 · Ottobre 2026</div>
         <div class="cl-section">Nuovo — Comunicati FISR non letti in Dashboard</div>
         <div class="cl-item"><strong>Nuova card "📋 Comunicati FISR" in Dashboard</strong> — il controllo automatico all'apertura dell'app (già presente, una volta al giorno per limitare il carico sui servizi di CORS-proxy pubblici e condivisi) ora segnala i comunicati generali non ancora letti direttamente in Dashboard, non solo con il numero sul menu laterale: elenco dei comunicati nuovi con link diretto alla pagina, o un messaggio di nessuna novità se non ce ne sono. "Non ancora letti" si basa sul pulsante "✓ Segna tutti come visti" già esistente nella pagina Comunicati FISR (stato condiviso tra tutti gli utenti della struttura): al primo utilizzo, senza nessuno che abbia mai cliccato quel pulsante, non viene mostrato alcun allarme, per evitare falsi allarmi su comunicati che in realtà sono sempre stati lì.</div>
@@ -2772,7 +2781,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.1.4 · Ottobre 2026';
+const APP_VERSION = 'v6.1.5 · Ottobre 2026';
 let DB = {
   struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',cap:'',provincia:'',regimeFiscale:'RF01',iban:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
   soci:[],        // atleti
@@ -7879,6 +7888,9 @@ async function loadComunicatiFisr(){
     const html = await fetchFisrHtml(url);
     const comunicati = parseComunicatiFisr(html);
     if(!comunicati.length) throw new Error('Nessun comunicato trovato');
+    // Calcola i comunicati realmente nuovi rispetto all'ultimo caricamento (per la card
+    // in Dashboard) PRIMA di sovrascrivere la cache, altrimenti non c'è più nulla con cui confrontare.
+    _aggiornaNuoviFisrDashboard(fisrCategoriaAttiva, comunicati);
     // Salva in localStorage (chiave distinta per categoria generali/campionati)
     localStorage.setItem(fisrKey('fisr_comunicati'), JSON.stringify(comunicati));
     localStorage.setItem(fisrKey('fisr_last_fetch'), new Date().toISOString());
@@ -8025,6 +8037,7 @@ function segnaVistiFisr(){
     ts: Date.now()
   };
   saveDB();
+  if(categoria==='generali') localStorage.setItem('fisr_dashboard_new','[]'); // acknowledged: svuota anche la card Dashboard
   aggiornaBadgeFisr(0);
   renderComunicati(comunicati);
   toast('Tutti i comunicati segnati come visti','success');
@@ -8039,25 +8052,37 @@ function aggiornaBadgeFisr(n){
   renderDashboardFisr();
 }
 
-// Alert in Dashboard per comunicati FISR (categoria "generali", la sola controllata
-// automaticamente all'apertura dell'app — v. checkNuoviComunicatiFisr) non ancora
-// segnati come letti. Senza un "ultimo letto" registrato (nessuno in struttura ha
-// mai usato "Segna tutti come visti") non sappiamo cosa sia davvero nuovo rispetto
-// a cosa è sempre stato lì: niente allarme al primo utilizzo, come nel badge laterale.
+// Calcola quali comunicati FISR "generali" sono realmente apparsi dall'ultimo
+// caricamento (non quelli semplicemente non ancora segnati come letti, che si
+// accumulerebbero all'infinito se nessuno in struttura usa mai "Segna tutti come
+// visti" — è esattamente il problema segnalato: la card mostrava "tutti", non "i nuovi").
+// Va chiamata PRIMA di sovrascrivere la cache 'fisr_comunicati'/fisrKey('fisr_comunicati'),
+// perché il confronto è contro il contenuto precedente di quella cache.
+function _aggiornaNuoviFisrDashboard(categoria, comunicatiAggiornati){
+  if(categoria !== 'generali') return; // la card in Dashboard segue solo i comunicati generali
+  const precedenti = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
+  // Nessun confronto possibile al primissimo caricamento in assoluto: niente allarme.
+  if(!precedenti.length) return;
+  const urlPrecedenti = new Set(precedenti.map(c=>c.url));
+  const nuovi = comunicatiAggiornati.filter(c=>!urlPrecedenti.has(c.url));
+  localStorage.setItem('fisr_dashboard_new', JSON.stringify(nuovi));
+}
+
+// Card Dashboard: mostra solo i comunicati "generali" apparsi dall'ultimo controllo
+// (v. _aggiornaNuoviFisrDashboard), non l'intero arretrato non letto.
 function renderDashboardFisr(){
   const cont = document.getElementById('ds-fisr');
   if(!cont) return;
-  const comunicati = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
-  const lastSeenId = getUltimoIdLetto('generali');
-  const nuovi = lastSeenId ? comunicati.filter(c=>c.id>lastSeenId).sort((a,b)=>b.id.localeCompare(a.id)) : [];
+  const nuovi = JSON.parse(localStorage.getItem('fisr_dashboard_new') || '[]')
+    .slice().sort((a,b)=>b.id.localeCompare(a.id));
   if(!nuovi.length){
     cont.innerHTML = '<div class="empty"><div class="ei">✅</div><p>Nessun nuovo comunicato</p></div>';
     return;
   }
-  cont.innerHTML = nuovi.slice(0,5).map(c=>{
+  cont.innerHTML = nuovi.slice(0,8).map(c=>{
     const titolo = (c.titolo||'').replace(/</g,'&lt;');
     return `<div class="scad-item" style="cursor:pointer;" onclick="showPage('comunicati-fisr')"><div class="scad-dot" style="background:var(--accent);"></div><div class="scad-info"><div class="scad-name">CU ${c.id} — ${titolo}</div><div class="scad-detail">${c.data?formatDate(c.data):''}</div></div></div>`;
-  }).join('') + (nuovi.length>5 ? `<div style="text-align:center;margin-top:6px;"><button class="btn btn-s btn-sm" onclick="showPage('comunicati-fisr')">Vedi tutti (${nuovi.length})</button></div>` : '');
+  }).join('') + (nuovi.length>8 ? `<div style="text-align:center;margin-top:6px;"><button class="btn btn-s btn-sm" onclick="showPage('comunicati-fisr')">Vedi tutti (${nuovi.length})</button></div>` : '');
 }
 
 // Verifica giornaliera nuovi CU (chiamata all'apertura dell'app)
@@ -8081,6 +8106,8 @@ async function checkNuoviComunicatiFisr(){
     const url = FISR_STAGIONI[stagione];
     const html = await fetchFisrHtml(url);
     const comunicati = parseComunicatiFisr(html);
+    // Come in loadComunicatiFisr: calcola il delta per la card Dashboard PRIMA di sovrascrivere.
+    _aggiornaNuoviFisrDashboard('generali', comunicati);
     localStorage.setItem('fisr_comunicati', JSON.stringify(comunicati));
     localStorage.setItem('fisr_last_fetch', new Date().toISOString());
     const lastSeenId = getUltimoIdLetto('generali');
@@ -8220,7 +8247,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.1.4';
+    const CURRENT_VER='6.1.5';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

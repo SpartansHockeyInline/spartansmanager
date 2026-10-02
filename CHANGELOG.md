@@ -2,6 +2,15 @@
 
 ---
 
+## v6.1.5 · Ottobre 2026
+
+### Correzione — Card Dashboard: solo i comunicati realmente nuovi
+- **Segnalato dall'utente il giorno stesso della v6.1.4**: la card "Comunicati FISR" in Dashboard mostrava tutti i comunicati non ancora segnati come "visti" da nessuno in struttura, non i soli nuovi arrivi — un difetto di design, non un bug di codice: se il pulsante "✓ Segna tutti come visti" non viene mai usato, quell'elenco con il tempo diventa l'intero storico della stagione.
+- **Nuova definizione di "nuovo"**: ora si confronta ogni caricamento dei comunicati generali con quello precedente, e la card mostra solo i comunicati apparsi nel frattempo — in pratica nessuno la maggior parte dei giorni, uno o due quando la FISR pubblica davvero qualcosa. Il badge sul menu laterale e la lista completa nella pagina Comunicati FISR continuano invece a basarsi su "letto/non letto", comportamento diverso ma corretto per quel contesto.
+- **Posizione**: spostata dalla colonna sinistra (sopra "Scadenze imminenti") alla colonna destra, subito sotto il Riepilogo economico.
+
+---
+
 ## v6.1.4 · Ottobre 2026
 
 ### Nuovo — Comunicati FISR non letti in Dashboard
