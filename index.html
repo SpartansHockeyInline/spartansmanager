@@ -483,7 +483,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.1.2 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.1.3 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1890,6 +1890,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.1.3 · Ottobre 2026</div>
+        <div class="cl-section">Fix — Proxy CORS principale sempre in errore 403</div>
+        <div class="cl-item"><strong>Corretto il formato URL del proxy corsproxy.io</strong> — il codice chiamava <code>corsproxy.io/?&lt;indirizzo&gt;</code>, ma il servizio richiede ora <code>corsproxy.io/?url=&lt;indirizzo&gt;</code>: senza il parametro <code>url=</code> la richiesta veniva sempre respinta con errore 403, indipendentemente dal carico. Il terzo proxy aggiunto in v6.1.2 non risolveva il problema perché la causa non era un sovraccarico dei servizi, ma questo errore di formato sul proxy principale — confermato dal log della console del browser, non da un'ipotesi. Il fallback sul secondo proxy ha probabilmente mascherato il problema fin dall'introduzione della funzione, reggendo da solo tutto il carico.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.1.2 · Ottobre 2026</div>
         <div class="cl-section">Fix — Comunicati FISR, scaricamento intermittente</div>
         <div class="cl-item"><strong>Terzo proxy CORS di riserva</strong> — lo scaricamento dei comunicati FISR passa da servizi di CORS-proxy pubblici e gratuiti (il sito FISR non fornisce un'API), che ogni tanto risultano sovraccarichi o irraggiungibili: prima dei due tentativi disponibili, ora ne viene provato un terzo prima di mostrare il messaggio "collegati direttamente al sito FISR". Non elimina il problema alla radice (resta una dipendenza da infrastruttura condivisa e non garantita), ma ne riduce la frequenza.</div>
@@ -2756,7 +2762,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.1.2 · Ottobre 2026';
+const APP_VERSION = 'v6.1.3 · Ottobre 2026';
 let DB = {
   struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',cap:'',provincia:'',regimeFiscale:'RF01',iban:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
   soci:[],        // atleti
@@ -7707,7 +7713,7 @@ function fisrStagioniAttive(){
 // stessa richiesta, ma resta un palliativo: se le interruzioni continuano a
 // essere frequenti, la soluzione robusta è un proxy dedicato (es. Cloudflare
 // Worker gratuito) non condiviso con altri utenti di questi servizi.
-const CORS_PROXY = 'https://corsproxy.io/?';
+const CORS_PROXY = 'https://corsproxy.io/?url=';
 const CORS_PROXY_FALLBACK = 'https://api.allorigins.win/raw?url=';
 const CORS_PROXY_FALLBACK2 = 'https://api.codetabs.com/v1/proxy?quest=';
 
@@ -8178,7 +8184,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.1.2';
+    const CURRENT_VER='6.1.3';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

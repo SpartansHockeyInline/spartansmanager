@@ -2,6 +2,15 @@
 
 ---
 
+## v6.1.3 · Ottobre 2026
+
+### Fix — Proxy CORS principale sempre in errore 403
+- **Causa reale trovata, non più un'ipotesi**: il fallimento "ogni tanto" dei comunicati FISR non era un sovraccarico dei servizi pubblici condivisi (ipotesi della v6.1.2, confermata insufficiente dal log della console del browser fornito dall'utente). `corsproxy.io` ha cambiato il proprio formato richiesto e ora impone il parametro `?url=<indirizzo>`: il codice costruiva l'indirizzo come `https://corsproxy.io/?<indirizzo>`, privo della chiave `url=`, causando un errore `403 Forbidden` deterministico su **ogni** richiesta al proxy principale, non occasionale.
+- **Il terzo proxy aggiunto in v6.1.2 non risolveva il problema**: mascherava solo in parte il sintomo quando anche i proxy di riserva erano temporaneamente irraggiungibili, ma il proxy principale restava comunque sempre in errore.
+- **Fix**: corretto il formato dell'indirizzo passato a `corsproxy.io` aggiungendo il parametro `url=` mancante.
+
+---
+
 ## v6.1.2 · Ottobre 2026
 
 ### Fix — Comunicati FISR, scaricamento intermittente
