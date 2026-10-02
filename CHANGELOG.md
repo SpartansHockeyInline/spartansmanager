@@ -2,6 +2,15 @@
 
 ---
 
+## v6.1.4 · Ottobre 2026
+
+### Nuovo — Comunicati FISR non letti in Dashboard
+- **Nuova card "📋 Comunicati FISR" in Dashboard**: il controllo automatico all'apertura dell'app (già esistente da prima, limitato a una verifica di rete al giorno per non sovraccaricare i servizi di CORS-proxy pubblici e condivisi con cui l'app legge il sito FISR, che non espone un'API) ora mostra i comunicati generali non ancora letti direttamente nella Dashboard, non solo come numero sul badge del menu laterale.
+- **"Non letto" = stato condiviso, non locale**: si basa sul pulsante "✓ Segna tutti come visti" già presente nella pagina Comunicati FISR, salvato per l'intera struttura (non per singolo dispositivo/utente). Finché nessuno lo ha mai usato, la card non mostra nulla — evita falsi allarmi su comunicati che in realtà sono sempre stati lì, non appena pubblicati.
+- **Nota su "ad ogni apertura"**: la *verifica in dashboard* avviene ad ogni apertura; il *download* dai proxy resta volutamente limitato a una volta al giorno — scaricarlo ad ogni login di ogni utente avrebbe moltiplicato il traffico sui proxy pubblici appena stabilizzati in v6.1.3, vanificando quel fix.
+
+---
+
 ## v6.1.3 · Ottobre 2026
 
 ### Fix — Proxy CORS principale sempre in errore 403
