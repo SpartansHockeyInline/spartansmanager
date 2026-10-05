@@ -483,7 +483,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.1.5 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.2.0 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1007,8 +1007,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="stats-grid" style="margin-bottom:16px;">
           <div class="stat-card sc-green"><div class="sl">Totale entrate</div><div class="sv" id="amm-tot-entrate">€0</div></div>
           <div class="stat-card sc-red"><div class="sl">Totale uscite</div><div class="sv" id="amm-tot-uscite">€0</div></div>
-          <div class="stat-card sc-blue"><div class="sl">Saldo</div><div class="sv" id="amm-saldo">€0</div></div>
+          <div class="stat-card sc-blue"><div class="sl">Saldo totale</div><div class="sv" id="amm-saldo">€0</div></div>
         </div>
+        <div class="stats-grid" style="margin-bottom:16px;">
+          <div class="stat-card sc-purple"><div class="sl">🏦 Saldo conto corrente</div><div class="sv" id="amm-saldo-cc">€0</div><div id="amm-det-cc" style="font-size:11px;color:var(--text2);margin-top:4px;"></div></div>
+          <div class="stat-card sc-yellow"><div class="sl">💶 Saldo cassa</div><div class="sv" id="amm-saldo-cassa">€0</div><div id="amm-det-cassa" style="font-size:11px;color:var(--text2);margin-top:4px;"></div></div>
+        </div>
+        <div style="font-size:11px;color:var(--text2);">Conto corrente: movimenti con metodo Bonifico, Carta, POS, Altro. Cassa: movimenti con metodo Contanti (o senza metodo).</div>
+        <div id="amm-saldo-rif" style="font-size:11px;color:var(--text2);margin-top:4px;"></div>
+        <div style="margin-top:10px;"><button class="btn btn-s btn-sm" onclick="riallineaSaldi()">⚖️ Riallinea saldi ai valori reali</button></div>
       </div>
 
       <!-- TAB PRIMA NOTA -->
@@ -1896,6 +1903,17 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.2.0 · Ottobre 2026</div>
+        <div class="cl-section">Nuovo — Saldo separato tra conto corrente e cassa</div>
+        <div class="cl-item"><strong>Amministrazione → Riepilogo</strong>: oltre al saldo totale ora trovi il <em>saldo del conto corrente</em> e il <em>saldo della cassa</em>, ciascuno con il dettaglio di entrate e uscite.</div>
+        <div class="cl-item"><strong>Regola</strong>: i movimenti (entrate e uscite) con metodo <em>Bonifico, Carta, POS, Altro</em> aggiornano il conto corrente; quelli con metodo <em>Contanti</em> (o senza metodo) aggiornano la cassa.</div>
+        <div class="cl-item"><strong>Valido anche per lo storico</strong>: il calcolo si basa sul metodo già registrato, quindi nessun movimento esistente va modificato. Il totale resta invariato (conto corrente + cassa).</div>
+        <div class="cl-item"><strong>Prima nota</strong>: le card del periodo mostrano anche il saldo del periodo per conto corrente e cassa.</div>
+        <div class="cl-item"><strong>Saldi di partenza</strong>: al primo avvio i saldi vengono allineati ai valori reali del 05/10/2026 (conto corrente €1.670,00 · cassa €80,00); da lì si aggiornano con i movimenti. Il pulsante <em>Riallinea saldi</em> permette di correggerli in qualsiasi momento inserendo i saldi reali.</div>
+        <div class="cl-item"><strong>Coerenza dati</strong>: l'entrata generata da un contratto sponsor ora registra il metodo come "Bonifico" (prima in minuscolo) e il metodo digitato nei rimborsi staff viene riportato alla dicitura standard.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.1.5 · Ottobre 2026</div>
         <div class="cl-section">Correzione — Card Dashboard: solo i comunicati realmente nuovi</div>
         <div class="cl-item"><strong>Cambiata la definizione di "nuovo"</strong>: la card mostrava tutti i comunicati non ancora segnati come "visti" da nessuno in struttura — se il pulsante "✓ Segna tutti come visti" non viene mai usato, con il tempo diventa l'intero storico della stagione, non una vera notifica. Ora la card confronta ogni caricamento con quello precedente e mostra solo i comunicati apparsi nel frattempo: tipicamente nessuno, o uno-due quando la FISR pubblica davvero qualcosa di nuovo.</div>
@@ -2781,7 +2799,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.1.5 · Ottobre 2026';
+const APP_VERSION = 'v6.2.0 · Ottobre 2026';
 let DB = {
   struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',cap:'',provincia:'',regimeFiscale:'RF01',iban:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
   soci:[],        // atleti
@@ -2791,7 +2809,8 @@ let DB = {
   quoteAtleti:[], // quote collegate alle singole anagrafiche
   valutazioni:{},
   fisrLetture:{},  // tracciamento lettura comunicati FISR per utente: {generali:{uid:{ultimoIdLetto,nome,ts}}, campionati:{...}}
-  fisrStagioniCustom:{generali:{}, campionati:{}}  // stagioni aggiunte manualmente dall'utente (es. nuovo anno sportivo non ancora hardcoded)
+  fisrStagioniCustom:{generali:{}, campionati:{}},  // stagioni aggiunte manualmente dall'utente (es. nuovo anno sportivo non ancora hardcoded)
+  saldiApertura:null  // {cc,cassa,riferimento}: rettifica che allinea i saldi calcolati dai movimenti ai saldi reali (vedi riallineaSaldi)
 };
 let currentPage='dashboard', editingId=null, movTipo='entrata', eventoTipo='gara', convEventoId=null;
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
@@ -3574,7 +3593,8 @@ function aggiungiUscitaStaff(){
   if(!descr)return;
   const importo=parseFloat(prompt('Importo (€):')||'0');
   if(!importo)return;
-  const metodo=prompt('Metodo (Contanti/Bonifico/ecc.):') || 'Contanti';
+  const metodoIn=(prompt('Metodo (Contanti/Bonifico/Carta/POS/Altro):')||'Contanti').trim();
+  const metodo=['Contanti','Bonifico','Carta','POS','Altro'].find(x=>x.toLowerCase()===metodoIn.toLowerCase())||metodoIn;
   if(!DB.uscite)DB.uscite=[];
   DB.uscite.push({
     id:uid(),
@@ -5115,10 +5135,81 @@ function renderAmministrazione(){
   };
   renderRows(DB.entrate,'entrate-tbody','entrata','+','var(--green)');
   renderRows(DB.uscite,'uscite-tbody','uscita','-','var(--red)');
-  const totE=DB.entrate.reduce((s,e)=>s+e.importo,0),totU=DB.uscite.reduce((s,u)=>s+u.importo,0),saldo=totE-totU;
+  const totE=DB.entrate.reduce((s,e)=>s+e.importo,0),totU=DB.uscite.reduce((s,u)=>s+u.importo,0);
   document.getElementById('amm-tot-entrate').textContent=`€${totE.toFixed(2)}`;
   document.getElementById('amm-tot-uscite').textContent=`€${totU.toFixed(2)}`;
+  const sc=saldiAttuali();
+  const saldo=sc.cc.saldo+sc.cassa.saldo; // saldo totale = c/c + cassa (include l'apertura)
   const se=document.getElementById('amm-saldo');se.textContent=`€${saldo.toFixed(2)}`;se.style.color=saldo>=0?'var(--green)':'var(--red)';
+  [['cc',sc.cc],['cassa',sc.cassa]].forEach(([k,c])=>{
+    const el=document.getElementById('amm-saldo-'+k);
+    if(el){el.textContent=`€${c.saldo.toFixed(2)}`;el.style.color=c.saldo>=0?'var(--green)':'var(--red)';}
+    const d=document.getElementById('amm-det-'+k);
+    if(d)d.textContent=`Apertura €${c.apertura.toFixed(2)} · Entrate €${c.e.toFixed(2)} · Uscite €${c.u.toFixed(2)}`;
+  });
+  const rif=document.getElementById('amm-saldo-rif');
+  if(rif)rif.textContent=DB.saldiApertura&&DB.saldiApertura.riferimento?`Saldi allineati ai valori reali del ${formatDate(DB.saldiApertura.riferimento)}; da allora si aggiornano con i movimenti.`:'Saldi calcolati solo dai movimenti registrati (nessun saldo di apertura impostato).';
+}
+// Conto di competenza di un movimento: solo Contanti (o metodo vuoto, come
+// nei movimenti storici senza metodo) → cassa; Bonifico/Carta/POS/Altro e
+// qualsiasi altro valore → conto corrente.
+// Confronto senza distinzione di maiuscole e per prefisso, perché il campo
+// "metodo" può contenere testo libero (es. "contanti", "Bonifico bancario").
+function contoDiMovimento(metodo){
+  const m=String(metodo||'').trim().toLowerCase();
+  return(m===''||m.startsWith('contant'))?'cassa':'cc';
+}
+function calcolaSaldiConti(entrate,uscite){
+  const r={cc:{e:0,u:0,saldo:0},cassa:{e:0,u:0,saldo:0}};
+  (entrate||[]).forEach(x=>{r[contoDiMovimento(x.metodo)].e+=parseFloat(x.importo)||0;});
+  (uscite||[]).forEach(x=>{r[contoDiMovimento(x.metodo)].u+=parseFloat(x.importo)||0;});
+  r.cc.saldo=r.cc.e-r.cc.u;r.cassa.saldo=r.cassa.e-r.cassa.u;
+  return r;
+}
+// Saldi reali di partenza (dichiarati dall'amministratore il 05/10/2026).
+// Il saldo mostrato = rettifica di apertura + movimenti. La rettifica si calcola
+// una sola volta, in modo che alla data di riferimento il saldo coincida con
+// questi valori; i movimenti successivi lo aggiornano normalmente.
+const SALDI_INIZIALI={data:'2026-10-05',cc:1670,cassa:80};
+const _r2=n=>Math.round((n+Number.EPSILON)*100)/100;
+// Rettifica necessaria perché i saldi calcolati dai movimenti (fino a finoA,
+// inclusa; null = tutti) diventino quelli indicati in target.
+function calcolaRettificaApertura(target,finoA){
+  const ok=x=>!finoA||!x.data||x.data<=finoA;
+  const m=calcolaSaldiConti((DB.entrate||[]).filter(ok),(DB.uscite||[]).filter(ok));
+  return{cc:_r2(target.cc-m.cc.saldo),cassa:_r2(target.cassa-m.cassa.saldo)};
+}
+// Saldi correnti: movimenti + rettifica di apertura. Usato nel Riepilogo.
+function saldiAttuali(){
+  const r=calcolaSaldiConti(DB.entrate,DB.uscite);
+  const a=DB.saldiApertura||{};
+  r.cc.apertura=parseFloat(a.cc)||0;r.cassa.apertura=parseFloat(a.cassa)||0;
+  r.cc.saldo+=r.cc.apertura;r.cassa.saldo+=r.cassa.apertura;
+  return r;
+}
+// Eseguita al caricamento dei dati da Firebase: se la rettifica non è ancora
+// stata impostata, la calcola dai saldi iniziali. Deterministica (dipende solo
+// dai movimenti con data <= riferimento), quindi idempotente anche se più
+// utenti aprono l'app contemporaneamente.
+function inizializzaSaldiApertura(){
+  if(_isDemo||DB.saldiApertura)return false;
+  const o=calcolaRettificaApertura(SALDI_INIZIALI,SALDI_INIZIALI.data);
+  DB.saldiApertura={cc:o.cc,cassa:o.cassa,riferimento:SALDI_INIZIALI.data};
+  return true;
+}
+// Riallineamento manuale: l'utente inserisce i saldi reali di oggi (estratto
+// conto e conta della cassa) e l'app ricalcola la rettifica su tutti i movimenti.
+function riallineaSaldi(){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  const cur=saldiAttuali();
+  const leggi=(msg,def)=>{const v=prompt(msg,def.toFixed(2));if(v===null)return null;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?undefined:n;};
+  const cc=leggi('Saldo REALE del conto corrente (€):',cur.cc.saldo);if(cc===null)return;
+  if(cc===undefined){toast('Valore non valido','error');return;}
+  const cassa=leggi('Saldo REALE della cassa contanti (€):',cur.cassa.saldo);if(cassa===null)return;
+  if(cassa===undefined){toast('Valore non valido','error');return;}
+  const o=calcolaRettificaApertura({cc,cassa},null);
+  DB.saldiApertura={cc:o.cc,cassa:o.cassa,riferimento:new Date().toISOString().slice(0,10)};
+  saveDB();renderAmministrazione();toast('Saldi riallineati','success');
 }
 function deleteMovimento(tipo,id){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare?'))return;if(tipo==='entrata')DB.entrate=DB.entrate.filter(x=>x.id!==id);else DB.uscite=DB.uscite.filter(x=>x.id!==id);saveDB();renderAmministrazione();}
 
@@ -7036,7 +7127,7 @@ function saveSponsor(){
       id:entrataIdx>-1?DB.entrate[entrataIdx].id:uid(),
       data:contratto.inizio||new Date().toISOString().slice(0,10),
       descr:`Sponsorizzazione — ${nome}${contratto.descr?': '+contratto.descr:''}`,
-      importo:importoNum,cat:'Sponsorizzazioni',metodo:'bonifico',note:contratto.descr||'',
+      importo:importoNum,cat:'Sponsorizzazioni',metodo:'Bonifico',note:contratto.descr||'',
       sponsorId:obj.id,sponsorNome:nome
     };
     if(entrataIdx>-1)DB.entrate[entrataIdx]=entrataObj;
@@ -7377,6 +7468,7 @@ function renderPrimaNota(){
       <td>${m.metodo||'—'}</td>
     </tr>`;
   }).join('');
+  const scPN=calcolaSaldiConti(movimenti.filter(m=>m.segno==='+'),movimenti.filter(m=>m.segno==='-'));
   const socioLabel=socioFiltro?(()=>{const s=DB.soci.find(x=>x.id===socioFiltro);return s?` · <strong>👤 ${s.cognome} ${s.nome}</strong>`:''})():'';
   cont.innerHTML=`
     <div style="margin-bottom:10px;">${_labelPeriodo(dal,al)}${socioLabel}</div>
@@ -7384,6 +7476,8 @@ function renderPrimaNota(){
       <div class="stat-card sc-green"><div class="sl">Entrate periodo</div><div class="sv">€${totE.toFixed(2)}</div></div>
       <div class="stat-card sc-red"><div class="sl">Uscite periodo</div><div class="sv">€${totU.toFixed(2)}</div></div>
       <div class="stat-card sc-blue"><div class="sl">Saldo periodo</div><div class="sv" style="color:${(totE-totU)>=0?'var(--green)':'var(--red)'};">€${(totE-totU).toFixed(2)}</div></div>
+      <div class="stat-card sc-purple"><div class="sl">🏦 Saldo periodo c/c</div><div class="sv" style="color:${scPN.cc.saldo>=0?'var(--green)':'var(--red)'};">€${scPN.cc.saldo.toFixed(2)}</div></div>
+      <div class="stat-card sc-yellow"><div class="sl">💶 Saldo periodo cassa</div><div class="sv" style="color:${scPN.cassa.saldo>=0?'var(--green)':'var(--red)'};">€${scPN.cassa.saldo.toFixed(2)}</div></div>
     </div>
     <div class="tw"><table>
       <thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th style="text-align:right;">Importo</th><th style="text-align:right;">Saldo prog.</th><th>Metodo</th></tr></thead>
@@ -7586,6 +7680,7 @@ document.addEventListener('click',e=>{
 
 // ═══ GUIDA ════════════════════════════════════════════════
 const GUIDA_VOCI=[
+  {cat:'💰 Amministrazione',titolo:'Saldo conto corrente e saldo cassa',testo:'Nel tab "Riepilogo" di Amministrazione, oltre al saldo totale, vedi separatamente il saldo del conto corrente e il saldo della cassa. Ogni movimento (entrata o uscita) finisce in uno dei due in base al Metodo scelto: Bonifico, Carta, POS e Altro aggiornano il conto corrente; Contanti aggiorna la cassa (un movimento senza metodo conta come cassa). Il saldo parte dai valori reali del 05/10/2026 (c/c €1.670, cassa €80) e si aggiorna con i movimenti; con "Riallinea saldi" puoi ricalibrarlo sui saldi reali. Se vuoi spostare un movimento da un conto all\'altro, modificalo (✏️) e cambia il Metodo. La Prima nota mostra lo stesso dettaglio per il periodo filtrato.',tag:'saldo conto corrente cassa contanti bonifico carta pos altro riepilogo metodo di pagamento'},
   {cat:'👤 Anagrafiche',titolo:'Aggiungere un nuovo atleta',testo:'Vai su Anagrafiche → Atleti → "+ Nuovo atleta". Compila i dati nei 6 tab: Anagrafica, Sanitario, Genitori, Taglie, Pagamenti, Documenti. Il campo "Tipologia" distingue tra Atleta e Amatore.',tag:'atleta aggiungere nuovo socio'},
   {cat:'👤 Anagrafiche',titolo:'Importare atleti dal Google Form',testo:'Vai su Anagrafiche → Atleti → "📊 Sheets". Incolla il CSV esportato dal Google Form. L\'app riconosce tutte le 39 colonne e aggiorna i campi vuoti se l\'atleta esiste già.',tag:'importare csv google form sheets'},
   {cat:'👤 Anagrafiche',titolo:'Migrare lo staff dagli atleti',testo:'Se hai inserito dirigenti/presidenti come atleti, vai su Anagrafiche → Staff → "⚡ Migra staff da atleti". L\'app sposta automaticamente chi ha tipologia dirigenziale nella sezione Staff.',tag:'staff migrazione dirigente presidente'},
@@ -8239,6 +8334,7 @@ async function fbLoadData(){
     const snap=await fbDb.ref('spartans/data').get();
     if(snap.exists()){
       DB=Object.assign(DB,snap.val());
+      inizializzaSaldiApertura();
       saveDB();loadTheme();saveBackup();renderAll();
       toast('Dati caricati da Firebase','success');
     }else{
@@ -8247,7 +8343,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.1.5';
+    const CURRENT_VER='6.2.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

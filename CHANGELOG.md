@@ -2,6 +2,21 @@
 
 ---
 
+## v6.2.0 · Ottobre 2026
+
+### Nuovo — Saldo separato tra conto corrente e cassa
+- **Segnalato dall'utente**: il Riepilogo di Amministrazione mostrava solo il saldo totale, senza distinguere tra conto corrente e cassa contanti.
+- **Regola di attribuzione**: i movimenti (entrate e uscite) con metodo **Bonifico, Carta, POS, Altro** aggiornano il saldo del conto corrente; quelli con metodo **Contanti** aggiornano il saldo della cassa. Un movimento senza metodo è attribuito alla cassa; un testo libero non riconosciuto al conto corrente.
+- **Nuove card nel tab Riepilogo**: "Saldo conto corrente" e "Saldo cassa", ciascuna con entrate e uscite; il saldo totale resta invariato ed è sempre la somma dei due.
+- **Nessuna migrazione dati**: il saldo è derivato dal campo `metodo` già presente su ogni movimento, quindi vale retroattivamente per lo storico. Per spostare un movimento da un conto all'altro basta modificarne il metodo.
+- **Prima nota**: accanto al saldo del periodo compaiono il saldo del periodo per conto corrente e per cassa.
+- **Coerenza dati**: l'entrata generata da un contratto sponsor registrava il metodo come `bonifico` (minuscolo); ora `Bonifico`. Il confronto del metodo ignora comunque maiuscole/minuscole e accetta diciture come "Bonifico bancario". Il metodo digitato nei rimborsi staff viene riportato alla dicitura standard quando coincide.
+- **Saldo di apertura**: indicati dall'amministratore i saldi reali al 05/10/2026 (conto corrente €1.670,00, cassa €80,00). Al primo caricamento dei dati l'app calcola una *rettifica di apertura* per ciascun conto = saldo reale − saldo dei movimenti con data ≤ 05/10/2026, e la salva in `saldiApertura`. Saldo mostrato = rettifica + movimenti; alla data di riferimento coincide quindi con i valori reali e da lì segue i movimenti. L'operazione è deterministica (idempotente anche con più utenti connessi) e avviene una volta sola.
+- **Riallinea saldi**: pulsante nel Riepilogo per ricalcolare la rettifica inserendo i saldi reali del momento (es. dopo una riconciliazione con l'estratto conto).
+- **Nota**: Totale entrate e Totale uscite restano la somma dei movimenti; il Saldo totale include la rettifica, quindi può differire da entrate − uscite. La Prima nota mostra i flussi del periodo e non include la rettifica.
+
+---
+
 ## v6.1.5 · Ottobre 2026
 
 ### Correzione — Card Dashboard: solo i comunicati realmente nuovi
