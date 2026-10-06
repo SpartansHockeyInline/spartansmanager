@@ -251,7 +251,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--gold));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0;object-fit:cover;}
 
 /* CALENDAR */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;}
+.cal-day{min-width:0;overflow:hidden;}
 .cal-header{text-align:center;font-size:10px;font-weight:600;color:var(--text2);padding:5px 0;text-transform:uppercase;}
 .cal-day{min-height:76px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:5px;cursor:pointer;transition:border-color var(--tr);position:relative;}
 .cal-day:hover{border-color:var(--gold);}
@@ -1911,6 +1912,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Prima nota</strong>: le card del periodo mostrano anche il saldo del periodo per conto corrente e cassa.</div>
         <div class="cl-item"><strong>Saldi di partenza</strong>: al primo avvio i saldi vengono allineati ai valori reali del 05/10/2026 (conto corrente €1.670,00 · cassa €80,00); da lì si aggiornano con i movimenti. Il pulsante <em>Riallinea saldi</em> permette di correggerli in qualsiasi momento inserendo i saldi reali.</div>
         <div class="cl-item"><strong>Coerenza dati</strong>: l'entrata generata da un contratto sponsor ora registra il metodo come "Bonifico" (prima in minuscolo) e il metodo digitato nei rimborsi staff viene riportato alla dicitura standard.</div>
+        <div class="cl-section">Correzione — Calendario mensile: intestazioni dei giorni</div>
+        <div class="cl-item"><strong>Segnalato dall'utente</strong>: nella vista mensile la riga con i nomi dei giorni partiva da Domenica mentre i giorni del mese erano disposti a partire da Lunedì, quindi ogni data compariva sotto il giorno sbagliato (es. un giovedì sotto "MER"). Gli allenamenti erano registrati nei giorni corretti: era solo l'intestazione a essere sfasata. Ora la riga è Lun–Dom, coerente con la griglia.</div>
+        <div class="cl-item"><strong>Colonne uniformi</strong>: le colonne con eventi dal nome lungo (es. "Under 12 Avviamento") risultavano più larghe delle altre; ora le sette colonne hanno sempre la stessa larghezza e il testo troppo lungo viene troncato con "…".</div>
       </div>
 
       <div class="cl-entry">
@@ -5215,7 +5219,7 @@ function deleteMovimento(tipo,id){if(_isDemo){toast("🎭 Modalità demo — sol
 
 // ═══ CALENDARIO ═══════════════════════════════════════════
 const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-const GGCORTE=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const GGCORTE=['Lun','Mar','Mer','Gio','Ven','Sab','Dom']; // lunedì-first: deve restare coerente con l'offset (getDay()+6)%7 in renderCalendar
 let calVista='mensile';
 
 function calSetVista(v){

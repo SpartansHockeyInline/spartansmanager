@@ -15,6 +15,12 @@
 - **Riallinea saldi**: pulsante nel Riepilogo per ricalcolare la rettifica inserendo i saldi reali del momento (es. dopo una riconciliazione con l'estratto conto).
 - **Nota**: Totale entrate e Totale uscite restano la somma dei movimenti; il Saldo totale include la rettifica, quindi può differire da entrate − uscite. La Prima nota mostra i flussi del periodo e non include la rettifica.
 
+### Correzione — Calendario mensile: intestazioni dei giorni
+- **Segnalato dall'utente**: nella vista mensile la riga con i nomi dei giorni (`GGCORTE`) partiva da Domenica, mentre la griglia usa l'offset lunedì-first `(getDay()+6)%7`; ogni data compariva quindi sotto il giorno sbagliato (es. giovedì 1 ottobre sotto "MER"). Gli eventi erano salvati nei giorni corretti (martedì e giovedì per gli allenamenti): il difetto era solo di visualizzazione.
+- **Fix**: `GGCORTE` ora è `Lun–Dom`. Il calcolo dell'offset non è stato modificato. `GGCORTE` è usato solo in `renderCalendar()`; la generazione degli allenamenti (`generateAllenamentiCorso`) usa una mappa propria e non è coinvolta.
+- **Colonne uniformi**: `.cal-grid` passa da `repeat(7,1fr)` a `repeat(7,minmax(0,1fr))` e `.cal-day` riceve `min-width:0; overflow:hidden`, così le etichette lunghe non allargano la colonna e vengono troncate con i puntini (già previsti da `.cal-event`). La riga delle intestazioni usa la stessa classe e resta allineata alla griglia.
+- Nessun cambio di versione: correzione inclusa nella 6.2.0.
+
 ---
 
 ## v6.1.5 · Ottobre 2026
