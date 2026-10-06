@@ -1915,6 +1915,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-section">Correzione — Calendario mensile: intestazioni dei giorni</div>
         <div class="cl-item"><strong>Segnalato dall'utente</strong>: nella vista mensile la riga con i nomi dei giorni partiva da Domenica mentre i giorni del mese erano disposti a partire da Lunedì, quindi ogni data compariva sotto il giorno sbagliato (es. un giovedì sotto "MER"). Gli allenamenti erano registrati nei giorni corretti: era solo l'intestazione a essere sfasata. Ora la riga è Lun–Dom, coerente con la griglia.</div>
         <div class="cl-item"><strong>Colonne uniformi</strong>: le colonne con eventi dal nome lungo (es. "Under 12 Avviamento") risultavano più larghe delle altre; ora le sette colonne hanno sempre la stessa larghezza e il testo troppo lungo viene troncato con "…".</div>
+        <div class="cl-section">Correzione — Data di "oggi" tra mezzanotte e le 02:00</div>
+        <div class="cl-item"><strong>Il problema</strong>: tra le 00:00 e le 02:00 (le 00:00 e le 01:00 con l'ora solare) l'app considerava "oggi" il giorno precedente. Il calendario evidenziava la data sbagliata e, nello stesso intervallo, ricevute, movimenti, presenze, abbonamenti e scadenze potevano ricevere la data del giorno prima.</div>
+        <div class="cl-item"><strong>Ora</strong> tutte le date "di oggi" usano la data locale del dispositivo. Nessun dato esistente viene modificato: le registrazioni fatte in passato in quella fascia oraria restano con la data già salvata e, se serve, si correggono dalla modifica del singolo movimento.</div>
       </div>
 
       <div class="cl-entry">
@@ -2804,6 +2807,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
 const APP_VERSION = 'v6.2.0 · Ottobre 2026';
+// Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
+// Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
+function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 let DB = {
   struttura:{nome:'',telefono:'',email:'',web:'',piva:'',cf:'',tipo:'ASD',natura:'Club',anno:'',citta:'',cap:'',provincia:'',regimeFiscale:'RF01',iban:'',indirizzo:'',descr:'',logo:'',sport:[],documenti:[]},
   soci:[],        // atleti
@@ -2867,7 +2873,7 @@ function riparaTipologieMancanti(){
 
 function saveDB(){if(_isDemo)return;riparaPresenzeOrphane();riparaTipologieMancanti();try{localStorage.setItem('spartans_db',JSON.stringify(DB));}catch(e){}driveScheduleSave();}
 function loadDB(){if(_isDemo)return;try{const s=localStorage.getItem('spartans_db');if(s){DB=Object.assign(DB,JSON.parse(s));riparaPresenzeOrphane();riparaTipologieMancanti();}}catch(e){}}
-function exportData(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`spartans_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Dati esportati','success');}
+function exportData(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`spartans_${oggiLocale()}.json`;a.click();toast('Dati esportati','success');}
 function importData(){document.getElementById('import-input').click();}
 function handleImport(e){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{DB=Object.assign(DB,JSON.parse(ev.target.result));riparaPresenzeOrphane();saveDB();renderAll();toast('Importato','success');}catch{toast('File non valido','error');}};r.readAsText(f);e.target.value='';}
 
@@ -2958,8 +2964,8 @@ function openModal(id,mode){
   ov.querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
   if(id==='modal-abb-socio'){populateSociSel();populatePianiSel();}
   if(id==='modal-corso'){populateMaestriSel();populateImpiantiSel();resetGiorni();}
-  if(id==='modal-evento'){eventoTipo=mode;document.getElementById('modal-evento-title').textContent=mode==='gara'?'Nuova gara':'Nuovo allenamento';document.getElementById('m-ev-data').value=new Date().toISOString().slice(0,10);populateSquadreSel();}
-  if(id==='modal-movimento'){movTipo=mode;document.getElementById('modal-mov-title').textContent=mode==='entrata'?'Nuova entrata':'Nuova uscita';document.getElementById('m-mov-data').value=new Date().toISOString().slice(0,10);
+  if(id==='modal-evento'){eventoTipo=mode;document.getElementById('modal-evento-title').textContent=mode==='gara'?'Nuova gara':'Nuovo allenamento';document.getElementById('m-ev-data').value=oggiLocale();populateSquadreSel();}
+  if(id==='modal-movimento'){movTipo=mode;document.getElementById('modal-mov-title').textContent=mode==='entrata'?'Nuova entrata':'Nuova uscita';document.getElementById('m-mov-data').value=oggiLocale();
     const foWrap=document.getElementById('m-mov-fornitore-wrap');
     if(foWrap)foWrap.style.display=mode==='uscita'?'':'none';
     if(mode==='uscita')popolaSelectFornitori();
@@ -3117,7 +3123,7 @@ function addDocumento(){
   if(!DB.struttura.documenti)DB.struttura.documenti=[];
   DB.struttura.documenti.push({
     nome,
-    data:document.getElementById('doc-new-data').value||new Date().toISOString().slice(0,10),
+    data:document.getElementById('doc-new-data').value||oggiLocale(),
     link:document.getElementById('doc-new-link').value.trim()
   });
   document.getElementById('doc-new-nome').value='';
@@ -3141,7 +3147,7 @@ function updateFotoInitials(){const n=document.getElementById('m-s-nome').value;
 function renderAvatar(s,size=32){const sz=`width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;`;if(s.foto)return`<img src="${s.foto}" class="av" style="${sz}border-radius:50%;object-fit:cover;">`;return`<div class="av" style="${sz}">${(s.nome?s.nome[0]:'')+(s.cognome?s.cognome[0]:'')}</div>`;}
 
 // ═══ DOCUMENTI SOCIO ══════════════════════════════════════
-function addDocSocio(e){const f=e.target.files[0];if(!f)return;if(f.size>3*1024*1024){toast('File max 3MB','error');return;}const tipo=document.getElementById('m-s-doc-categoria').value;const note=document.getElementById('m-s-doc-note').value;const r=new FileReader();r.onload=ev=>{tempDocs.push({id:uid(),tipo,note,nome:f.name,mime:f.type,data:ev.target.result,caricato:new Date().toISOString().slice(0,10)});renderTempDocs();document.getElementById('m-s-doc-file').value='';document.getElementById('m-s-doc-note').value='';toast('Documento allegato','success');};r.readAsDataURL(f);}
+function addDocSocio(e){const f=e.target.files[0];if(!f)return;if(f.size>3*1024*1024){toast('File max 3MB','error');return;}const tipo=document.getElementById('m-s-doc-categoria').value;const note=document.getElementById('m-s-doc-note').value;const r=new FileReader();r.onload=ev=>{tempDocs.push({id:uid(),tipo,note,nome:f.name,mime:f.type,data:ev.target.result,caricato:oggiLocale()});renderTempDocs();document.getElementById('m-s-doc-file').value='';document.getElementById('m-s-doc-note').value='';toast('Documento allegato','success');};r.readAsDataURL(f);}
 function docEmoji(m){if(!m)return'📄';if(m.includes('pdf'))return'📕';if(m.includes('image'))return'🖼️';if(m.includes('word')||m.includes('document'))return'📝';return'📄';}
 function addDocDriveLink(){
   const urlEl=document.getElementById('m-s-doc-drive-url');
@@ -3150,7 +3156,7 @@ function addDocDriveLink(){
   if(!/^https?:\/\//i.test(url)){toast('Il link deve iniziare con http:// o https://','error');return;}
   const tipo=document.getElementById('m-s-doc-categoria').value;
   const note=document.getElementById('m-s-doc-note').value;
-  tempDocs.push({id:uid(),tipo,note,url,nome:'Link Google Drive',caricato:new Date().toISOString().slice(0,10)});
+  tempDocs.push({id:uid(),tipo,note,url,nome:'Link Google Drive',caricato:oggiLocale()});
   renderTempDocs();
   urlEl.value='';document.getElementById('m-s-doc-note').value='';
   toast('Link collegato','success');
@@ -3184,7 +3190,7 @@ function addAbbigliamentoAtleta(){
   const tipo=document.getElementById('m-s-abb-tipo').value;
   const articolo=document.getElementById('m-s-abb-articolo').value.trim();
   if(!articolo){toast('Indica l\'articolo','error');return;}
-  const data=document.getElementById('m-s-abb-data').value||new Date().toISOString().slice(0,10);
+  const data=document.getElementById('m-s-abb-data').value||oggiLocale();
   const importo=tipo==='acquisto'?(document.getElementById('m-s-abb-importo').value||''):'';
   const note=document.getElementById('m-s-abb-note').value.trim();
   const evt={id:uid(),tipo,articolo,data,importo,note};
@@ -3198,7 +3204,7 @@ function addAbbigliamentoAtleta(){
 }
 function toggleRestituitoAbbigliamento(i){
   tempAbbigliamento[i].restituito=!tempAbbigliamento[i].restituito;
-  if(tempAbbigliamento[i].restituito)tempAbbigliamento[i].dataRestituzione=new Date().toISOString().slice(0,10);
+  if(tempAbbigliamento[i].restituito)tempAbbigliamento[i].dataRestituzione=oggiLocale();
   else delete tempAbbigliamento[i].dataRestituzione;
   renderAbbigliamentoAtleta();
 }
@@ -3302,9 +3308,9 @@ function saveSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","w
   // Crea un nuovo abbonamento solo se il piano scelto è diverso da quello
   // già attivo — non tocca nulla se non cambia, non cancella lo storico.
   const pianoSelId=document.getElementById('m-s-abbonamento-piano')?.value||'';
-  const inizioSelDate=document.getElementById('m-s-abbonamento-inizio')?.value||new Date().toISOString().slice(0,10);
+  const inizioSelDate=document.getElementById('m-s-abbonamento-inizio')?.value||oggiLocale();
   if(pianoSelId){
-    const oggiIso=new Date().toISOString().slice(0,10);
+    const oggiIso=oggiLocale();
     const abbAttivo=(DB.abbonamenti||[]).find(a=>a.socioId===obj.id&&(!a.scadenza||a.scadenza>=oggiIso));
     if(!abbAttivo||abbAttivo.pianoId!==pianoSelId||abbAttivo.inizio!==inizioSelDate){
       const piano=(DB.piani||[]).find(p=>p.id===pianoSelId);
@@ -3602,7 +3608,7 @@ function aggiungiUscitaStaff(){
   if(!DB.uscite)DB.uscite=[];
   DB.uscite.push({
     id:uid(),
-    data:new Date().toISOString().slice(0,10),
+    data:oggiLocale(),
     descr,importo,metodo,
     cat:'Rimborso/compenso staff',
     staffId:editingId,
@@ -3797,7 +3803,7 @@ function computeChecklist(s){
   // "Primo pagamento" è soddisfatto anche se non c'è ancora un'entrata MA
   // l'atleta ha un piano assegnato a costo zero (es. borsa di studio/omaggio):
   // in quel caso non c'è nulla da incassare, quindi il passo è comunque completo.
-  const oggiIsoCk=new Date().toISOString().slice(0,10);
+  const oggiIsoCk=oggiLocale();
   const abbAttivoCk=(DB.abbonamenti||[]).find(a=>a.socioId===s.id&&(!a.scadenza||a.scadenza>=oggiIsoCk));
   const pianoCk=abbAttivoCk?(DB.piani||[]).find(p=>p.id===abbAttivoCk.pianoId):null;
   const pianoGratuito=!!(pianoCk&&parseFloat(pianoCk.prezzo)===0);
@@ -4087,7 +4093,7 @@ document.addEventListener('webkitfullscreenchange',()=>{
 });
 
 function getAbbStatoSocio(socioId){
-  const today=new Date().toISOString().slice(0,10);
+  const today=oggiLocale();
   const abbAttivo=DB.abbonamenti.find(a=>a.socioId===socioId&&(!a.scadenza||a.scadenza>=today));
   if(abbAttivo)return{stato:'attivo',nome:abbAttivo.pianoNome,scad:abbAttivo.scadenza};
   const abbScaduto=DB.abbonamenti.filter(a=>a.socioId===socioId).sort((a,b)=>b.scadenza?.localeCompare(a.scadenza||'')||0)[0];
@@ -4194,7 +4200,7 @@ function renderAbbonamentoAtletaField(){
   sel.innerHTML='<option value="">— Nessuno assegnato —</option>'+
     (DB.piani||[]).map(p=>`<option value="${p.id}">${p.nome} (€${p.prezzo} / ${p.durata})</option>`).join('');
   if(statoEl)statoEl.innerHTML='';
-  const oggiIso=new Date().toISOString().slice(0,10);
+  const oggiIso=oggiLocale();
   if(inizioEl)inizioEl.value=oggiIso;
   if(!currentEditId)return;
   const oggi=new Date();
@@ -4455,8 +4461,8 @@ function renderPiani(){const tb=document.getElementById('piani-tbody');if(!DB.pi
 function renderSollecitiAbb(){
   const cont=document.getElementById('solleciti-abb-content');
   const now=new Date();
-  const oggi=now.toISOString().slice(0,10);
-  const tra30=new Date(now.getTime()+30*86400000).toISOString().slice(0,10);
+  const oggi=oggiLocale(now);
+  const tra30=oggiLocale(new Date(now.getTime()+30*86400000));
   const scaduti=DB.abbonamenti.filter(a=>a.scadenza&&a.scadenza<oggi);
   const inScadenza=DB.abbonamenti.filter(a=>a.scadenza&&a.scadenza>=oggi&&a.scadenza<=tra30);
   const tutti=[...scaduti,...inScadenza];
@@ -4509,7 +4515,7 @@ function renderStoricoAbb(){
   lista=lista.slice().sort((a,b)=>(b.inizio||'').localeCompare(a.inizio||''));
   const cont=document.getElementById('storico-abb-content');
   if(!lista.length){cont.innerHTML='<div class="empty"><div class="ei">📜</div><p>Nessun abbonamento trovato</p></div>';return;}
-  const oggi=new Date().toISOString().slice(0,10);
+  const oggi=oggiLocale();
   cont.innerHTML=`<div class="tw"><table>
     <thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Stato</th></tr></thead>
     <tbody>${lista.map(a=>{
@@ -4530,7 +4536,7 @@ function renderStoricoAbb(){
 // ═══ STATISTICHE ABBONAMENTI ══════════════════════════════
 function renderStatisticheAbb(){
   const cont=document.getElementById('statistiche-abb-content');
-  const oggi=new Date().toISOString().slice(0,10);
+  const oggi=oggiLocale();
   const attivi=DB.abbonamenti.filter(a=>!a.scadenza||a.scadenza>=oggi).length;
   const scaduti=DB.abbonamenti.filter(a=>a.scadenza&&a.scadenza<oggi).length;
   // Gli incassi vengono calcolati dalle entrate registrate in Amministrazione
@@ -4610,8 +4616,8 @@ function renderStatisticheAbb(){
 function renderAlertAbbAtleta(atletaId){
   const alertEl=document.getElementById('atleta-abb-alert');
   if(!alertEl)return;
-  const oggi=new Date().toISOString().slice(0,10);
-  const tra30=new Date(new Date().getTime()+30*86400000).toISOString().slice(0,10);
+  const oggi=oggiLocale();
+  const tra30=oggiLocale(new Date(new Date().getTime()+30*86400000));
   const abb=DB.abbonamenti.filter(a=>a.socioId===atletaId&&a.scadenza);
   const scaduto=abb.find(a=>a.scadenza<oggi);
   const inScadenza=abb.find(a=>a.scadenza>=oggi&&a.scadenza<=tra30);
@@ -4637,7 +4643,7 @@ function renderChecklistIscritto(){
   const sid=currentEditId||editingId;
   const s=DB.soci.find(x=>x.id===sid);
   if(!s){cont.innerHTML='<div class="empty"><p>Salva prima i dati dell\'atleta</p></div>';return;}
-  const oggi=new Date().toISOString().slice(0,10);
+  const oggi=oggiLocale();
   // Calcola stato di ciascun passo
   const anagraficaOk=!!(s.nome&&s.cognome&&s.nascita&&s.cf&&s.tel);
   const iscrizioneInviata=!!(s.iscrizioneAllegato||s.privacyAllegato);
@@ -4747,7 +4753,7 @@ function saveAbbSocio(){if(_isDemo){toast("🎭 Modalità demo — sola lettura"
   editAbbTargetId=null;
   saveDB();closeModal('modal-abb-socio');renderAbbAttivi();renderDashboard();
 }
-function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=new Date().toISOString().slice(0,10);tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><div class="tda"><button class="bico" onclick="editAbb('${a.id}')">✏️</button><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></div></td></tr>`;}).join('');}
+function renderAbbAttivi(){const tb=document.getElementById('abbattivi-tbody');if(!DB.abbonamenti.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">✅</div><h3>Nessun abbonamento</h3></div></td></tr>';return;}const today=oggiLocale();tb.innerHTML=DB.abbonamenti.map(a=>{const scad=a.scadenza&&a.scadenza<today?'scaduto':'attivo';return`<tr><td>${a.socioNome}</td><td>${a.pianoNome}</td><td>${a.inizio?formatDate(a.inizio):'—'}</td><td>${a.scadenza?formatDate(a.scadenza):'—'}</td><td><span class="badge ${scad==='attivo'?'bg':'br'}">${scad}</span></td><td><div class="tda"><button class="bico" onclick="editAbb('${a.id}')">✏️</button><button class="bico" onclick="deleteAbb('${a.id}')">🗑️</button></div></td></tr>`;}).join('');}
 function deleteAbb(id){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Rimuovere?'))return;DB.abbonamenti=DB.abbonamenti.filter(x=>x.id!==id);saveDB();renderAbbAttivi();renderDashboard();}
 
 // ═══ GIORNI/ORARI ═════════════════════════════════════════
@@ -4930,7 +4936,7 @@ function initPresenze(){
   const optsAll='<option value="">Tutti i corsi</option>'+corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
   ['pres-corso'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsReg;});
   ['storico-corso','report-pres-corso','class-pres-corso','alert-pres-corso'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsAll;});
-  if(!document.getElementById('pres-data').value)document.getElementById('pres-data').value=new Date().toISOString().slice(0,10);
+  if(!document.getElementById('pres-data').value)document.getElementById('pres-data').value=oggiLocale();
   const anni=[...new Set(Object.keys(DB.presenze||{}).map(k=>k.split('_')[1]?.slice(0,4)).filter(Boolean))].sort().reverse();
   const selAnno=document.getElementById('storico-anno');
   if(selAnno){selAnno.innerHTML='<option value="">Tutti gli anni</option>'+anni.map(a=>`<option value="${a}">${a}</option>`).join('');}
@@ -5212,7 +5218,7 @@ function riallineaSaldi(){
   const cassa=leggi('Saldo REALE della cassa contanti (€):',cur.cassa.saldo);if(cassa===null)return;
   if(cassa===undefined){toast('Valore non valido','error');return;}
   const o=calcolaRettificaApertura({cc,cassa},null);
-  DB.saldiApertura={cc:o.cc,cassa:o.cassa,riferimento:new Date().toISOString().slice(0,10)};
+  DB.saldiApertura={cc:o.cc,cassa:o.cassa,riferimento:oggiLocale()};
   saveDB();renderAmministrazione();toast('Saldi riallineati','success');
 }
 function deleteMovimento(tipo,id){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare?'))return;if(tipo==='entrata')DB.entrate=DB.entrate.filter(x=>x.id!==id);else DB.uscite=DB.uscite.filter(x=>x.id!==id);saveDB();renderAmministrazione();}
@@ -5250,7 +5256,7 @@ function renderCalendar(){
   document.getElementById('cal-headers').innerHTML=GGCORTE.map(g=>`<div class="cal-header">${g}</div>`).join('');
   const first=(new Date(calYear,calMonth,1).getDay()+6)%7; // Lun=0
   const days=new Date(calYear,calMonth+1,0).getDate();
-  const today=new Date().toISOString().slice(0,10);
+  const today=oggiLocale();
   const eventi=_evFiltrati();
   let cells=[];
   for(let i=0;i<first;i++)cells.push(`<div class="cal-day other-month"></div>`);
@@ -5559,7 +5565,7 @@ function renderDashboard(){
   const curr=getStagioneCorrente();
   document.getElementById('ds-stagione-label').textContent=curr?curr.label:'Nessuna stagione';
   document.getElementById('ds-soci').textContent=DB.soci.length;
-  const today=new Date().toISOString().slice(0,10);
+  const today=oggiLocale();
   document.getElementById('ds-abb').textContent=DB.abbonamenti.filter(a=>!a.scadenza||a.scadenza>=today).length;
   document.getElementById('ds-corsi').textContent=DB.corsi.filter(c=>c.stato==='attivo').length;
   const gare=DB.eventi.filter(e=>e.tipo==='gara'&&!e.autoCorsoId&&e.data>=today).sort((a,b)=>a.data.localeCompare(b.data));
@@ -5624,7 +5630,7 @@ function renderDashboard(){
     }
   });
   // Eventi non-allenamento entro 60 giorni
-  const today2=now.toISOString().slice(0,10);
+  const today2=oggiLocale(now);
   DB.eventi.filter(e=>e.tipo!=='allenamento'&&!e.autoCorsoId&&e.data>=today2).forEach(e=>{
     const diff=Math.round((new Date(e.data)-now)/86400000);
     if(diff<=60)scad.push({nome:e.titolo,tipo:e.tipo==='gara'?'⚔️ Gara':`📅 ${e.tipo||'Evento'}`,scad:e.data,diff});
@@ -5770,7 +5776,7 @@ function esportaVCard(){
   const vcf=soci.map(s=>`BEGIN:VCARD\nVERSION:3.0\nFN:${s.nome} ${s.cognome}\nN:${s.cognome};${s.nome};;;\n${s.tel?'TEL;TYPE=CELL:'+s.tel+'\n':''}${s.email?'EMAIL:'+s.email+'\n':''}ORG:${DB.struttura.nome||'Spartans'}\nEND:VCARD`).join('\n');
   const blob=new Blob([vcf],{type:'text/vcard'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`spartans_contatti_${new Date().toISOString().slice(0,10)}.vcf`;a.click();
+  a.download=`spartans_contatti_${oggiLocale()}.vcf`;a.click();
   toast(`${soci.length} contatti esportati in .vcf`,'success');
 }
 
@@ -6060,7 +6066,7 @@ function renderFasiSensibili(){
 function salvaValutazione(){
   if(!currentValAtletaId)return;
   if(!DB.valutazioni)DB.valutazioni={};
-  DB.valutazioni[currentValAtletaId]={...currentValData,data:new Date().toISOString().slice(0,10)};
+  DB.valutazioni[currentValAtletaId]={...currentValData,data:oggiLocale()};
   saveDB();closeModal('modal-valutazione');renderValutazioni();
   toast('Valutazione salvata','success');
 }
@@ -6365,7 +6371,7 @@ function generaRicevutaRapida(socioId,importo,causale,metodo,modoTest){
     asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''};
   const stagioneLbl=getStagioneCorrente()?.label||'';
   const oggi=new Date().toLocaleDateString('it-IT');
-  const oggiIso=new Date().toISOString().slice(0,10);
+  const oggiIso=oggiLocale();
   const contatore=modoTest?'spartans/contatori/ricevute_test':'spartans/contatori/ricevute';
   const numRef=fbDb?fbDb.ref(contatore):null;
   const genera=(numRicevuta)=>{
@@ -6468,7 +6474,7 @@ function emettiRicevutaManuale(){
   const ps={asdNome:st.nome||'',asdIndirizzo:st.indirizzo||'',asdCap:st.cap||'',asdCitta:st.citta||'',
     asdTel:st.telefono||'',asdCf:st.cf||'',asdPiva:st.piva||'',asdEmail:st.email||''};
   const oggi=new Date().toLocaleDateString('it-IT');
-  const oggiIso=new Date().toISOString().slice(0,10);
+  const oggiIso=oggiLocale();
   const p=new URLSearchParams({nome:s.nome,cognome:s.cognome,cf:s.cf||'',tesseraAsd:s.tesseraAsd||'',
     stagione:getStagioneCorrente()?.label||'',importo:importo||'',causale,descr:causale,metodo:metodo||'Contanti',
     numRicevuta:numFormattato,dataDoc:oggi,...ps});
@@ -6515,7 +6521,7 @@ function annullaRicevuta(ricevutaId){
   const motivo=prompt(`Annullare la ricevuta n. ${r.numero} (${r.socioNome} · €${(parseFloat(r.importo)||0).toFixed(2)})?\nIndica il motivo dell'annullo (es. "duplicata della n. 54"):`);
   if(motivo===null)return; // annullato dall'utente (Cancel)
   if(!motivo.trim()){toast('Motivo obbligatorio per annullare una ricevuta','error');return;}
-  r.annullata=true;r.motivoAnnullo=motivo.trim();r.dataAnnullo=new Date().toISOString().slice(0,10);
+  r.annullata=true;r.motivoAnnullo=motivo.trim();r.dataAnnullo=oggiLocale();
   saveDB();renderRegistroRicevute();toast('Ricevuta annullata','success');
 }
 function apriDocumento(tipo){
@@ -6840,7 +6846,7 @@ function esportaPresenze(){
   });
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`presenze_spartans_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  const a=document.createElement('a');a.href=url;a.download=`presenze_spartans_${oggiLocale()}.csv`;a.click();
   URL.revokeObjectURL(url);toast('Esportazione completata','success');
 }
 
@@ -6921,7 +6927,7 @@ function openModalBookAllenamento(id){
       });
     }
   }else{
-    document.getElementById('m-ba-data').value=new Date().toISOString().slice(0,10);
+    document.getElementById('m-ba-data').value=oggiLocale();
   }
   document.getElementById('modal-book-allenamento').classList.add('open');
 }
@@ -7129,7 +7135,7 @@ function saveSponsor(){
   if(importoNum>0&&contratto.pagato==='si'){
     const entrataObj={
       id:entrataIdx>-1?DB.entrate[entrataIdx].id:uid(),
-      data:contratto.inizio||new Date().toISOString().slice(0,10),
+      data:contratto.inizio||oggiLocale(),
       descr:`Sponsorizzazione — ${nome}${contratto.descr?': '+contratto.descr:''}`,
       importo:importoNum,cat:'Sponsorizzazioni',metodo:'Bonifico',note:contratto.descr||'',
       sponsorId:obj.id,sponsorNome:nome
@@ -7194,7 +7200,7 @@ function generaFatturaSponsor(id){
   const numRef=fbDb?fbDb.ref(`spartans/contatori/fatture/${anno}`):null;
   const generaDoc=(n)=>{
     const numFormattato=`${String(n).padStart(4,'0')}/${anno}`;
-    const oggiIso=new Date().toISOString().slice(0,10);
+    const oggiIso=oggiLocale();
     if(!DB.fatture)DB.fatture=[];
     const rec={id:uid(),numero:numFormattato,anno,data:oggiIso,tipo:'fattura',
       sponsorId:s.id,sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
@@ -7372,7 +7378,7 @@ function emettiNotaFattura(fatturaId,tipo){
   const numRef=fbDb?fbDb.ref(`spartans/contatori/fatture/${anno}`):null;
   const generaDoc=(n)=>{
     const numFormattato=`${String(n).padStart(4,'0')}/${anno}`;
-    const oggiIso=new Date().toISOString().slice(0,10);
+    const oggiIso=oggiLocale();
     if(!DB.fatture)DB.fatture=[];
     const rec={id:uid(),numero:numFormattato,anno,data:oggiIso,tipo,
       sponsorId:orig.sponsorId,sponsorNome:orig.sponsorNome,sponsorCf:orig.sponsorCf||'',sponsorPiva:orig.sponsorPiva||'',sponsorIndirizzo:orig.sponsorIndirizzo||'',
@@ -7400,7 +7406,7 @@ function generaContrattoSponsor(id){
   const lr=s.legaleRapp||{};
   const curr=getStagioneCorrente?getStagioneCorrente():null;
   const stagione=curr?curr.label:'';
-  const oggi=new Date().toISOString().slice(0,10);
+  const oggi=oggiLocale();
   const _presSponsor=trovaConsigliere('Presidente')||{};
   const ps=DB.struttura?{
     asdNome:DB.struttura.nome||'',asdCf:DB.struttura.cf||'',asdPiva:DB.struttura.piva||DB.struttura.cf||'',
@@ -7553,8 +7559,8 @@ function stampaRendiconto(){
 function renderSolleciti(){
   const cont=document.getElementById('solleciti-content');
   const now=new Date();
-  const oggi=now.toISOString().slice(0,10);
-  const tra30=(new Date(now.getTime()+30*86400000)).toISOString().slice(0,10);
+  const oggi=oggiLocale(now);
+  const tra30=oggiLocale(new Date(now.getTime()+30*86400000));
   const quoteAtleti=(DB.quoteAtleti||[]).filter(q=>!q.pagata&&q.scadenza&&q.scadenza<=tra30);
   const byAtleta={};
   quoteAtleti.forEach(q=>{if(!byAtleta[q.atletaId])byAtleta[q.atletaId]=[];byAtleta[q.atletaId].push(q);});
@@ -7963,8 +7969,8 @@ function initComunicatiFisr(){
   if(lastFetch && el) el.textContent = 'Ultimo aggiornamento: ' + new Date(lastFetch).toLocaleString('it-IT');
   else if(el) el.textContent = '';
   // Carica automaticamente se non caricato oggi
-  const oggi = new Date().toISOString().slice(0,10);
-  const lastFetchDate = lastFetch ? new Date(lastFetch).toISOString().slice(0,10) : '';
+  const oggi = oggiLocale();
+  const lastFetchDate = lastFetch ? oggiLocale(new Date(lastFetch)) : '';
   if(lastFetchDate !== oggi) loadComunicatiFisr();
   else renderComunicatiSalvati();
 }
@@ -8189,8 +8195,8 @@ async function checkNuoviComunicatiFisr(){
   // Il controllo automatico all'avvio riguarda sempre i Comunicati Generali
   // (i Comunicati Campionati si aggiornano solo quando l'utente apre quella tab)
   const lastFetch = localStorage.getItem('fisr_last_fetch');
-  const oggi = new Date().toISOString().slice(0,10);
-  const lastFetchDate = lastFetch ? new Date(lastFetch).toISOString().slice(0,10) : '';
+  const oggi = oggiLocale();
+  const lastFetchDate = lastFetch ? oggiLocale(new Date(lastFetch)) : '';
   if(lastFetchDate === oggi) {
     // Già controllato oggi — aggiorna solo il badge
     const saved = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
@@ -8402,7 +8408,7 @@ const CLOUD_BACKUP_RETENTION_DAYS=90;
 
 async function cloudBackupAuto(){
   if(!fbUser||!fbDb||_isDemo)return;
-  const oggi=new Date().toISOString().slice(0,10);
+  const oggi=oggiLocale();
   if(localStorage.getItem('spartans_last_cloud_backup')===oggi)return; // già fatto oggi
   try{
     const clean=(obj)=>{

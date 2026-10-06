@@ -21,6 +21,14 @@
 - **Colonne uniformi**: `.cal-grid` passa da `repeat(7,1fr)` a `repeat(7,minmax(0,1fr))` e `.cal-day` riceve `min-width:0; overflow:hidden`, così le etichette lunghe non allargano la colonna e vengono troncate con i puntini (già previsti da `.cal-event`). La riga delle intestazioni usa la stessa classe e resta allineata alla griglia.
 - Nessun cambio di versione: correzione inclusa nella 6.2.0.
 
+### Correzione — Data di "oggi" calcolata in UTC invece che in ora locale
+- **Segnalato dall'utente** (verifica del cerchio "oggi" nel calendario): `new Date().toISOString().slice(0,10)` restituisce la data UTC, quindi tra le 00:00 e le 02:00 ora italiana in ora legale (00:00–01:00 in ora solare) dava il giorno precedente. Riprodotto con fuso Europe/Rome alle 00:30 del 07/10/2026: il codice restituiva `2026-10-06`, la data corretta era `2026-10-07`.
+- **Impatto**: oltre al cerchio rosso del calendario, la stessa espressione datava in quella fascia oraria ricevute, movimenti, presenze, abbonamenti, valutazioni, annullamenti, saldi di apertura, solleciti e scadenze, e decideva il controllo "già caricati oggi" dei Comunicati FISR.
+- **Fix**: nuova funzione `oggiLocale(d)` (data `YYYY-MM-DD` dal calendario locale, parametro opzionale). Sostituite 37 occorrenze di `new Date().toISOString().slice(0,10)`, 3 di `now.toISOString().slice(0,10)`, 3 calcoli "oggi + 30 giorni" e 2 conversioni di `lastFetch` per i Comunicati FISR (stesso fuso del confronto con "oggi").
+- **Non modificati di proposito**: i timestamp `creato`, `ts`, `chiusa`, `fisr_last_fetch` (restano UTC completi con `toISOString()`), `calcolaScadenzaPiano` e `generateAllenamentiCorso`, che derivano le date da stringhe `YYYY-MM-DD` e sono già coerenti.
+- **Dati esistenti**: nessuna migrazione. Eventuali movimenti registrati in passato tra mezzanotte e le 02:00 conservano la data salvata e si correggono dalla modifica del singolo movimento.
+- Nessun cambio di versione: correzione inclusa nella 6.2.0.
+
 ---
 
 ## v6.1.5 · Ottobre 2026
