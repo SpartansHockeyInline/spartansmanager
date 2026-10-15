@@ -139,7 +139,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
     <div class="art"><div class="art-title">Art. 5 — Corrispettivo</div>
       <div class="art-body">
         A titolo di corrispettivo per le prestazioni promo-pubblicitarie e per i diritti concessi dal presente contratto, lo Sponsor corrisponderà al Sodalizio la somma di
-        <strong>€ <span id="f-importo"></span></strong> (<span id="f-importo-lettere"></span>), con periodicità <strong><span id="f-periodicita"></span></strong>,
+        <strong>€ <span id="f-importo"></span></strong><span id="f-iva-testo"></span> (<span id="f-importo-lettere"></span>), con periodicità <strong><span id="f-periodicita"></span></strong>,
         secondo le modalità di pagamento concordate tra le parti.
         A fronte dei pagamenti, il Sodalizio rilascerà regolare ricevuta/fattura ai sensi delle normative vigenti, con quietanza a saldo.
       </div>
@@ -319,7 +319,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
 
   // Corrispettivo
   const importoNum=parseFloat(get('importo'))||0;
-  document.getElementById('f-importo').textContent=importoNum.toFixed(2).replace('.',',');
+  const eur=n=>n.toFixed(2).replace('.',',');
+  // L'importo inserito nel form è il TOTALE IVA COMPRESA (come per la fattura): se l'aliquota è > 0
+  // il contratto lo espone come "imponibile + IVA, per un totale di" (imponibile e imposta arrotondati
+  // al centesimo in modo che la somma coincida sempre con il totale).
+  const aliquota=parseFloat(get('aliquotaIva'))||0;
+  if(aliquota>0&&importoNum>0){
+    const totale=Math.round(importoNum*100)/100;
+    const imponibile=Math.round(totale/(1+aliquota/100)*100)/100;
+    const imposta=Math.round((totale-imponibile)*100)/100;
+    document.getElementById('f-importo').textContent=eur(imponibile);
+    document.getElementById('f-iva-testo').innerHTML=' + IVA '+String(aliquota).replace('.',',')+'% (€ '+eur(imposta)+'), per un totale di <strong>€ '+eur(totale)+'</strong>';
+  }else{
+    document.getElementById('f-importo').textContent=eur(importoNum);
+  }
   document.getElementById('f-importo-lettere').textContent=numeroInLettere(importoNum);
   document.getElementById('f-periodicita').textContent=periodicitaLabel[periodicita]||'una tantum';
 

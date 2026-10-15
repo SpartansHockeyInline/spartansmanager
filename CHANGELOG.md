@@ -13,6 +13,10 @@
 - **Modulo incarico**: il timbro e il piè di pagina non finiscono più su una seconda pagina quasi vuota.
 - Verificato con stampa PDF in Chromium (A4) di tutti i 15 moduli con dati di esempio.
 
+### Correzione — Contratto di sponsorizzazione: IVA
+- **Art. 5 Corrispettivo**: il contratto non riportava l'IVA. Ora, se l'aliquota è maggiore di 0, l'articolo espone "imponibile + IVA (aliquota e importo), per un totale di …", coerente con la fattura: l'importo inserito nel form resta il **totale IVA compresa** e viene scomposto come in `_calcolaScompostoIva` (stesso default 22%). Imponibile e imposta sono arrotondati al centesimo in modo che la somma coincida col totale. Con aliquota 0 il testo non cambia.
+- Il modulo contratto riceve ora il parametro `aliquotaIva`.
+
 ### Modifica — Amministrazione
 - **Rimosso il pulsante "Riallinea saldi ai valori reali"** dalla pagina principale di Amministrazione, insieme alla funzione `riallineaSaldi()` (non più richiamata). Il saldo di apertura calcolato al primo avvio resta invariato.
 - Aggiornata la voce di Guida sui saldi conto corrente/cassa.
