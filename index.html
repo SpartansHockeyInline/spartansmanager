@@ -484,7 +484,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.2.0 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.2.1 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1016,7 +1016,6 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         </div>
         <div style="font-size:11px;color:var(--text2);">Conto corrente: movimenti con metodo Bonifico, Carta, POS, Altro. Cassa: movimenti con metodo Contanti (o senza metodo).</div>
         <div id="amm-saldo-rif" style="font-size:11px;color:var(--text2);margin-top:4px;"></div>
-        <div style="margin-top:10px;"><button class="btn btn-s btn-sm" onclick="riallineaSaldi()">⚖️ Riallinea saldi ai valori reali</button></div>
       </div>
 
       <!-- TAB PRIMA NOTA -->
@@ -1902,6 +1901,18 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v6.2.1 · Ottobre 2026</div>
+        <div class="cl-section">Correzione — Impaginazione di stampa dei documenti (A4)</div>
+        <div class="cl-item"><strong>Segnalato dall'utente</strong>: stampando i PDF generati dall'app, contenuti tagliati, testo attaccato al bordo del foglio dalla seconda pagina in poi, firme separate dal testo.</div>
+        <div class="cl-item"><strong>Pagina A4 standard per tutti i documenti</strong>: margini uniformi (12 mm / 14 mm) su <em>ogni</em> pagina stampata, non solo sulla prima. Applicato a tutti i 15 moduli (iscrizione, consenso privacy, ricevuta, 730, certificati, attestati, giustificazione, visita medica, volontariato, incarico, co.co.co. sportivo, duty officer, contratto sponsor, fattura sponsor, verbale CD) e alle stampe di Modulo H2, Prima nota e Rendiconto.</div>
+        <div class="cl-item"><strong>Contratto di sponsorizzazione</strong>: gli articoli ora scorrono sulle pagine senza lasciare vuoti; l'ultimo articolo, il luogo/data, le firme e il timbro restano sempre insieme nella stessa pagina.</div>
+        <div class="cl-item"><strong>Modulo di iscrizione</strong>: i dati e le firme entrano su un'unica pagina; l'informativa Safeguarding resta sulla pagina successiva.</div>
+        <div class="cl-item"><strong>Regole comuni</strong>: sezioni, articoli, firme e timbro non vengono più spezzati a metà pagina; i titoli non restano soli a fondo pagina; la riga di intestazione delle tabelle si ripete su ogni pagina.</div>
+        <div class="cl-section">Modifica — Amministrazione</div>
+        <div class="cl-item"><strong>Rimosso il pulsante "Riallinea saldi ai valori reali"</strong> dalla pagina principale di Amministrazione. Il saldo si aggiorna con i movimenti registrati (e con il saldo di apertura calcolato al primo avvio).</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v6.2.0 · Ottobre 2026</div>
@@ -2806,7 +2817,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.2.0 · Ottobre 2026';
+const APP_VERSION = 'v6.2.1 · Ottobre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -2820,7 +2831,7 @@ let DB = {
   valutazioni:{},
   fisrLetture:{},  // tracciamento lettura comunicati FISR per utente: {generali:{uid:{ultimoIdLetto,nome,ts}}, campionati:{...}}
   fisrStagioniCustom:{generali:{}, campionati:{}},  // stagioni aggiunte manualmente dall'utente (es. nuovo anno sportivo non ancora hardcoded)
-  saldiApertura:null  // {cc,cassa,riferimento}: rettifica che allinea i saldi calcolati dai movimenti ai saldi reali (vedi riallineaSaldi)
+  saldiApertura:null  // {cc,cassa,riferimento}: rettifica che allinea i saldi calcolati dai movimenti ai saldi reali (calcolata al primo avvio)
 };
 let currentPage='dashboard', editingId=null, movTipo='entrata', eventoTipo='gara', convEventoId=null;
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
@@ -5207,20 +5218,6 @@ function inizializzaSaldiApertura(){
   DB.saldiApertura={cc:o.cc,cassa:o.cassa,riferimento:SALDI_INIZIALI.data};
   return true;
 }
-// Riallineamento manuale: l'utente inserisce i saldi reali di oggi (estratto
-// conto e conta della cassa) e l'app ricalcola la rettifica su tutti i movimenti.
-function riallineaSaldi(){
-  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
-  const cur=saldiAttuali();
-  const leggi=(msg,def)=>{const v=prompt(msg,def.toFixed(2));if(v===null)return null;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?undefined:n;};
-  const cc=leggi('Saldo REALE del conto corrente (€):',cur.cc.saldo);if(cc===null)return;
-  if(cc===undefined){toast('Valore non valido','error');return;}
-  const cassa=leggi('Saldo REALE della cassa contanti (€):',cur.cassa.saldo);if(cassa===null)return;
-  if(cassa===undefined){toast('Valore non valido','error');return;}
-  const o=calcolaRettificaApertura({cc,cassa},null);
-  DB.saldiApertura={cc:o.cc,cassa:o.cassa,riferimento:oggiLocale()};
-  saveDB();renderAmministrazione();toast('Saldi riallineati','success');
-}
 function deleteMovimento(tipo,id){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}if(!confirm('Eliminare?'))return;if(tipo==='entrata')DB.entrate=DB.entrate.filter(x=>x.id!==id);else DB.uscite=DB.uscite.filter(x=>x.id!==id);saveDB();renderAmministrazione();}
 
 // ═══ CALENDARIO ═══════════════════════════════════════════
@@ -6134,11 +6131,13 @@ function generaH2HTML(ev,convocati){
   </div>`;
 }
 
+// Stampa A4 standard (v6.2.1): margini uniformi su ogni pagina, righe/sezioni non spezzate, intestazione tabella ripetuta
+const PRINT_A4_CSS='@page{size:A4;margin:12mm 14mm;}html,body{background:#fff;}body{padding:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}#h2-print-area{padding:0!important;}table{width:100%;border-collapse:collapse;}thead{display:table-header-group;}tr{break-inside:avoid;page-break-inside:avoid;}h1,h2,h3{break-after:avoid;page-break-after:avoid;}';
 function stampaH2(){
   const area=document.getElementById('h2-print-area');
   if(!area)return;
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>Modulo H2</title><style>body{margin:20px;font-family:Arial,sans-serif;}</style></head><body>${area.outerHTML}</body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><title>Modulo H2</title><style>body{margin:0;font-family:Arial,sans-serif;}${PRINT_A4_CSS}</style></head><body>${area.outerHTML}</body></html>`);
   w.document.close();w.focus();w.print();
 }
 
@@ -7499,7 +7498,7 @@ function stampaPrimaNota(){
   const contenuto=document.getElementById('prima-nota-content')?.innerHTML||'';
   const w=window.open('','_blank');
   w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Prima Nota</title>
-  <style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;}h1{font-size:16px;margin-bottom:4px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:6px;font-size:11px;}th{background:#f5f5f5;}.badge{padding:2px 6px;border-radius:3px;font-size:10px;}</style>
+  <style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;}h1{font-size:16px;margin-bottom:4px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:6px;font-size:11px;}th{background:#f5f5f5;}.badge{padding:2px 6px;border-radius:3px;font-size:10px;}${PRINT_A4_CSS}</style>
   </head><body><h1>📋 Prima Nota — ASD Spartans Hockey Inline</h1>${contenuto}</body></html>`);
   w.document.close();w.print();
 }
@@ -7551,7 +7550,7 @@ function renderRendiconto(){
 function stampaRendiconto(){
   const contenuto=document.getElementById('rendiconto-content')?.innerHTML||'';
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Rendiconto</title><style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;}h1{font-size:16px;margin-bottom:16px;}</style></head><body><h1>📈 Rendiconto Economico — ASD Spartans Hockey Inline</h1>${contenuto}</body></html>`);
+  w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Rendiconto</title><style>body{font-family:Arial,sans-serif;font-size:12px;}h1{font-size:16px;margin-bottom:16px;}${PRINT_A4_CSS}</style></head><body><h1>📈 Rendiconto Economico — ASD Spartans Hockey Inline</h1>${contenuto}</body></html>`);
   w.document.close();w.print();
 }
 
@@ -7690,7 +7689,7 @@ document.addEventListener('click',e=>{
 
 // ═══ GUIDA ════════════════════════════════════════════════
 const GUIDA_VOCI=[
-  {cat:'💰 Amministrazione',titolo:'Saldo conto corrente e saldo cassa',testo:'Nel tab "Riepilogo" di Amministrazione, oltre al saldo totale, vedi separatamente il saldo del conto corrente e il saldo della cassa. Ogni movimento (entrata o uscita) finisce in uno dei due in base al Metodo scelto: Bonifico, Carta, POS e Altro aggiornano il conto corrente; Contanti aggiorna la cassa (un movimento senza metodo conta come cassa). Il saldo parte dai valori reali del 05/10/2026 (c/c €1.670, cassa €80) e si aggiorna con i movimenti; con "Riallinea saldi" puoi ricalibrarlo sui saldi reali. Se vuoi spostare un movimento da un conto all\'altro, modificalo (✏️) e cambia il Metodo. La Prima nota mostra lo stesso dettaglio per il periodo filtrato.',tag:'saldo conto corrente cassa contanti bonifico carta pos altro riepilogo metodo di pagamento'},
+  {cat:'💰 Amministrazione',titolo:'Saldo conto corrente e saldo cassa',testo:'Nel tab "Riepilogo" di Amministrazione, oltre al saldo totale, vedi separatamente il saldo del conto corrente e il saldo della cassa. Ogni movimento (entrata o uscita) finisce in uno dei due in base al Metodo scelto: Bonifico, Carta, POS e Altro aggiornano il conto corrente; Contanti aggiorna la cassa (un movimento senza metodo conta come cassa). Il saldo parte dai valori reali del 05/10/2026 (c/c €1.670, cassa €80) e si aggiorna con i movimenti; Se vuoi spostare un movimento da un conto all\'altro, modificalo (✏️) e cambia il Metodo. La Prima nota mostra lo stesso dettaglio per il periodo filtrato.',tag:'saldo conto corrente cassa contanti bonifico carta pos altro riepilogo metodo di pagamento'},
   {cat:'👤 Anagrafiche',titolo:'Aggiungere un nuovo atleta',testo:'Vai su Anagrafiche → Atleti → "+ Nuovo atleta". Compila i dati nei 6 tab: Anagrafica, Sanitario, Genitori, Taglie, Pagamenti, Documenti. Il campo "Tipologia" distingue tra Atleta e Amatore.',tag:'atleta aggiungere nuovo socio'},
   {cat:'👤 Anagrafiche',titolo:'Importare atleti dal Google Form',testo:'Vai su Anagrafiche → Atleti → "📊 Sheets". Incolla il CSV esportato dal Google Form. L\'app riconosce tutte le 39 colonne e aggiorna i campi vuoti se l\'atleta esiste già.',tag:'importare csv google form sheets'},
   {cat:'👤 Anagrafiche',titolo:'Migrare lo staff dagli atleti',testo:'Se hai inserito dirigenti/presidenti come atleti, vai su Anagrafiche → Staff → "⚡ Migra staff da atleti". L\'app sposta automaticamente chi ha tipologia dirigenziale nella sezione Staff.',tag:'staff migrazione dirigente presidente'},
@@ -7705,6 +7704,7 @@ const GUIDA_VOCI=[
   {cat:'📅 Calendario',titolo:'Aggiungere una gara o un evento',testo:'Vai su Calendario → clicca su un giorno oppure usa i pulsanti "⚔️ + Gara" o "🏒 + Allenamento" in alto. Compila titolo, data, orario e luogo.',tag:'gara evento calendario aggiungere'},
   {cat:'📅 Calendario',titolo:'Esportare il calendario su Google Calendar',testo:'Vai su Calendario → clicca "📆 iCal". Viene scaricato un file .ics. Aprilo su Google Calendar (o Apple Calendar) per importare tutti gli eventi.',tag:'ical google calendar apple esportare'},
   {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta (con importo maggiore di zero), l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti — un\'entrata a €0 (quota esonerata/gratuita) non lo propone più, perché non c\'è un incasso da documentare. Ogni ricevuta generata (da qui o dall\'automatismo) viene anche salvata nel Registro Ricevute — vedi voce dedicata. Per verificare che la funzione stia funzionando correttamente senza toccare la numerazione ufficiale, spunta "🧪 Genera in modalità test": il documento sarà numerato "TEST-0001" ecc. su un contatore separato e marcato "DOCUMENTO DI PROVA — NON VALIDO".',tag:'ricevuta pagamento documento generare metodo automatico amministrazione test prova numerazione'},
+  {cat:'📄 Documenti',titolo:'Stampare i documenti su A4',testo:'Tutti i documenti generati (moduli, contratti, ricevute, verbali, Prima nota, Rendiconto) si aprono in una nuova scheda: usa il pulsante "Stampa / Salva PDF". Il foglio è impostato su A4 con margini uniformi su ogni pagina; sezioni, firme e timbro non vengono spezzati a metà pagina. Nella finestra di stampa del browser lascia Formato carta = A4, Margini = Predefiniti e Scala = 100% (o "Adatta" se l\'anteprima mostra tagli), e attiva "Grafica di sfondo" per mantenere i colori delle intestazioni. Il modulo di iscrizione occupa una pagina per i dati e una per l\'informativa Safeguarding; il contratto sponsor può occupare 2-3 pagine a seconda della lunghezza dell\'oggetto.',tag:'stampa stampare pdf a4 margini impaginazione pagina taglio firma timbro documenti'},
   {cat:'💰 Amministrazione',titolo:'Registro Ricevute',testo:'Il tab "🧾 Ricevute" in Amministrazione elenca tutte le ricevute generate dall\'app, con numero progressivo, data, atleta, causale, importo, metodo e stato (✓ valida / 🚫 ANNULLATA / 🧪 TEST / ✍️ manuale). A differenza del semplice contatore usato per numerare le ricevute (che non conserva alcuna informazione sul passato), questo registro resta consultabile per sempre: se un PDF o una ricevuta stampata va perso, il pulsante 🔁 la rigenera identica, con lo stesso numero e gli stessi dati. Se una ricevuta è stata emessa per errore (es. duplicata), usa il pulsante 🚫 "Annulla": chiede il motivo e marca la riga come annullata, senza mai modificare numero, data o importo originali — la sequenza numerica resta così sempre integra e verificabile, invece di doverlo segnalare a mano nel testo della causale.',tag:'registro ricevute numero progressivo rigenera recupero annulla annullata stato test'},
   {cat:'💰 Amministrazione',titolo:'Emissione manuale con numero forzato (regolarizzazione)',testo:'Nel tab "🧾 Ricevute", aprendo "⚠️ Emissione manuale con numero forzato" puoi emettere una ricevuta scrivendo tu stesso il numero, senza passare dal contatore automatico — serve esclusivamente per coprire un numero mancante dalla sequenza ufficiale (es. una regolarizzazione concordata con il commercialista), MAI per l\'uso quotidiano: per le ricevute normali resta il generatore in "Genera documenti". Compila atleta (oppure, se non è un socio/atleta — es. donatore esterno o numero di prova da annullare — il campo "Nominativo libero"), numero da forzare, importo (anche 0, per un numero di prova senza incasso), metodo; per la causale puoi scrivere "Causale originale" e "Data storica del versamento" e cliccare "📋 Componi causale di regolarizzazione" per ottenere automaticamente la formula concordata con il commercialista — la data stampata sul documento resta comunque quella di emissione effettiva (oggi), mai quella storica. Se il numero indicato esiste già nel registro, l\'app avvisa prima di procedere. Le ricevute emesse così sono segnalate nel registro con il badge "✍️ manuale"; anche senza atleta collegato, la ristampa (🔄) funziona normalmente.',tag:'regolarizzazione numero forzato manuale emissione commercialista nominativo libero'},
   {cat:'⚙️ Impostazioni',titolo:'Spazio utilizzato',testo:'La card "📊 Spazio utilizzato" in Impostazioni stima quanto pesa il database su Firebase, scomposto in: dati correnti, di cui allegati incorporati (foto e file caricati direttamente — non i link Drive, che sono solo testo), backup automatici cloud e backup locali sul dispositivo. Il pulsante "Calcola" interroga anche Firebase per i backup cloud, quindi può richiedere qualche secondo. Non è il valore esatto mostrato nella Console Firebase (che include anche overhead interno), ma una stima utile per seguire l\'andamento nel tempo e capire quale componente sta crescendo di più. Google Drive non è verificabile da qui: controllalo direttamente su drive.google.com.',tag:'spazio utilizzato firebase drive dimensione database allegati backup'},
@@ -8353,7 +8353,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.2.0';
+    const CURRENT_VER='6.2.1';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

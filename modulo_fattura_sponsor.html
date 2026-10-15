@@ -36,7 +36,12 @@ table.righe td.num{text-align:right;font-weight:700;}
 .riepilogo-iva tr:last-child td{font-weight:700;font-size:13.5px;border-top:2px solid var(--dark);border-bottom:none;}
 .riepilogo-iva td:last-child{text-align:right;}
 .note-legale{font-size:10.5px;color:#666;font-style:italic;margin-top:8px;}
-@media print{body{font-size:12px;}.page{padding:8mm 10mm;}.no-print{display:none;}@page{size:A4;margin:0;}}
+/* Stampa A4 standard (v6.2.1): margini uniformi su OGNI pagina, sezioni mai spezzate, firme unite */
+@page{size:A4;margin:12mm 14mm;}
+.flow{break-inside:auto;page-break-inside:auto;}
+.art,.parti-box,.firma-row,.blocco-firme{break-inside:avoid;page-break-inside:avoid;}
+.st,.art-title{break-after:avoid;page-break-after:avoid;}
+@media print{body{font-size:12px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{max-width:none;margin:0;padding:0;box-shadow:none;}.no-print{display:none!important;}.corpo-doc p{line-height:1.6;margin-bottom:8px;}.footer{margin-top:10px;break-inside:avoid;}.firma-line{height:34px;}}
 @media screen{body{background:#eee;}.page{background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.15);margin:20px auto;}
 .print-btn{position:fixed;bottom:24px;right:24px;background:var(--red);color:#fff;border:none;padding:12px 24px;border-radius:30px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(192,57,43,.4);letter-spacing:1px;z-index:100;}
 .print-btn:hover{background:#a93226;}}</style>

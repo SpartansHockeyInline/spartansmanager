@@ -33,7 +33,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
 .art-title{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--dark);margin-bottom:3px;}
 .art-body{font-size:12px;color:#333;text-align:justify;line-height:1.65;}
 .page-break{break-before:page;}
-@media print{body{font-size:11.5px;}.page{padding:8mm 10mm;}.no-print{display:none;}@page{size:A4;margin:0;}}
+/* Stampa A4 standard (v6.2.1): margini uniformi su OGNI pagina, sezioni mai spezzate, firme unite */
+@page{size:A4;margin:12mm 14mm;}
+.flow{break-inside:auto;page-break-inside:auto;}
+.art,.parti-box,.firma-row,.blocco-firme{break-inside:avoid;page-break-inside:avoid;}
+.st,.art-title{break-after:avoid;page-break-after:avoid;}
+@media print{body{font-size:11.5px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{max-width:none;margin:0;padding:0;box-shadow:none;}.no-print{display:none!important;}.corpo-doc p{line-height:1.6;margin-bottom:8px;}.footer{margin-top:10px;break-inside:avoid;}.firma-line{height:34px;}}
 @media screen{body{background:#eee;}.page{background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.15);margin:20px auto;}
 .print-btn{position:fixed;bottom:24px;right:24px;background:var(--red);color:#fff;border:none;padding:12px 24px;border-radius:30px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(192,57,43,.4);letter-spacing:1px;z-index:100;}
 .print-btn:hover{background:#a93226;}}</style>
@@ -108,7 +113,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
     </div>
   </div>
 
-  <div class="section">
+  <div class="section flow">
     <div class="art"><div class="art-title">Art. 1 — Premesse</div><div class="art-body">Le premesse formano parte integrante e sostanziale del presente contratto.</div></div>
 
     <div class="art"><div class="art-title">Art. 2 — Oggetto del contratto e obblighi delle parti</div>
@@ -163,12 +168,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
     <div class="art"><div class="art-title">Art. 11 — Elezione di domicilio</div>
       <div class="art-body">Le parti dichiarano di eleggere domicilio ai fini del presente contratto presso le sedi indicate in epigrafe. Qualsiasi comunicazione relativa al presente contratto dovrà essere effettuata al domicilio eletto a mezzo raccomandata a.r. o equipollente.</div>
     </div>
-
-    <div class="art"><div class="art-title">Art. 12 — Trattamento dei dati personali</div>
-      <div class="art-body">Le parti, in conformità al Regolamento (UE) 2016/679 e alla normativa nazionale applicabile, forniscono il proprio consenso al trattamento dei dati personali, anche tramite terzi, per l'esecuzione del presente contratto e per l'adempimento di obblighi di legge connessi.</div>
-    </div>
   </div>
 
+  <div class="blocco-firme">
+    <div class="art" style="margin-bottom:14px;"><div class="art-title">Art. 12 — Trattamento dei dati personali</div>
+      <div class="art-body">Le parti, in conformità al Regolamento (UE) 2016/679 e alla normativa nazionale applicabile, forniscono il proprio consenso al trattamento dei dati personali, anche tramite terzi, per l'esecuzione del presente contratto e per l'adempimento di obblighi di legge connessi.</div>
+    </div>
   <div class="section">
     <div style="font-size:12px;margin-bottom:4px;">Luogo: <span id="f-luogo-firma" style="font-weight:600;"></span> — Data: <span id="f-data-firma" style="font-weight:600;"></span></div>
   </div>
@@ -187,6 +192,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   <div class="firma-row" style="margin-top:18px;">
     <div class="firma-box"><div id="timbro-box" style="display:flex;align-items:center;justify-content:center;min-height:105px;"></div></div>
     <div></div>
+  </div>
   </div>
 
   <div class="footer"><span id="f-asd-nome-footer">ASD Spartans Hockey Inline</span> · <span id="f-asd-email-footer">spartanshockeyinline@gmail.com</span> · Documento generato da Spartans Manager</div>

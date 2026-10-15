@@ -2,6 +2,26 @@
 
 ---
 
+## v6.2.1 · Ottobre 2026
+
+### Correzione — Impaginazione di stampa dei documenti (A4)
+- **Segnalato dall'utente**: i PDF generati dall'app risultavano impaginati male in stampa (contenuti tagliati, testo a filo del bordo dalla seconda pagina, firme separate dal testo).
+- **Causa**: i moduli usavano `@page{margin:0}` con un padding applicato una sola volta al contenitore, quindi solo la prima pagina aveva margini; in più alcuni blocchi con `break-inside:avoid` troppo lunghi per una pagina (articoli del contratto) venivano spostati interi lasciando vuoti, e firme/timbro potevano finire su una pagina senza testo. Le stampe di Modulo H2, Prima nota e Rendiconto non avevano alcuna regola `@page`.
+- **Pagina A4 standard**: `@page{size:A4;margin:12mm 14mm}` su tutti i moduli (verbale CD e co.co.co. restano a 2 cm); regole comuni: sezioni/articoli/firme/timbro non spezzati, titoli non orfani, intestazione tabella ripetuta nelle stampe tabellari.
+- **Contratto sponsor**: gli articoli scorrono tra le pagine; Art. 12, luogo/data, firme e timbro formano un blocco unico (mai firme da sole su una pagina).
+- **Modulo iscrizione**: spaziature di stampa compattate, dati + firme + timbro su una pagina (prima 3 pagine, ora 2: dati e informativa Safeguarding).
+- **Modulo incarico**: il timbro e il piè di pagina non finiscono più su una seconda pagina quasi vuota.
+- Verificato con stampa PDF in Chromium (A4) di tutti i 15 moduli con dati di esempio.
+
+### Modifica — Amministrazione
+- **Rimosso il pulsante "Riallinea saldi ai valori reali"** dalla pagina principale di Amministrazione, insieme alla funzione `riallineaSaldi()` (non più richiamata). Il saldo di apertura calcolato al primo avvio resta invariato.
+- Aggiornata la voce di Guida sui saldi conto corrente/cassa.
+
+### Documentazione
+- Nuova voce di Guida: "Stampare i documenti su A4".
+
+---
+
 ## v6.2.0 · Ottobre 2026
 
 ### Nuovo — Saldo separato tra conto corrente e cassa
