@@ -484,7 +484,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.2.1 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.2.2 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1903,6 +1903,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.2.2 · Ottobre 2026</div>
+        <div class="cl-section">Modifica — Contratto sponsor: l'importo è l'imponibile, l'IVA si aggiunge</div>
+        <div class="cl-item"><strong>Scheda sponsor → Contratto</strong>: il campo <em>Importo</em> ora è l'<strong>imponibile (IVA esclusa)</strong>; sotto il campo compare subito "imponibile + IVA = totale" calcolato con l'aliquota inserita.</div>
+        <div class="cl-item"><strong>Contratto (Art. 5)</strong>: riporta "<em>€ imponibile + IVA aliquota% (€ importo), per un totale di € totale</em>"; con aliquota 0 l'IVA non viene indicata.</div>
+        <div class="cl-item"><strong>Importo in lettere con i centesimi</strong>: ad esempio "centocinquanta euro e sessantuno centesimi" (prima i centesimi venivano ignorati). Corretti anche "un euro" e gli accenti di ventitré, centotré ecc.</div>
+        <div class="cl-item"><strong>Coerenza</strong>: contratto, fattura ed elenco sponsor usano lo stesso calcolo (imponibile e imposta arrotondati al centesimo, totale = somma). L'<em>entrata in Amministrazione</em> registra l'incasso reale, cioè imponibile + IVA.</div>
+        <div class="cl-item"><strong>Contratti già salvati</strong>: avevano l'importo come totale IVA compresa e restano invariati (stesso totale, stessa fattura) finché nel form non modifichi importo o aliquota; da quel momento si applica il nuovo calcolo. Nel form compare l'imponibile equivalente.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.2.1 · Ottobre 2026</div>
         <div class="cl-section">Correzione — Impaginazione di stampa dei documenti (A4)</div>
         <div class="cl-item"><strong>Segnalato dall'utente</strong>: stampando i PDF generati dall'app, contenuti tagliati, testo attaccato al bordo del foglio dalla seconda pagina in poi, firme separate dal testo.</div>
@@ -2635,8 +2645,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="fg">
           <div class="fgroup s2"><label>Descrizione / causale economica</label><input class="fi" id="m-sp-contratto-descr" placeholder="es. Sponsorizzazione tecnica stagione 2025/26"></div>
           <div class="fgroup s2"><label>Oggetto della sponsorizzazione (controprestazioni ASD)</label><textarea class="fta" id="m-sp-contratto-oggetto" placeholder="es. Apposizione del marchio su: divise da gara, banner 3x1m a bordo pista, pagine social (Facebook, Instagram)" rows="3"></textarea></div>
-          <div class="fgroup"><label>Importo (€) — totale incassato, IVA compresa</label><input class="fi" id="m-sp-contratto-importo" type="number" step="0.01"></div>
-          <div class="fgroup"><label>Aliquota IVA (%)</label><input class="fi" id="m-sp-contratto-iva" type="number" step="0.01" placeholder="22" value="22"></div>
+          <div class="fgroup"><label>Importo (€) — imponibile, IVA esclusa</label><input class="fi" id="m-sp-contratto-importo" type="number" step="0.01" oninput="aggiornaTotaleContratto()"></div>
+          <div class="fgroup"><label>Aliquota IVA (%)</label><input class="fi" id="m-sp-contratto-iva" type="number" step="0.01" placeholder="22" value="22" oninput="aggiornaTotaleContratto()"></div>
+          <div class="fgroup s2"><div id="m-sp-contratto-totale" style="font-size:12px;color:var(--text2);min-height:16px;"></div></div>
           <div class="fgroup"><label>Periodicità</label>
             <select class="fsel" id="m-sp-contratto-periodicita">
               <option value="una_tantum">Una tantum</option>
@@ -2819,7 +2830,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.2.1 · Ottobre 2026';
+const APP_VERSION = 'v6.2.2 · Ottobre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -7055,7 +7066,7 @@ function renderSponsor(){
       <td><span class="badge bgold">${s.cat||'—'}</span></td>
       <td>${s.referente||'—'}${s.referenteTel?`<div style="font-size:10px;color:var(--text2);">${s.referenteTel}</div>`:''}</td>
       <td style="max-width:180px;">${c.descr||'—'}</td>
-      <td style="font-weight:600;color:var(--green);">${c.importo?`€${parseFloat(c.importo).toFixed(2)}`:'—'}${c.periodicita&&c.periodicita!=='una_tantum'?`<div style="font-size:10px;color:var(--text2);">/${c.periodicita==='annuale'?'anno':'mese'}</div>`:''}</td>
+      <td style="font-weight:600;color:var(--green);">${c.importo?`€${_importoContratto(c).imponibile.toFixed(2)}`:'—'}${c.importo&&_importoContratto(c).aliquota>0?`<div style="font-size:10px;color:var(--text2);font-weight:400;">+ IVA ${_importoContratto(c).aliquota}% = €${_importoContratto(c).totale.toFixed(2)}</div>`:''}${c.periodicita&&c.periodicita!=='una_tantum'?`<div style="font-size:10px;color:var(--text2);">/${c.periodicita==='annuale'?'anno':'mese'}</div>`:''}</td>
       <td style="color:${scadCol};font-weight:${scadCol!=='var(--text2)'?'700':'400'};">${c.scadenza?formatDate(c.scadenza):'—'}</td>
       <td><span class="badge ${s.stato==='attivo'?'bg':'bgy'}">${s.stato||'attivo'}</span>${c.importo?`<div style="margin-top:3px;"><span class="badge ${c.pagato==='si'?'bg':'by'}" style="font-size:10px;">${c.pagato==='si'?'✓ Incassato':'Da incassare'}</span></div>`:''}</td>
       <td><div class="tda"><button class="bico" onclick="openModalSponsor('${s.id}')">✏️</button>${c.importo?`<button class="bico" onclick="generaFatturaSponsor('${s.id}')" title="Genera fattura">📄</button>`:''}<button class="bico" onclick="deleteSponsor('${s.id}')">🗑️</button></div></td>
@@ -7066,6 +7077,8 @@ function renderSponsor(){
 function openModalSponsor(id=null){
   if(!DB.sponsor)DB.sponsor=[];
   editingId=id;
+  let _notaImportoConvertito='';
+  _sponsorLegacy=null;
   document.getElementById('modal-sponsor-title').textContent=id?'Modifica sponsor':'Nuovo sponsor';
   document.getElementById('modal-sponsor').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
   document.getElementById('m-sp-contratto-periodicita').value='una_tantum';
@@ -7087,8 +7100,16 @@ function openModalSponsor(id=null){
       const cmap={descr:'m-sp-contratto-descr',oggetto:'m-sp-contratto-oggetto',importo:'m-sp-contratto-importo',aliquotaIva:'m-sp-contratto-iva',periodicita:'m-sp-contratto-periodicita',
         inizio:'m-sp-contratto-inizio',scadenza:'m-sp-contratto-scadenza',pagato:'m-sp-contratto-pagato',allegato:'m-sp-contratto-allegato'};
       Object.entries(cmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&c[k]!==undefined)el.value=c[k];});
+      // Contratto salvato prima di v6.2.2 (importo = totale IVA compresa): il form mostra l'imponibile equivalente
+      if(c.importo&&c.importoTipo!=='imponibile'){
+        const imponibileForm=_importoContratto(c).imponibile.toFixed(2);
+        document.getElementById('m-sp-contratto-importo').value=imponibileForm;
+        _sponsorLegacy={importo:c.importo,aliquotaIva:c.aliquotaIva,imponibileForm};
+        _notaImportoConvertito='contratto precedente: importo originario (totale IVA compresa) invariato finché non modifichi importo o aliquota';
+      }
     }
   }
+  aggiornaTotaleContratto(_notaImportoConvertito);
   document.getElementById('modal-sponsor').classList.add('open');
 }
 
@@ -7103,10 +7124,12 @@ function saveSponsor(){
     nome:g('m-sp-lr-nome'),nascita:g('m-sp-lr-nascita'),luogoNascita:g('m-sp-lr-luogo-nascita'),
     cf:g('m-sp-lr-cf'),residenza:g('m-sp-lr-residenza'),ci:g('m-sp-lr-ci'),
   };
+  const _fc=_importoFormContratto();
   const contratto={
     descr:g('m-sp-contratto-descr'),
     oggetto:g('m-sp-contratto-oggetto'),
-    importo:g('m-sp-contratto-importo'),
+    importo:_fc.importo,
+    ...(_fc.importoTipo?{importoTipo:_fc.importoTipo}:{}),
     aliquotaIva:g('m-sp-contratto-iva')||'22',
     periodicita:g('m-sp-contratto-periodicita')||'una_tantum',
     inizio:g('m-sp-contratto-inizio'),
@@ -7131,7 +7154,8 @@ function saveSponsor(){
   editingId=newId;
 
   // Sincronizza entrata in Amministrazione collegata allo sponsor
-  const importoNum=parseFloat(contratto.importo)||0;
+  // L'entrata in Amministrazione registra l'incasso reale: imponibile + IVA (v6.2.2)
+  const importoNum=_importoContratto(contratto).totale;
   const entrataIdx=DB.entrate.findIndex(e=>e.sponsorId===obj.id);
   if(importoNum>0&&contratto.pagato==='si'){
     const entrataObj={
@@ -7180,6 +7204,45 @@ function deleteSponsor(id){
 // credito/debito consumano un numero della STESSA sequenza (non una loro
 // numerazione separata) e riportano sempre numero e data della fattura
 // originale: mai annullate, mai rinumerate, mai nascoste dal registro.
+// Importo del contratto sponsor (v6.2.2): l'importo inserito nel form è l'IMPONIBILE (IVA esclusa) e l'IVA
+// si aggiunge. I contratti salvati prima di v6.2.2 non hanno il campo importoTipo e restano interpretati
+// come TOTALE IVA COMPRESA, così nessun importo già registrato cambia in silenzio. Imponibile e imposta sono
+// arrotondati al centesimo e il totale è sempre la loro somma.
+function _importoContratto(c){
+  c=c||{};
+  const base=parseFloat(c.importo)||0;
+  const aliq0=parseFloat(c.aliquotaIva);
+  const aliquota=(isNaN(aliq0)||aliq0<0)?22:aliq0;
+  const r2=n=>Math.round(n*100)/100;
+  if(c.importoTipo==='imponibile'){
+    const imponibile=r2(base),imposta=r2(imponibile*aliquota/100);
+    return{imponibile,aliquota,imposta,totale:r2(imponibile+imposta)};
+  }
+  const totale=r2(base);
+  const imponibile=aliquota>0?r2(totale/(1+aliquota/100)):totale;
+  return{imponibile,aliquota,imposta:r2(totale-imponibile),totale};
+}
+// Contratto precedente a v6.2.2 aperto nel form: finché importo e aliquota NON cambiano resta "totale IVA compresa"
+// (un totale come 13,00 € non è sempre rappresentabile come imponibile + IVA arrotondati: la conversione
+// forzata lo sposterebbe di 1 centesimo, anche su contratti già fatturati). Se l'utente li modifica passa al nuovo modello.
+let _sponsorLegacy=null;
+function _importoFormContratto(){
+  const imp=document.getElementById('m-sp-contratto-importo').value;
+  const iva=document.getElementById('m-sp-contratto-iva').value;
+  const L=_sponsorLegacy;
+  if(L&&imp===L.imponibileForm&&_importoContratto({aliquotaIva:iva}).aliquota===_importoContratto({aliquotaIva:L.aliquotaIva}).aliquota){
+    return{importo:L.importo,aliquotaIva:iva,importoTipo:''};
+  }
+  return{importo:imp,aliquotaIva:iva,importoTipo:'imponibile'};
+}
+// Anteprima nel form sponsor: imponibile + IVA = totale.
+function aggiornaTotaleContratto(nota){
+  const el=document.getElementById('m-sp-contratto-totale');if(!el)return;
+  if(!document.getElementById('m-sp-contratto-importo').value){el.textContent=nota||'';return;}
+  const r=_importoContratto(_importoFormContratto());
+  const e=n=>'€ '+n.toFixed(2).replace('.',',');
+  el.textContent=`Imponibile ${e(r.imponibile)} + IVA ${String(r.aliquota).replace('.',',')}% ${e(r.imposta)} = totale ${e(r.totale)}`+(nota?' · '+nota:'');
+}
 function _calcolaScompostoIva(totaleLordo, aliquotaPct){
   const tot=parseFloat(totaleLordo)||0;
   const aliq=parseFloat(aliquotaPct);
@@ -7193,7 +7256,7 @@ function generaFatturaSponsor(id){
   const s=(DB.sponsor||[]).find(x=>x.id===id);if(!s)return;
   const c=s.contratto||{};
   if(!c.importo){toast('Inserisci prima l\'importo del contratto','error');return;}
-  const scomp=_calcolaScompostoIva(c.importo,c.aliquotaIva);
+  const scomp=_importoContratto(c);
   const fmt=n=>'€ '+n.toFixed(2).replace('.',',');
   const msg=`Emettere fattura a ${s.nome}?\n\nImponibile: ${fmt(scomp.imponibile)}\nIVA (${scomp.aliquota}%): ${fmt(scomp.imposta)}\nTotale: ${fmt(scomp.totale)}\n\nIl numero verrà assegnato automaticamente dal contatore ufficiale e non sarà più modificabile: eventuali errori si correggono con una nota di credito, non con un nuovo tentativo.`;
   if(!confirm(msg))return;
@@ -7424,12 +7487,13 @@ function generaContrattoSponsor(id){
     asdEmail:DB.struttura.email||'',asdTel:DB.struttura.telefono||DB.struttura.tel||'',asdWeb:DB.struttura.sito||DB.struttura.web||'',
     asdAffiliazione:DB.struttura.affiliazione||''
   }:{};
+  const _ic=_importoContratto(c);
   const p=new URLSearchParams({
     sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
     sponsorEmail:s.email||'',sponsorTel:s.tel||'',
     lrNome:lr.nome||'',lrNascita:lr.nascita?formatDate(lr.nascita):'',lrLuogoNascita:lr.luogoNascita||'',
     lrCf:lr.cf||'',lrResidenza:lr.residenza||'',lrCi:lr.ci||'',
-    descr:c.descr||'',oggetto:c.oggetto||'',importo:c.importo||'',aliquotaIva:String(_calcolaScompostoIva(c.importo,c.aliquotaIva).aliquota),periodicita:c.periodicita||'',
+    descr:c.descr||'',oggetto:c.oggetto||'',importo:c.importo?String(_ic.imponibile):'',aliquotaIva:String(_ic.aliquota),periodicita:c.periodicita||'',
     inizio:c.inizio?formatDate(c.inizio):'',scadenza:c.scadenza?formatDate(c.scadenza):'',
     stagione,dataDoc:oggi,...ps
   });
@@ -7745,10 +7809,12 @@ const GUIDA_VOCI=[
   {cat:'📊 Dashboard',titolo:'Avvisi di compleanno',testo:'In Dashboard → \"Prossimi eventi\", soci e staff con compleanno entro 14 giorni appaiono con sfondo azzurro, età che compiranno e indicazione \"Oggi! 🎉\", \"Domani\" o \"fra Ngg\".',tag:'compleanno avviso dashboard eventi'},
 
   {cat:'🤝 Sponsor',titolo:'Aggiungere uno sponsor',testo:'Vai su Sponsor → \"+ Nuovo sponsor\". Compila l\'anagrafica (ragione sociale, categoria, CF/P.IVA, contatti, referente, logo) e la sezione Contratto (descrizione, oggetto della sponsorizzazione, importo, periodicità, scadenza).',tag:'sponsor nuovo aggiungere anagrafica contratto'},
-  {cat:'🤝 Sponsor',titolo:'Generare il contratto di sponsorizzazione',testo:'Apri la scheda dello sponsor → sezione Documenti → \"📄 Genera contratto di sponsorizzazione\". Il documento riporta i dati di entrambe le parti (ASD e sponsor), i rispettivi legali rappresentanti, l\'oggetto, la durata e il corrispettivo, pronto per la doppia firma. Inserisci i dati del Presidente in \"La mia struttura\" → IDS perché vengano riportati correttamente. L\'importo inserito nella scheda è il totale IVA compresa: nell\'Art. 5 il contratto lo riporta come imponibile + IVA (con aliquota e importo) per un totale di; con aliquota 0 l\'IVA non viene indicata.',tag:'contratto sponsorizzazione generare documento firma'},
+  {cat:'🤝 Sponsor',titolo:'Generare il contratto di sponsorizzazione',testo:'Apri la scheda dello sponsor → sezione Documenti → \"📄 Genera contratto di sponsorizzazione\". Il documento riporta i dati di entrambe le parti (ASD e sponsor), i rispettivi legali rappresentanti, l\'oggetto, la durata e il corrispettivo, pronto per la doppia firma. Inserisci i dati del Presidente in \"La mia struttura\" → IDS perché vengano riportati correttamente. Nell\'Art. 5 il contratto riporta imponibile, IVA (aliquota e importo) e totale, con il totale scritto in lettere anche nei centesimi; con aliquota 0 l\'IVA non viene indicata (vedi "Importo del contratto: imponibile e IVA").',tag:'contratto sponsorizzazione generare documento firma'},
+  {cat:'🤝 Sponsor',titolo:'Importo del contratto: imponibile e IVA',testo:'Nella scheda sponsor il campo "Importo" è l\'imponibile (IVA esclusa): inserisci anche l\'aliquota (predefinita 22%) e sotto vedi subito imponibile + IVA = totale. Il contratto (Art. 5), la fattura e l\'elenco sponsor usano lo stesso calcolo; l\'entrata in Amministrazione registra il totale realmente incassato (imponibile + IVA). Con aliquota 0 l\'IVA non viene indicata. I contratti salvati prima della v6.2.2 avevano l\'importo come totale IVA compresa e restano invariati finché non modifichi importo o aliquota: nel form vedi l\'imponibile equivalente.',tag:'sponsor importo imponibile iva aliquota totale contratto fattura entrata'},
+
   {cat:'🤝 Sponsor',titolo:'Archiviare il contratto firmato',testo:'Dopo la firma, carica la scansione su Drive e incolla il link nel campo \"Contratto firmato\" nella scheda sponsor.',tag:'contratto firmato allegato archiviare drive sponsor'},
-  {cat:'🤝 Sponsor',titolo:'Collegare il contratto a un\'entrata in Amministrazione',testo:'Nella scheda sponsor, imposta \"Stato pagamento\" su \"Incassato\" e inserisci l\'importo: l\'app crea automaticamente un\'entrata in Amministrazione con il badge 🤝 sponsor. Se modifichi importo o stato, l\'entrata si aggiorna; se elimini lo sponsor, l\'entrata collegata viene rimossa.',tag:'sponsor entrata amministrazione incassato collegamento automatico'},
-  {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva (azzerata a ogni anno), dati ASD e sponsor, descrizione, imponibile, IVA e totale. La fattura viene anche registrata in modo permanente in Amministrazione → \"📄 Fatture\", da cui puoi scaricare il file XML (⬇️) da caricare sul portale \"Fatture e Corrispettivi\" dell\'Agenzia delle Entrate — obbligatorio per tutte le ASD con partita IVA dal 2024, senza soglie di esonero. Per correggere un errore NON si annulla la fattura: dal registro si emette una nota di credito (➖) o di debito (➕) che riferisce la fattura originale, la quale resta sempre intatta.',tag:'fattura sponsor generare documento numerazione nota di credito nota di debito xml sdi fatturapa'},
+  {cat:'🤝 Sponsor',titolo:'Collegare il contratto a un\'entrata in Amministrazione',testo:'Nella scheda sponsor, imposta \"Stato pagamento\" su \"Incassato\" e inserisci l\'importo: l\'app crea automaticamente un\'entrata in Amministrazione con il badge 🤝 sponsor, per il totale incassato (imponibile + IVA). Se modifichi importo o stato, l\'entrata si aggiorna; se elimini lo sponsor, l\'entrata collegata viene rimossa.',tag:'sponsor entrata amministrazione incassato collegamento automatico'},
+  {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva (azzerata a ogni anno), dati ASD e sponsor, descrizione, imponibile (l\'importo del contratto), IVA e totale. La fattura viene anche registrata in modo permanente in Amministrazione → \"📄 Fatture\", da cui puoi scaricare il file XML (⬇️) da caricare sul portale \"Fatture e Corrispettivi\" dell\'Agenzia delle Entrate — obbligatorio per tutte le ASD con partita IVA dal 2024, senza soglie di esonero. Per correggere un errore NON si annulla la fattura: dal registro si emette una nota di credito (➖) o di debito (➕) che riferisce la fattura originale, la quale resta sempre intatta.',tag:'fattura sponsor generare documento numerazione nota di credito nota di debito xml sdi fatturapa'},
   {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
 
   {cat:'🏛️ Struttura',titolo:'Inserire i dati del Consiglio Direttivo',testo:'Vai su La mia struttura → sezione "⚖️ Consiglio Direttivo" → "+ Aggiungi membro". Inserisci ruolo, nome, cognome, dati anagrafici, CF, residenza, documento d\'identità per ciascun membro (Presidente, Vicepresidente, Tesoriere, Segretario, Consiglieri). Questi dati vengono riutilizzati automaticamente nei contratti, nei verbali e negli altri documenti generabili. Aggiorna questa sezione ogni volta che cambiano le cariche sociali.',tag:'presidente vicepresidente consiglio direttivo legale rappresentante struttura dati contratto verbale'},
@@ -8355,7 +8421,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.2.1';
+    const CURRENT_VER='6.2.2';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

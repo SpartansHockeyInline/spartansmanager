@@ -401,7 +401,7 @@ footer .foot-links a:hover{color:var(--white);}
 <header class="hero">
   <div class="container hero-grid">
     <div>
-      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v6.2.1</span></div>
+      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v6.2.2</span></div>
       <h1>Tutto il tuo<br>club <span class="accent">in pista.</span><br>Un solo file.</h1>
       <p class="lead">
         Anagrafiche, presenze, abbonamenti, amministrazione, documenti e comunicazioni.
@@ -834,7 +834,7 @@ footer .foot-links a:hover{color:var(--white);}
           <h4>Registro fatture sponsor</h4>
           <ul>
             <li>Ogni fattura emessa a uno sponsor viene ora registrata in modo permanente (numero, data, imponibile, IVA, totale), con numerazione progressiva dedicata che si azzera a ogni nuovo anno</li>
-            <li>Scomposizione automatica di imponibile, aliquota e imposta IVA dall'importo del contratto sponsor, con aliquota configurabile per singolo sponsor</li>
+            <li>Contratto sponsor con importo imponibile e IVA aggiunta: imponibile, aliquota, imposta e totale sempre coerenti tra contratto (anche in lettere, centesimi compresi), fattura ed entrata, con aliquota configurabile per singolo sponsor</li>
             <li>Nota di credito e nota di debito al posto del semplice annullamento: ogni correzione riferisce sempre la fattura originale, che resta intatta nello storico</li>
           </ul>
         </div>
@@ -1436,7 +1436,7 @@ footer .foot-links a:hover{color:var(--white);}
   <div class="container">
     <div class="logo">SPARTANS <span>MANAGER</span></div>
     <div class="foot-links">
-      <span id="brochure-version-footer">v6.2.1</span>
+      <span id="brochure-version-footer">v6.2.2</span>
       <a href="#funzionalita">Funzionalità</a>
       <a href="#prezzo">Prezzo</a>
       <a href="#changelog">Changelog</a>
@@ -1454,7 +1454,7 @@ function toggleChangelog(btn){
 // e nel footer, così da non doverli più tenere allineati a mano — basta
 // aggiornare questa costante ad ogni nuova release (deve combaciare con la
 // prima voce del changelog qui sotto e con il changelog in-app/CHANGELOG.md).
-const BROCHURE_VERSION='v6.2.1';
+const BROCHURE_VERSION='v6.2.2';
 document.querySelectorAll('#brochure-version-hero,#brochure-version-footer').forEach(el=>el.textContent=BROCHURE_VERSION);
 // Il numero "di maglia" in hero riprende solo major.minor (es. "5.8"), come una
 // vera numerazione di maglia — niente patch, giusto per dare colpo d'occhio.

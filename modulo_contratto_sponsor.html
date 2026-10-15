@@ -229,10 +229,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   }
 
 
-  // Numero in lettere (semplificato, solo parte intera in euro)
-  function numeroInLettere(n){
-    n=Math.floor(n);
-    if(n===0)return'zero euro';
+  // Importo in lettere (v6.2.2): parte intera in euro + centesimi in lettere (es. "centoventitré euro e quarantacinque centesimi")
+  function parole(n){
+    if(n===0)return'zero';
     const unita=['','uno','due','tre','quattro','cinque','sei','sette','otto','nove'];
     const decine=['','dieci','venti','trenta','quaranta','cinquanta','sessanta','settanta','ottanta','novanta'];
     const speciali={11:'undici',12:'dodici',13:'tredici',14:'quattordici',15:'quindici',16:'sedici',17:'diciassette',18:'diciotto',19:'diciannove'};
@@ -252,14 +251,23 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
       }
       return s;
     }
-    if(n<1000)return trecifre(n)+' euro';
-    if(n<1000000){
+    let out;
+    if(n<1000)out=trecifre(n);
+    else if(n<1000000){
       const mig=Math.floor(n/1000),r=n%1000;
-      let s=(mig===1?'mille':trecifre(mig)+'mila');
-      if(r>0)s+=trecifre(r);
-      return s+' euro';
-    }
-    return n.toLocaleString('it-IT')+' euro';
+      out=(mig===1?'mille':trecifre(mig)+'mila');
+      if(r>0)out+=trecifre(r);
+    }else out=n.toLocaleString('it-IT');
+    // i composti terminanti in "tre" vogliono l'accento (ventitré, centotré); "tre" da solo no
+    if(out.length>3&&/tre$/.test(out)&&!/^\d/.test(out))out=out.slice(0,-3)+'tré';
+    return out;
+  }
+  function numeroInLettere(importo){
+    const tot=Math.round((parseFloat(importo)||0)*100);
+    const euro=Math.floor(tot/100),cent=tot%100;
+    let t=(euro===1?'un':parole(euro))+' euro';
+    if(cent>0)t+=' e '+(cent===1?'un centesimo':parole(cent)+' centesimi');
+    return t;
   }
 
   // Testata
@@ -318,22 +326,22 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   document.getElementById('f-durata-testo').textContent=durataTesto;
 
   // Corrispettivo
-  const importoNum=parseFloat(get('importo'))||0;
+  // L'importo inserito nel form è l'IMPONIBILE (IVA esclusa). Il modulo ricalcola imposta e totale con la
+  // stessa formula dell'app (_importoContratto): imponibile e imposta arrotondati al centesimo, totale = somma.
+  // Così il testo non dipende da parametri già calcolati che potrebbero risultare incoerenti. Con aliquota 0
+  // l'IVA non viene indicata.
   const eur=n=>n.toFixed(2).replace('.',',');
-  // L'importo inserito nel form è il TOTALE IVA COMPRESA (come per la fattura): se l'aliquota è > 0
-  // il contratto lo espone come "imponibile + IVA, per un totale di" (imponibile e imposta arrotondati
-  // al centesimo in modo che la somma coincida sempre con il totale).
+  const r2=n=>Math.round(n*100)/100;
+  const imponibile=r2(parseFloat(get('importo'))||0);
   const aliquota=parseFloat(get('aliquotaIva'))||0;
-  if(aliquota>0&&importoNum>0){
-    const totale=Math.round(importoNum*100)/100;
-    const imponibile=Math.round(totale/(1+aliquota/100)*100)/100;
-    const imposta=Math.round((totale-imponibile)*100)/100;
-    document.getElementById('f-importo').textContent=eur(imponibile);
+  let totale=imponibile;
+  if(aliquota>0&&imponibile>0){
+    const imposta=r2(imponibile*aliquota/100);
+    totale=r2(imponibile+imposta);
     document.getElementById('f-iva-testo').innerHTML=' + IVA '+String(aliquota).replace('.',',')+'% (€ '+eur(imposta)+'), per un totale di <strong>€ '+eur(totale)+'</strong>';
-  }else{
-    document.getElementById('f-importo').textContent=eur(importoNum);
   }
-  document.getElementById('f-importo-lettere').textContent=numeroInLettere(importoNum);
+  document.getElementById('f-importo').textContent=eur(imponibile);
+  document.getElementById('f-importo-lettere').textContent=numeroInLettere(totale);
   document.getElementById('f-periodicita').textContent=periodicitaLabel[periodicita]||'una tantum';
 
   // Luogo e data firma

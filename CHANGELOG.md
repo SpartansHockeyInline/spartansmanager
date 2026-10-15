@@ -2,6 +2,21 @@
 
 ---
 
+## v6.2.2 · Ottobre 2026
+
+### Modifica — Contratto sponsor: l'importo è l'imponibile, l'IVA si aggiunge
+- **Richiesto dall'utente**: nel contratto di sponsorizzazione l'importo del form deve essere l'**imponibile** e l'IVA va aggiunta (prima era il totale IVA compresa).
+- **Form sponsor**: etichetta "Importo (€) — imponibile, IVA esclusa" e anteprima "Imponibile + IVA = totale" sotto i campi importo/aliquota.
+- **Art. 5**: "€ imponibile + IVA aliquota% (€ imposta), per un totale di € totale (in lettere)"; con aliquota 0 l'IVA non è indicata. Il modulo riceve `importo` (imponibile) e `aliquotaIva` e ricalcola imposta e totale con la stessa formula dell'app.
+- **Importo in lettere con i centesimi**: "centocinquanta euro e sessantuno centesimi"; corretti "un euro" e gli accenti (ventitré, centotré).
+- **Un solo calcolo**: nuova funzione `_importoContratto()` usata da contratto, fattura, elenco sponsor ed entrata (imponibile e imposta arrotondati al centesimo, totale = somma).
+- **Entrata in Amministrazione**: registra l'incasso reale, cioè imponibile + IVA.
+- **Compatibilità**: i contratti salvati prima di v6.2.2 non hanno il campo `importoTipo` e restano interpretati come *totale IVA compresa* (stesso totale, stessa fattura). Aperti nel form mostrano l'imponibile equivalente e restano invariati finché importo e aliquota non vengono modificati; da lì si salvano con `importoTipo:'imponibile'`. Scelta motivata: la conversione forzata sposta di 1 centesimo circa il 18% dei totali (es. 13,00 € → 13,01 €), anche su contratti già fatturati.
+- Note di credito/debito invariate (lavorano sul totale IVA compresa della fattura originale).
+- Nuova voce di Guida "Importo del contratto: imponibile e IVA"; aggiornate le voci su entrata e fattura sponsor.
+
+---
+
 ## v6.2.1 · Ottobre 2026
 
 ### Correzione — Impaginazione di stampa dei documenti (A4)
