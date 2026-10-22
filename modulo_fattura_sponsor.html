@@ -103,6 +103,7 @@ table.righe td.num{text-align:right;font-weight:700;}
         <tr><td>Totale fattura</td><td id="f-riep-totale">€ 0,00</td></tr>
       </table>
     </div>
+    <div class="note-legale" id="f-regolamento-box" style="display:none;"><strong>Regolamento del corrispettivo.</strong> <span id="f-regolamento"></span></div>
     <div class="note-legale">
       Operazione imponibile IVA ai sensi dell'art. 21 DPR 633/1972. Associazione sportiva dilettantistica in regime di cui alla legge 398/1991: detrazione forfettaria dell'imposta ai sensi dell'art. 74, sesto comma, DPR 633/1972 — non incide sull'importo addebitato al cliente. Fattura elettronica trasmessa tramite Sistema di Interscambio (SdI).
     </div>
@@ -183,6 +184,7 @@ table.righe td.num{text-align:right;font-weight:700;}
   document.getElementById('f-riep-aliquota').textContent=aliquota;
   document.getElementById('f-riep-imposta').textContent=fmt(imposta);
   document.getElementById('f-riep-totale').textContent=fmt(totale);
+  if(get('regolamento')){document.getElementById('f-regolamento').textContent=get('regolamento');document.getElementById('f-regolamento-box').style.display='';}
 
   const tb=document.getElementById('timbro-box');
   if(tb)tb.innerHTML=generaTimbro();

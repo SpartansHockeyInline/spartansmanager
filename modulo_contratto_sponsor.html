@@ -137,7 +137,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
     </div>
 
     <div class="art"><div class="art-title">Art. 5 — Corrispettivo</div>
-      <div class="art-body">
+      <div class="art-body" id="art5-body">
         A titolo di corrispettivo per le prestazioni promo-pubblicitarie e per i diritti concessi dal presente contratto, lo Sponsor corrisponderà al Sodalizio la somma di
         <strong>€ <span id="f-importo"></span></strong><span id="f-iva-testo"></span> (<span id="f-importo-lettere"></span>), con periodicità <strong><span id="f-periodicita"></span></strong>,
         secondo le modalità di pagamento concordate tra le parti.
@@ -343,6 +343,32 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   document.getElementById('f-importo').textContent=eur(imponibile);
   document.getElementById('f-importo-lettere').textContent=numeroInLettere(totale);
   document.getElementById('f-periodicita').textContent=periodicitaLabel[periodicita]||'una tantum';
+
+  // Regolamento in natura / misto (v6.3.0): riscrive l'Art. 5. L'importo resta il valore in euro della sponsorizzazione;
+  // la parte in natura è valorizzata al valore normale dei beni (stessa aliquota), la parte in denaro è la differenza.
+  const regolamento=get('regolamento');
+  if((regolamento==='natura'||regolamento==='misto')&&imponibile>0){
+    const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const impostaTot=aliquota>0?r2(imponibile*aliquota/100):0;
+    let natImp=Math.min(r2(parseFloat(get('naturaImp'))||0),imponibile);
+    const intera=regolamento==='natura'||natImp>=imponibile;
+    let natIva,natTot;
+    if(intera){natImp=imponibile;natIva=impostaTot;natTot=totale;}
+    else{natIva=aliquota>0?r2(natImp*aliquota/100):0;natTot=r2(natImp+natIva);}
+    const denImp=r2(imponibile-natImp),denTot=r2(totale-natTot),denIva=r2(denTot-denImp);
+    const ivaTxt=(iva)=>aliquota>0?' + IVA '+String(aliquota).replace('.',',')+'% (€ '+eur(iva)+')':'';
+    const totTxt=(t)=>aliquota>0?', per un totale di € '+eur(t):'';
+    const consegna=get('naturaConsegna');
+    const natTxt='<strong>'+esc(get('naturaDescr'))+'</strong>, di valore normale pari a € '+eur(natImp)+ivaTxt(natIva)+totTxt(natTot)+(consegna?', da consegnare entro il '+esc(consegna):'');
+    let h='A titolo di corrispettivo per le prestazioni promo-pubblicitarie e per i diritti concessi dal presente contratto, il valore della sponsorizzazione è pattuito in <strong>€ '+eur(imponibile)+'</strong>'+ivaTxt(impostaTot)+(aliquota>0?', per un totale di <strong>€ '+eur(totale)+'</strong>':'')+' ('+numeroInLettere(totale)+'), con periodicità <strong>'+(periodicitaLabel[periodicita]||'una tantum')+'</strong>. ';
+    if(intera){
+      h+='Le parti convengono che tale corrispettivo sia interamente regolato in natura, mediante cessione dallo Sponsor al Sodalizio di: '+natTxt+'. ';
+    }else{
+      h+='Le parti convengono che il corrispettivo sia regolato in parte in natura, mediante cessione dallo Sponsor al Sodalizio di: '+natTxt+'; e per la restante parte, pari a € '+eur(denImp)+ivaTxt(denIva)+totTxt(denTot)+', in denaro secondo le modalità di pagamento concordate tra le parti. ';
+    }
+    h+='Le parti convengono la compensazione tra le reciproche obbligazioni; ciascuna parte emetterà regolare fattura per la prestazione resa, ai sensi delle normative vigenti. In caso di mancata o difforme consegna dei beni o dei servizi, il Sodalizio potrà sospendere l\'apposizione del marchio oppure richiedere il pagamento in denaro del valore corrispondente. Lo Sponsor garantisce la conformità dei beni ceduti per 24 mesi dalla consegna, ai sensi della normativa vigente, e si impegna a gestire direttamente le richieste di sostituzione o riparazione.';
+    document.getElementById('art5-body').innerHTML=h;
+  }
 
   // Luogo e data firma
   document.getElementById('f-luogo-firma').textContent=get('asdCitta')||get('asdIndirizzo')||'\u00a0';

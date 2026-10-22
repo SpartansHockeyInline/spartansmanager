@@ -484,7 +484,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.2.2 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.3.0 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1903,6 +1903,17 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.3.0 · Ottobre 2026</div>
+        <div class="cl-section">Novità — Sponsorizzazioni pagate in natura (permuta)</div>
+        <div class="cl-item"><strong>Scheda sponsor → Contratto</strong>: nuovo campo <em>Modalità di regolamento</em> con tre scelte — <strong>In denaro</strong> (come prima), <strong>In natura</strong> (permuta) e <strong>Misto</strong>. Per natura e misto si indicano la descrizione dei beni/servizi ceduti dallo sponsor, la data di consegna e, nel misto, il valore normale della parte in natura. L'<em>Importo</em> resta il valore in euro della sponsorizzazione (imponibile) e sotto i campi compare "in natura + in denaro".</div>
+        <div class="cl-item"><strong>Contratto (Art. 5)</strong>: con natura/misto riporta la cessione dei beni (con valore normale, IVA e consegna), la compensazione tra le reciproche obbligazioni, la fattura di ciascuna parte, il rimedio in caso di mancata o difforme consegna (sospensione del marchio o pagamento in denaro del valore) e la garanzia di conformità di 24 mesi. Il testo è una base: va fatto verificare prima della firma.</div>
+        <div class="cl-item"><strong>Fattura</strong>: resta per il valore pieno della sponsorizzazione e riporta la dicitura di regolamento. Nel file <strong>XML</strong> la dicitura entra nella Causale e il blocco pagamento contiene la sola quota in denaro (nessun blocco pagamento se è tutto in natura). La Causale oltre i 200 caratteri viene ora divisa in più elementi, come richiede il tracciato.</div>
+        <div class="cl-item"><strong>Entrata in Amministrazione</strong>: registra solo la quota realmente incassata in denaro; la parte in natura non genera entrata. Nell'elenco sponsor compaiono il badge 🔁 e lo stato "Regolato".</div>
+        <div class="cl-item"><strong>Contratti esistenti</strong>: restano "In denaro" e non cambiano.</div>
+        <div class="cl-item"><strong>Da sapere</strong>: la permuta non è esente da imposte; lo sponsor deve fatturare all'ASD la fornitura e il trattamento IVA/redditi in regime 398/91 va confermato con il commercialista. Nuova voce di Guida "Sponsorizzazione pagata in natura (permuta)".</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.2.2 · Ottobre 2026</div>
         <div class="cl-section">Modifica — Contratto sponsor: l'importo è l'imponibile, l'IVA si aggiunge</div>
         <div class="cl-item"><strong>Scheda sponsor → Contratto</strong>: il campo <em>Importo</em> ora è l'<strong>imponibile (IVA esclusa)</strong>; sotto il campo compare subito "imponibile + IVA = totale" calcolato con l'aliquota inserita.</div>
@@ -2648,6 +2659,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="fgroup"><label>Importo (€) — imponibile, IVA esclusa</label><input class="fi" id="m-sp-contratto-importo" type="number" step="0.01" oninput="aggiornaTotaleContratto()"></div>
           <div class="fgroup"><label>Aliquota IVA (%)</label><input class="fi" id="m-sp-contratto-iva" type="number" step="0.01" placeholder="22" value="22" oninput="aggiornaTotaleContratto()"></div>
           <div class="fgroup s2"><div id="m-sp-contratto-totale" style="font-size:12px;color:var(--text2);min-height:16px;"></div></div>
+          <div class="fgroup"><label>Modalità di regolamento</label>
+            <select class="fsel" id="m-sp-contratto-regolamento" onchange="aggiornaRegolamentoContratto()">
+              <option value="denaro">In denaro</option>
+              <option value="natura">In natura (permuta)</option>
+              <option value="misto">Misto (denaro + natura)</option>
+            </select>
+          </div>
+          <div class="fgroup" id="m-sp-natura-valore-wrap" style="display:none;"><label>Valore normale della parte in natura (€) — imponibile</label><input class="fi" id="m-sp-contratto-natura-valore" type="number" step="0.01" min="0" oninput="aggiornaTotaleContratto()"></div>
+          <div class="fgroup" id="m-sp-natura-consegna-wrap" style="display:none;"><label>Consegna dei beni/servizi entro</label><input class="fi" id="m-sp-contratto-natura-consegna" type="date"></div>
+          <div class="fgroup s2" id="m-sp-natura-descr-wrap" style="display:none;"><label>Beni/servizi in natura ceduti dallo Sponsor (descrizione precisa: modello, quantità, specifiche)</label><textarea class="fta" id="m-sp-contratto-natura-descr" rows="3" placeholder="es. n. 2 bastoni LaMole 400 e n. 6 nastri in tessuto 24 mm × 23 m; spedizione a carico dello Sponsor" oninput="aggiornaTotaleContratto()"></textarea></div>
           <div class="fgroup"><label>Periodicità</label>
             <select class="fsel" id="m-sp-contratto-periodicita">
               <option value="una_tantum">Una tantum</option>
@@ -2660,7 +2681,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="fgroup"><label>Stato pagamento</label>
             <select class="fsel" id="m-sp-contratto-pagato">
               <option value="no">Da incassare</option>
-              <option value="si">Incassato</option>
+              <option value="si">Incassato / regolato</option>
             </select>
           </div>
         </div>
@@ -2830,7 +2851,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.2.2 · Ottobre 2026';
+const APP_VERSION = 'v6.3.0 · Ottobre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -7066,9 +7087,9 @@ function renderSponsor(){
       <td><span class="badge bgold">${s.cat||'—'}</span></td>
       <td>${s.referente||'—'}${s.referenteTel?`<div style="font-size:10px;color:var(--text2);">${s.referenteTel}</div>`:''}</td>
       <td style="max-width:180px;">${c.descr||'—'}</td>
-      <td style="font-weight:600;color:var(--green);">${c.importo?`€${_importoContratto(c).imponibile.toFixed(2)}`:'—'}${c.importo&&_importoContratto(c).aliquota>0?`<div style="font-size:10px;color:var(--text2);font-weight:400;">+ IVA ${_importoContratto(c).aliquota}% = €${_importoContratto(c).totale.toFixed(2)}</div>`:''}${c.periodicita&&c.periodicita!=='una_tantum'?`<div style="font-size:10px;color:var(--text2);">/${c.periodicita==='annuale'?'anno':'mese'}</div>`:''}</td>
+      <td style="font-weight:600;color:var(--green);">${c.importo?`€${_importoContratto(c).imponibile.toFixed(2)}`:'—'}${c.importo&&_importoContratto(c).aliquota>0?`<div style="font-size:10px;color:var(--text2);font-weight:400;">+ IVA ${_importoContratto(c).aliquota}% = €${_importoContratto(c).totale.toFixed(2)}</div>`:''}${c.periodicita&&c.periodicita!=='una_tantum'?`<div style="font-size:10px;color:var(--text2);">/${c.periodicita==='annuale'?'anno':'mese'}</div>`:''}${c.regolamento==='natura'||c.regolamento==='misto'?`<div style="font-size:10px;color:var(--text2);">🔁 ${c.regolamento==='natura'?'permuta in natura':'misto: denaro + natura'}</div>`:''}</td>
       <td style="color:${scadCol};font-weight:${scadCol!=='var(--text2)'?'700':'400'};">${c.scadenza?formatDate(c.scadenza):'—'}</td>
-      <td><span class="badge ${s.stato==='attivo'?'bg':'bgy'}">${s.stato||'attivo'}</span>${c.importo?`<div style="margin-top:3px;"><span class="badge ${c.pagato==='si'?'bg':'by'}" style="font-size:10px;">${c.pagato==='si'?'✓ Incassato':'Da incassare'}</span></div>`:''}</td>
+      <td><span class="badge ${s.stato==='attivo'?'bg':'bgy'}">${s.stato||'attivo'}</span>${c.importo?`<div style="margin-top:3px;"><span class="badge ${c.pagato==='si'?'bg':'by'}" style="font-size:10px;">${c.pagato==='si'?(c.regolamento==='natura'?'✓ Regolato':'✓ Incassato'):(c.regolamento==='natura'?'Da regolare':'Da incassare')}</span></div>`:''}</td>
       <td><div class="tda"><button class="bico" onclick="openModalSponsor('${s.id}')">✏️</button>${c.importo?`<button class="bico" onclick="generaFatturaSponsor('${s.id}')" title="Genera fattura">📄</button>`:''}<button class="bico" onclick="deleteSponsor('${s.id}')">🗑️</button></div></td>
     </tr>`;
   }).join('');
@@ -7098,7 +7119,8 @@ function openModalSponsor(id=null){
       Object.entries(lrmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&lr[k]!==undefined)el.value=lr[k];});
       const c=s.contratto||{};
       const cmap={descr:'m-sp-contratto-descr',oggetto:'m-sp-contratto-oggetto',importo:'m-sp-contratto-importo',aliquotaIva:'m-sp-contratto-iva',periodicita:'m-sp-contratto-periodicita',
-        inizio:'m-sp-contratto-inizio',scadenza:'m-sp-contratto-scadenza',pagato:'m-sp-contratto-pagato',allegato:'m-sp-contratto-allegato'};
+        inizio:'m-sp-contratto-inizio',scadenza:'m-sp-contratto-scadenza',pagato:'m-sp-contratto-pagato',allegato:'m-sp-contratto-allegato',
+        regolamento:'m-sp-contratto-regolamento',naturaDescr:'m-sp-contratto-natura-descr',naturaValore:'m-sp-contratto-natura-valore',naturaConsegna:'m-sp-contratto-natura-consegna'};
       Object.entries(cmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&c[k]!==undefined)el.value=c[k];});
       // Contratto salvato prima di v6.2.2 (importo = totale IVA compresa): il form mostra l'imponibile equivalente
       if(c.importo&&c.importoTipo!=='imponibile'){
@@ -7109,6 +7131,7 @@ function openModalSponsor(id=null){
       }
     }
   }
+  aggiornaRegolamentoContratto();
   aggiornaTotaleContratto(_notaImportoConvertito);
   document.getElementById('modal-sponsor').classList.add('open');
 }
@@ -7125,6 +7148,17 @@ function saveSponsor(){
     cf:g('m-sp-lr-cf'),residenza:g('m-sp-lr-residenza'),ci:g('m-sp-lr-ci'),
   };
   const _fc=_importoFormContratto();
+  // Regolamento in natura / misto (v6.3.0): serve un valore in euro e una descrizione verificabile dei beni
+  const _rf=_regolamentoFormContratto();
+  if(_rf.regolamento!=='denaro'){
+    const _icv=_importoContratto(_fc);
+    if(!(_icv.imponibile>0)){toast('Per il regolamento in natura inserisci prima l\'importo del contratto (valore della sponsorizzazione)','error');return;}
+    if(!_rf.naturaDescr.trim()){toast('Descrivi i beni/servizi in natura: modello, quantità, specifiche','error');return;}
+    if(_rf.regolamento==='misto'){
+      const nv=parseFloat(_rf.naturaValore)||0;
+      if(!(nv>0)||nv>=_icv.imponibile){toast('Misto: il valore della parte in natura deve essere maggiore di zero e minore dell\'importo (imponibile) del contratto','error');return;}
+    }
+  }
   const contratto={
     descr:g('m-sp-contratto-descr'),
     oggetto:g('m-sp-contratto-oggetto'),
@@ -7136,6 +7170,7 @@ function saveSponsor(){
     scadenza:g('m-sp-contratto-scadenza'),
     pagato:g('m-sp-contratto-pagato')||'no',
     allegato:g('m-sp-contratto-allegato'),
+    ...(_rf.regolamento!=='denaro'?{regolamento:_rf.regolamento,naturaDescr:_rf.naturaDescr.trim(),naturaConsegna:_rf.naturaConsegna,...(_rf.regolamento==='misto'?{naturaValore:_rf.naturaValore}:{})}:{}),
   };
   const obj={
     id:editingId||uid(),nome,cat:g('m-sp-cat'),stato:g('m-sp-stato')||'attivo',
@@ -7154,14 +7189,17 @@ function saveSponsor(){
   editingId=newId;
 
   // Sincronizza entrata in Amministrazione collegata allo sponsor
-  // L'entrata in Amministrazione registra l'incasso reale: imponibile + IVA (v6.2.2)
-  const importoNum=_importoContratto(contratto).totale;
+  // L'entrata in Amministrazione registra l'incasso reale: imponibile + IVA (v6.2.2).
+  // Con regolamento in natura/misto (v6.3.0) registra SOLO la quota realmente incassata in denaro:
+  // la parte in natura non genera entrata (se è tutto in natura, nessuna entrata).
+  const _rg=_regolamentoContratto(contratto);
+  const importoNum=_rg.denaro.tot;
   const entrataIdx=DB.entrate.findIndex(e=>e.sponsorId===obj.id);
   if(importoNum>0&&contratto.pagato==='si'){
     const entrataObj={
       id:entrataIdx>-1?DB.entrate[entrataIdx].id:uid(),
       data:contratto.inizio||oggiLocale(),
-      descr:`Sponsorizzazione — ${nome}${contratto.descr?': '+contratto.descr:''}`,
+      descr:`Sponsorizzazione — ${nome}${contratto.descr?': '+contratto.descr:''}${_rg.modalita==='misto'?' (quota in denaro)':''}`,
       importo:importoNum,cat:'Sponsorizzazioni',metodo:'Bonifico',note:contratto.descr||'',
       sponsorId:obj.id,sponsorNome:nome
     };
@@ -7235,13 +7273,55 @@ function _importoFormContratto(){
   }
   return{importo:imp,aliquotaIva:iva,importoTipo:'imponibile'};
 }
+// Regolamento del corrispettivo (v6.3.0): in denaro (default), in natura (permuta) o misto. L'importo del
+// contratto resta SEMPRE il valore in euro della sponsorizzazione (imponibile). La parte in natura è valorizzata
+// al valore normale dei beni/servizi ricevuti dallo Sponsor (imponibile, stessa aliquota del contratto);
+// la parte in denaro è la differenza e il totale è sempre natura + denaro. I contratti senza il campo
+// `regolamento` restano "in denaro" e non cambiano di un centesimo.
+function _regolamentoContratto(c){
+  c=c||{};
+  const ic=_importoContratto(c);
+  const r2=n=>Math.round(n*100)/100;
+  const mod=(c.regolamento==='natura'||c.regolamento==='misto')?c.regolamento:'denaro';
+  let natImp=0;
+  if(mod==='natura')natImp=ic.imponibile;
+  else if(mod==='misto')natImp=Math.min(Math.max(r2(parseFloat(c.naturaValore)||0),0),ic.imponibile);
+  let nat;
+  if(natImp>0&&natImp>=ic.imponibile){nat={imp:ic.imponibile,iva:ic.imposta,tot:ic.totale};}
+  else{const iva=r2(natImp*ic.aliquota/100);nat={imp:natImp,iva,tot:r2(natImp+iva)};}
+  const denTot=r2(ic.totale-nat.tot),denImp=r2(ic.imponibile-nat.imp);
+  return{modalita:mod,ic,natura:nat,denaro:{imp:denImp,iva:r2(denTot-denImp),tot:denTot}};
+}
+// Dicitura di regolamento riportata in fattura (e nel file XML)
+function _testoRegolamento(c,rg){
+  const e=n=>'€ '+n.toFixed(2).replace('.',',');
+  const al=rg.ic.aliquota>0?` + IVA ${String(rg.ic.aliquota).replace('.',',')}%`:'';
+  const nat=`${(c.naturaDescr||'').trim()} (valore normale ${e(rg.natura.imp)}${al})`;
+  if(rg.modalita==='natura')return `Corrispettivo regolato mediante compensazione con la fornitura di: ${nat}.`;
+  return `Corrispettivo regolato in parte mediante compensazione con la fornitura di: ${nat} e per la restante parte, ${e(rg.denaro.tot)} IVA compresa, in denaro.`;
+}
+function _regolamentoFormContratto(){
+  const g=id=>document.getElementById(id)?.value||'';
+  const m=g('m-sp-contratto-regolamento');
+  return{regolamento:(m==='natura'||m==='misto')?m:'denaro',naturaValore:g('m-sp-contratto-natura-valore'),naturaDescr:g('m-sp-contratto-natura-descr'),naturaConsegna:g('m-sp-contratto-natura-consegna')};
+}
+function aggiornaRegolamentoContratto(){
+  const m=_regolamentoFormContratto().regolamento;
+  const show=(id,on)=>{const el=document.getElementById(id);if(el)el.style.display=on?'':'none';};
+  show('m-sp-natura-valore-wrap',m==='misto');
+  show('m-sp-natura-consegna-wrap',m!=='denaro');
+  show('m-sp-natura-descr-wrap',m!=='denaro');
+  aggiornaTotaleContratto();
+}
 // Anteprima nel form sponsor: imponibile + IVA = totale.
 function aggiornaTotaleContratto(nota){
   const el=document.getElementById('m-sp-contratto-totale');if(!el)return;
   if(!document.getElementById('m-sp-contratto-importo').value){el.textContent=nota||'';return;}
   const r=_importoContratto(_importoFormContratto());
   const e=n=>'€ '+n.toFixed(2).replace('.',',');
-  el.textContent=`Imponibile ${e(r.imponibile)} + IVA ${String(r.aliquota).replace('.',',')}% ${e(r.imposta)} = totale ${e(r.totale)}`+(nota?' · '+nota:'');
+  const rg=_regolamentoContratto({..._importoFormContratto(),..._regolamentoFormContratto()});
+  const extra=rg.modalita!=='denaro'?` · in natura ${e(rg.natura.tot)} + in denaro ${e(rg.denaro.tot)} (IVA compresa)`:'';
+  el.textContent=`Imponibile ${e(r.imponibile)} + IVA ${String(r.aliquota).replace('.',',')}% ${e(r.imposta)} = totale ${e(r.totale)}`+extra+(nota?' · '+nota:'');
 }
 function _calcolaScompostoIva(totaleLordo, aliquotaPct){
   const tot=parseFloat(totaleLordo)||0;
@@ -7257,8 +7337,10 @@ function generaFatturaSponsor(id){
   const c=s.contratto||{};
   if(!c.importo){toast('Inserisci prima l\'importo del contratto','error');return;}
   const scomp=_importoContratto(c);
+  const rg=_regolamentoContratto(c);
   const fmt=n=>'€ '+n.toFixed(2).replace('.',',');
-  const msg=`Emettere fattura a ${s.nome}?\n\nImponibile: ${fmt(scomp.imponibile)}\nIVA (${scomp.aliquota}%): ${fmt(scomp.imposta)}\nTotale: ${fmt(scomp.totale)}\n\nIl numero verrà assegnato automaticamente dal contatore ufficiale e non sarà più modificabile: eventuali errori si correggono con una nota di credito, non con un nuovo tentativo.`;
+  const regMsg=rg.modalita==='denaro'?'':`\n\nRegolamento ${rg.modalita==='natura'?'in natura (permuta)':'misto'}: in natura ${fmt(rg.natura.tot)}, in denaro ${fmt(rg.denaro.tot)} (IVA compresa). La fattura resta per il valore pieno; la fornitura dello Sponsor va fatturata a parte dallo Sponsor.`;
+  const msg=`Emettere fattura a ${s.nome}?\n\nImponibile: ${fmt(scomp.imponibile)}\nIVA (${scomp.aliquota}%): ${fmt(scomp.imposta)}\nTotale: ${fmt(scomp.totale)}${regMsg}\n\nIl numero verrà assegnato automaticamente dal contatore ufficiale e non sarà più modificabile: eventuali errori si correggono con una nota di credito, non con un nuovo tentativo.`;
   if(!confirm(msg))return;
   const anno=new Date().getFullYear();
   const numRef=fbDb?fbDb.ref(`spartans/contatori/fatture/${anno}`):null;
@@ -7269,7 +7351,8 @@ function generaFatturaSponsor(id){
     const rec={id:uid(),numero:numFormattato,anno,data:oggiIso,tipo:'fattura',
       sponsorId:s.id,sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
       sponsorCap:s.cap||'',sponsorComune:s.comune||'',sponsorProvincia:s.provincia||'',sponsorCodiceDest:s.codiceDest||'',sponsorPec:s.pec||'',
-      descr:c.descr||'Sponsorizzazione',imponibile:scomp.imponibile,aliquotaIva:scomp.aliquota,imposta:scomp.imposta,totale:scomp.totale};
+      descr:c.descr||'Sponsorizzazione',imponibile:scomp.imponibile,aliquotaIva:scomp.aliquota,imposta:scomp.imposta,totale:scomp.totale,
+      ...(rg.modalita!=='denaro'?{regolamento:rg.modalita,regolamentoTesto:_testoRegolamento(c,rg),denaroTot:rg.denaro.tot}:{})};
     DB.fatture.push(rec);
     saveDB();
     if(document.getElementById('fatture-tbody'))renderRegistroFatture();
@@ -7293,6 +7376,7 @@ function apriModuloFattura(rec){
     sponsorNome:rec.sponsorNome,sponsorCf:rec.sponsorCf||'',sponsorPiva:rec.sponsorPiva||'',sponsorIndirizzo:rec.sponsorIndirizzo||'',
     descr:rec.descr||'',imponibile:rec.imponibile.toFixed(2),aliquotaIva:rec.aliquotaIva,imposta:rec.imposta.toFixed(2),totale:rec.totale.toFixed(2),
     stagione,causaleNota:rec.causale||'',
+    ...(rec.regolamentoTesto?{regolamento:rec.regolamentoTesto}:{}),
     ...(rif?{rifNumero:rif.numero,rifData:formatDate(rif.data)}:{}),
     ...ps
   });
@@ -7327,8 +7411,13 @@ function generaXmlFatturaPA(rec){
     const rif=(DB.fatture||[]).find(f=>f.id===rec.fatturaRiferimentoId);
     if(rif)causale=`${rec.tipo==='nota_credito'?'Nota di credito':'Nota di debito'} a rettifica della fattura n. ${rif.numero} del ${formatDate(rif.data)}. Motivo: ${rec.causale||''}`;
   }
+  // Causale: il tracciato FatturaPA ammette al massimo 200 caratteri per elemento, ripetibile (v6.3.0: spezzata in blocchi)
+  const _chunk200=t=>{const out=[];t=String(t||'');for(let i=0;i<t.length;i+=200)out.push(t.slice(i,i+200));return out.length?out:[''];};
+  const causaleXml=[..._chunk200(causale),...(rec.regolamentoTesto?_chunk200(rec.regolamentoTesto):[])].map(x=>`<Causale>${_escapeXml(x)}</Causale>`).join('\n');
   const iban=(st.iban||'').trim();
-  const datiPagamento=iban?`<DatiPagamento><CondizioniPagamento>TP02</CondizioniPagamento><DettaglioPagamento><ModalitaPagamento>MP05</ModalitaPagamento><ImportoPagamento>${rec.totale.toFixed(2)}</ImportoPagamento><IBAN>${_escapeXml(iban)}</IBAN></DettaglioPagamento></DatiPagamento>`:'';
+  // Con regolamento in natura/misto (v6.3.0) l'importo da pagare è la sola quota in denaro; se è tutto in natura non c'è blocco pagamento
+  const importoPag=(rec.denaroTot!==undefined)?rec.denaroTot:rec.totale;
+  const datiPagamento=(iban&&importoPag>0)?`<DatiPagamento><CondizioniPagamento>TP02</CondizioniPagamento><DettaglioPagamento><ModalitaPagamento>MP05</ModalitaPagamento><ImportoPagamento>${importoPag.toFixed(2)}</ImportoPagamento><IBAN>${_escapeXml(iban)}</IBAN></DettaglioPagamento></DatiPagamento>`:'';
   const sedeCed=`<Sede><Indirizzo>${_escapeXml(st.indirizzo||'')}</Indirizzo><CAP>${_escapeXml(st.cap||'00000')}</CAP><Comune>${_escapeXml(st.citta||'')}</Comune><Provincia>${_escapeXml((st.provincia||'').toUpperCase())}</Provincia><Nazione>IT</Nazione></Sede>`;
   const sedeCes=`<Sede><Indirizzo>${_escapeXml(rec.sponsorIndirizzo||'')}</Indirizzo><CAP>${_escapeXml(rec.sponsorCap||'00000')}</CAP><Comune>${_escapeXml(rec.sponsorComune||'')}</Comune><Provincia>${_escapeXml((rec.sponsorProvincia||'').toUpperCase())}</Provincia><Nazione>IT</Nazione></Sede>`;
   const idFiscaleCes=cesPiva?`<IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${_escapeXml(cesPiva)}</IdCodice></IdFiscaleIVA>`:'';
@@ -7367,7 +7456,7 @@ ${sedeCes}
 <Divisa>EUR</Divisa>
 <Data>${dataDoc}</Data>
 <Numero>${_escapeXml(numeroDoc)}</Numero>
-<Causale>${_escapeXml(causale)}</Causale>
+${causaleXml}
 </DatiGeneraliDocumento>
 </DatiGenerali>
 <DatiBeniServizi>
@@ -7488,6 +7577,7 @@ function generaContrattoSponsor(id){
     asdAffiliazione:DB.struttura.affiliazione||''
   }:{};
   const _ic=_importoContratto(c);
+  const _rg=_regolamentoContratto(c);
   const p=new URLSearchParams({
     sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
     sponsorEmail:s.email||'',sponsorTel:s.tel||'',
@@ -7495,6 +7585,8 @@ function generaContrattoSponsor(id){
     lrCf:lr.cf||'',lrResidenza:lr.residenza||'',lrCi:lr.ci||'',
     descr:c.descr||'',oggetto:c.oggetto||'',importo:c.importo?String(_ic.imponibile):'',aliquotaIva:String(_ic.aliquota),periodicita:c.periodicita||'',
     inizio:c.inizio?formatDate(c.inizio):'',scadenza:c.scadenza?formatDate(c.scadenza):'',
+    regolamento:_rg.modalita==='denaro'?'':_rg.modalita,naturaDescr:_rg.modalita==='denaro'?'':(c.naturaDescr||''),
+    naturaImp:_rg.modalita==='denaro'?'':String(_rg.natura.imp),naturaConsegna:(_rg.modalita!=='denaro'&&c.naturaConsegna)?formatDate(c.naturaConsegna):'',
     stagione,dataDoc:oggi,...ps
   });
   window.open(`${BASE_URL}modulo_contratto_sponsor.html?${p}`,'_blank');
@@ -7811,6 +7903,7 @@ const GUIDA_VOCI=[
   {cat:'🤝 Sponsor',titolo:'Aggiungere uno sponsor',testo:'Vai su Sponsor → \"+ Nuovo sponsor\". Compila l\'anagrafica (ragione sociale, categoria, CF/P.IVA, contatti, referente, logo) e la sezione Contratto (descrizione, oggetto della sponsorizzazione, importo, periodicità, scadenza).',tag:'sponsor nuovo aggiungere anagrafica contratto'},
   {cat:'🤝 Sponsor',titolo:'Generare il contratto di sponsorizzazione',testo:'Apri la scheda dello sponsor → sezione Documenti → \"📄 Genera contratto di sponsorizzazione\". Il documento riporta i dati di entrambe le parti (ASD e sponsor), i rispettivi legali rappresentanti, l\'oggetto, la durata e il corrispettivo, pronto per la doppia firma. Inserisci i dati del Presidente in \"La mia struttura\" → IDS perché vengano riportati correttamente. Nell\'Art. 5 il contratto riporta imponibile, IVA (aliquota e importo) e totale, con il totale scritto in lettere anche nei centesimi; con aliquota 0 l\'IVA non viene indicata (vedi "Importo del contratto: imponibile e IVA").',tag:'contratto sponsorizzazione generare documento firma'},
   {cat:'🤝 Sponsor',titolo:'Importo del contratto: imponibile e IVA',testo:'Nella scheda sponsor il campo "Importo" è l\'imponibile (IVA esclusa): inserisci anche l\'aliquota (predefinita 22%) e sotto vedi subito imponibile + IVA = totale. Il contratto (Art. 5), la fattura e l\'elenco sponsor usano lo stesso calcolo; l\'entrata in Amministrazione registra il totale realmente incassato (imponibile + IVA). Con aliquota 0 l\'IVA non viene indicata. I contratti salvati prima della v6.2.2 avevano l\'importo come totale IVA compresa e restano invariati finché non modifichi importo o aliquota: nel form vedi l\'imponibile equivalente.',tag:'sponsor importo imponibile iva aliquota totale contratto fattura entrata'},
+  {cat:'🤝 Sponsor',titolo:'Sponsorizzazione pagata in natura (permuta)',testo:'Se lo sponsor paga con beni o servizi invece che con denaro (es. materiale tecnico in cambio del marchio su divise e social), nella scheda sponsor → Contratto scegli "Modalità di regolamento": In natura (tutto il corrispettivo in beni/servizi) oppure Misto (una parte in denaro, una in natura). Indica sempre un valore in euro: il campo "Importo" resta il valore della sponsorizzazione (imponibile) e, nel Misto, inserisci anche il valore normale della parte in natura (imponibile). Descrivi i beni con precisione (modello, quantità, specifiche) e, se la conosci, la data di consegna. Effetti: il contratto (Art. 5) riporta la cessione dei beni, la compensazione tra le obbligazioni, il rimedio in caso di mancata consegna e la garanzia di conformità; la fattura dell\'ASD resta per il valore pieno della sponsorizzazione e riporta la dicitura di regolamento (nel file XML anche nella Causale, e il blocco pagamento contiene solo la quota in denaro); l\'entrata in Amministrazione registra solo la quota realmente incassata in denaro (nessuna entrata se è tutto in natura); in elenco compare il badge 🔁 e lo stato "Regolato". Attenzione: la permuta non è esente da imposte — anche lo sponsor deve fatturare all\'ASD la fornitura dei beni, e il trattamento IVA e imposte sul reddito in regime 398/91 va confermato con il commercialista prima di firmare. I contratti esistenti restano "In denaro" e non cambiano.',tag:'sponsor natura permuta compensazione beni materiale tecnico regolamento misto in omaggio sconto contratto fattura'},
 
   {cat:'🤝 Sponsor',titolo:'Archiviare il contratto firmato',testo:'Dopo la firma, carica la scansione su Drive e incolla il link nel campo \"Contratto firmato\" nella scheda sponsor.',tag:'contratto firmato allegato archiviare drive sponsor'},
   {cat:'🤝 Sponsor',titolo:'Collegare il contratto a un\'entrata in Amministrazione',testo:'Nella scheda sponsor, imposta \"Stato pagamento\" su \"Incassato\" e inserisci l\'importo: l\'app crea automaticamente un\'entrata in Amministrazione con il badge 🤝 sponsor, per il totale incassato (imponibile + IVA). Se modifichi importo o stato, l\'entrata si aggiorna; se elimini lo sponsor, l\'entrata collegata viene rimossa.',tag:'sponsor entrata amministrazione incassato collegamento automatico'},
@@ -8421,7 +8514,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.2.2';
+    const CURRENT_VER='6.3.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

@@ -2,6 +2,21 @@
 
 ---
 
+## v6.3.0 · Ottobre 2026
+
+### Novità — Sponsorizzazioni pagate in natura (permuta)
+- **Scheda sponsor → Contratto**: nuovo campo *Modalità di regolamento* — **In denaro** (default, come prima), **In natura** (permuta), **Misto**. Per natura/misto: descrizione dei beni/servizi ceduti dallo sponsor (obbligatoria), data di consegna, e nel misto il valore normale della parte in natura (imponibile, > 0 e < importo). L'*Importo* resta il valore in euro della sponsorizzazione (imponibile); l'anteprima mostra "in natura + in denaro".
+- **Calcolo unico** `_regolamentoContratto()`: parte in natura valorizzata con la stessa aliquota del contratto; parte in denaro = totale − natura; totale sempre uguale alla somma. Se la parte in natura coincide con l'importo vale come permuta totale.
+- **Contratto (Art. 5)** riscritto con natura/misto: cessione dei beni (valore normale, IVA, consegna), compensazione tra le reciproche obbligazioni, fattura di ciascuna parte, rimedio in caso di mancata o difforme consegna (sospensione del marchio o pagamento in denaro del valore), garanzia di conformità 24 mesi. Testo base: va verificato prima della firma.
+- **Fattura sponsor**: resta per il valore pieno; riporta la dicitura di regolamento (`regolamentoTesto`) e salva `denaroTot` nel registro. **XML FatturaPA**: dicitura nella `Causale`; `DatiPagamento` con la sola quota in denaro (omesso se tutto in natura). La `Causale` oltre i 200 caratteri è ora divisa in più elementi (limite del tracciato).
+- **Entrata in Amministrazione**: registra solo la quota in denaro realmente incassata (nessuna entrata se tutto in natura; descrizione con "(quota in denaro)" nel misto).
+- **Elenco sponsor**: badge 🔁 *permuta in natura / misto*; stato "Regolato" / "Da regolare" per le permute totali; l'opzione di stato nel form diventa "Incassato / regolato".
+- **Compatibilità**: i contratti salvati prima di v6.3.0 non hanno il campo `regolamento` e restano "in denaro", invariati.
+- **Da sapere**: la permuta non è esente da imposte — anche lo sponsor fattura all'ASD la fornitura, e il trattamento IVA/redditi in regime 398/91 va confermato con il commercialista.
+- Nuova voce di Guida "Sponsorizzazione pagata in natura (permuta)".
+
+---
+
 ## v6.2.2 · Ottobre 2026
 
 ### Modifica — Contratto sponsor: l'importo è l'imponibile, l'IVA si aggiunge
