@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.5.0 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.6.0 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -731,6 +731,17 @@ tbody td{padding:10px 13px;vertical-align:middle;}
                   <option value="interna">Spartans Manager — numero progressivo interno, XML da caricare sul portale</option>
                   <option value="esterna">Software esterno (es. Aruba) — qui importo le fatture emesse</option>
                 </select>
+              </div>
+              <div class="fgroup s2"><label>📅 Sincronizzazione con Google Calendar</label>
+                <label style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:500;"><input type="checkbox" id="s-gcal-attivo"> Sincronizza gli eventi del calendario con un calendario Google (ogni ora, a senso unico: app → Google)</label>
+                <input class="fi" id="s-gcal-id" placeholder="ID del calendario (Impostazioni calendario → Integra il calendario → ID calendario)" style="margin-top:6px;">
+                <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:12.5px;">
+                  <label><input type="checkbox" id="s-gcal-t-gara" checked> ⚔️ Gare</label>
+                  <label><input type="checkbox" id="s-gcal-t-allenamento" checked> 🏒 Allenamenti</label>
+                  <label><input type="checkbox" id="s-gcal-t-attivita" checked> 📌 Attività</label>
+                  <label><input type="checkbox" id="s-gcal-t-scadenza" checked> ⏰ Scadenze</label>
+                </div>
+                <div style="font-size:11px;color:var(--text3);margin-top:3px;">Le modifiche fatte direttamente su Google Calendar vengono sovrascritte. Richiede la configurazione una tantum descritta nella Guida (voce «Sincronizzazione Google Calendar»).</div>
               </div>
               <div class="fgroup s2"><label>Indirizzo (via e numero)</label><input class="fi" id="s-indirizzo"></div>
               <div class="fgroup s2"><label>IBAN (per fatture/pagamenti)</label><input class="fi" id="s-iban" placeholder="IT.."></div>
@@ -1948,6 +1959,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.6.0 · Ottobre 2026</div>
+        <div class="cl-section">Novità — Sincronizzazione con Google Calendar</div>
+        <div class="cl-item"><strong>Calendario Google sempre allineato</strong>: in <em>La mia struttura</em> puoi attivare la sincronizzazione di <em>tutti</em> gli eventi (gare, allenamenti, attività, scadenze) con un calendario Google dell'associazione. Un job automatico li aggiorna ogni ora; scegli quali tipi inviare.</div>
+        <div class="cl-item"><strong>Senso unico</strong>: l'app è la fonte; le modifiche fatte direttamente su Google vengono sovrascritte. Gli eventi già passati non vengono mai cancellati dal calendario, nemmeno dopo la chiusura stagione.</div>
+        <div class="cl-item"><strong>Promemoria</strong>: le scadenze avvisano 7 giorni e 1 giorno prima (anche via email), gare e attività 1 giorno prima; le voci completate sono grigie e senza avvisi.</div>
+        <div class="cl-item"><strong>Configurazione una tantum</strong>: vedi la Guida, voce «Sincronizzazione Google Calendar».</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.5.0 · Ottobre 2026</div>
         <div class="cl-section">Novità — Calendario: attività e scadenze libere</div>
         <div class="cl-item"><strong>Due nuovi tipi di voce</strong>: <em>📌 Attività</em> (riunione, adempimento, impegno qualsiasi) e <em>⏰ Scadenza</em> (es. rinnovo, invio di un documento). Si inseriscono dai pulsanti <strong>📌 + Attività</strong> e <strong>⏰ + Scadenza</strong> del Calendario, oppure cliccando un giorno e scegliendo il <em>Tipo</em> nel modulo. Servono solo titolo e data; ora, luogo, note e squadra sono facoltativi, e non è richiesto alcun corso.</div>
@@ -2953,7 +2973,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.5.0 · Ottobre 2026';
+const APP_VERSION = 'v6.6.0 · Ottobre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3167,6 +3187,9 @@ function loadStrutturaForm(){
   ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','iban','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)el.value=s[k]||'';});
   const fonteSel=document.getElementById('s-fonte-fatture');if(fonteSel)fonteSel.value=s.fonteFatture==='esterna'?'esterna':'interna';
+  const gA=document.getElementById('s-gcal-attivo');if(gA)gA.checked=!!s.gcalAttivo;
+  const gI=document.getElementById('s-gcal-id');if(gI)gI.value=s.gcalId||'';
+  ['gara','allenamento','attivita','scadenza'].forEach(t=>{const c=document.getElementById('s-gcal-t-'+t);if(c)c.checked=!(s.gcalTipi&&s.gcalTipi[t]===false);});
   document.getElementById('logo-nome-display').textContent=s.nome||'Spartans';
   const pw=document.getElementById('logo-preview-wrap');
   pw.innerHTML=s.logo?`<img src="${s.logo}" style="width:100%;height:100%;object-fit:cover;">`:'⚔️';
@@ -3177,6 +3200,9 @@ function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura
   ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','iban','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)DB.struttura[k]=el.value;});
   const fonteSelS=document.getElementById('s-fonte-fatture');if(fonteSelS)DB.struttura.fonteFatture=fonteSelS.value==='esterna'?'esterna':'interna';
+  const gAS=document.getElementById('s-gcal-attivo');if(gAS)DB.struttura.gcalAttivo=gAS.checked;
+  const gIS=document.getElementById('s-gcal-id');if(gIS)DB.struttura.gcalId=gIS.value.trim();
+  DB.struttura.gcalTipi={};['gara','allenamento','attivita','scadenza'].forEach(t=>{const c=document.getElementById('s-gcal-t-'+t);DB.struttura.gcalTipi[t]=c?c.checked:true;});
   document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
 
 // ═══ CONSIGLIO DIRETTIVO ══════════════════════════════════
@@ -8372,6 +8398,7 @@ document.addEventListener('click',e=>{
 
 // ═══ GUIDA ════════════════════════════════════════════════
 const GUIDA_VOCI=[
+  {cat:'📅 Calendario',titolo:'Sincronizzazione Google Calendar',testo:'Sincronizza in automatico, ogni ora, tutti gli eventi con un calendario Google (a senso unico: app → Google). Configurazione una tantum: 1) su Google Calendar crea un calendario secondario "Spartans Manager" e condividilo con l\'account di servizio del progetto Firebase con permesso "Apporta modifiche agli eventi"; 2) su Google Cloud crea un secondo account di servizio di sola lettura sul Realtime Database (ruolo "Visualizzatore Firebase Realtime Database") e scarica la chiave JSON; 3) su GitHub, Settings → Secrets → Actions, salva la chiave come FIREBASE_SA_JSON (e quella del calendario come GOOGLE_SA_JSON) e aggiungi la variabile FIREBASE_DB_URL; 4) in La mia struttura attiva la sincronizzazione e incolla l\'ID del calendario; 5) lancia il workflow una volta con "simula" attivo e controlla i conteggi. Non incollare mai le chiavi in chat o nel codice.',tag:'google calendar sincronizzazione sync calendario promemoria'},
   {cat:'💰 Amministrazione',titolo:'Saldo conto corrente e saldo cassa',testo:'Nel tab "Riepilogo" di Amministrazione, oltre al saldo totale, vedi separatamente il saldo del conto corrente e il saldo della cassa. Ogni movimento (entrata o uscita) finisce in uno dei due in base al Metodo scelto: Bonifico, Carta, POS e Altro aggiornano il conto corrente; Contanti aggiorna la cassa (un movimento senza metodo conta come cassa). Il saldo parte dai valori reali del 05/10/2026 (c/c €1.670, cassa €80) e si aggiorna con i movimenti; Se vuoi spostare un movimento da un conto all\'altro, modificalo (✏️) e cambia il Metodo. La Prima nota mostra lo stesso dettaglio per il periodo filtrato.',tag:'saldo conto corrente cassa contanti bonifico carta pos altro riepilogo metodo di pagamento'},
   {cat:'👤 Anagrafiche',titolo:'Aggiungere un nuovo atleta',testo:'Vai su Anagrafiche → Atleti → "+ Nuovo atleta". Compila i dati nei 6 tab: Anagrafica, Sanitario, Genitori, Taglie, Pagamenti, Documenti. Il campo "Tipologia" distingue tra Atleta e Amatore.',tag:'atleta aggiungere nuovo socio'},
   {cat:'👤 Anagrafiche',titolo:'Importare atleti dal Google Form',testo:'Vai su Anagrafiche → Atleti → "📊 Sheets". Incolla il CSV esportato dal Google Form. L\'app riconosce tutte le 39 colonne e aggiorna i campi vuoti se l\'atleta esiste già.',tag:'importare csv google form sheets'},
@@ -9044,7 +9071,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.5.0';
+    const CURRENT_VER='6.6.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

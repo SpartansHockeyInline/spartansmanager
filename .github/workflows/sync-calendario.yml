@@ -1,0 +1,40 @@
+name: Sincronizza calendario Google
+# Ogni ora allinea il calendario Google con gli eventi dell'app (a senso unico: app -> calendario).
+# Se la sincronizzazione non e' attivata in "La mia struttura" o mancano i Secrets, non fa nulla.
+# A mano (Actions > Sincronizza calendario Google > Run workflow): con "simula" attivo non scrive nulla.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      simula:
+        description: "simula = mostra solo cosa farebbe, senza scrivere sul calendario"
+        type: boolean
+        default: true
+      forza:
+        description: "forza = salta lo STOP di sicurezza (solo se sai perche' scatta)"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: sync-calendario
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet google-auth requests
+      - name: Sincronizza
+        env:
+          FIREBASE_SA_JSON: ${{ secrets.FIREBASE_SA_JSON }}
+          GOOGLE_SA_JSON: ${{ secrets.GOOGLE_SA_JSON }}
+          FIREBASE_DB_URL: ${{ vars.FIREBASE_DB_URL || secrets.FIREBASE_DB_URL }}
+          SIMULA: ${{ (github.event_name == 'workflow_dispatch' && inputs.simula) && '1' || '0' }}
+          FORZA: ${{ (github.event_name == 'workflow_dispatch' && inputs.forza) && '1' || '0' }}
+        run: python3 .github/scripts/sync_calendario.py

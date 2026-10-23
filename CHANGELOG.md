@@ -2,6 +2,19 @@
 
 ---
 
+## v6.6.0 · Ottobre 2026
+
+### Novità — Sincronizzazione con Google Calendar
+- **Job** `.github/workflows/sync-calendario.yml` (cron orario + avvio manuale con `simula` di default) che esegue `.github/scripts/sync_calendario.py`: legge `spartans/data/struttura` e `spartans/data/eventi` da Firebase con un account di servizio di **sola lettura** (`FIREBASE_SA_JSON`) e allinea un calendario Google con un secondo account di servizio (`GOOGLE_SA_JSON`). Sincronizza **tutti** gli eventi dei tipi abilitati, allenamenti automatici compresi.
+- **Impostazioni** in *La mia struttura*: `struttura.gcalAttivo`, `gcalId`, `gcalTipi{gara,allenamento,attivita,scadenza}` (default tutti attivi).
+- **Id stabili**: id Google = `sm` + base32hex(sha1(chiave)); chiave = `e|<id>` per gli eventi manuali, `a|<autoCorsoId>|<data>|<ora>` per gli allenamenti automatici (che l'app rigenera con id nuovi a ogni modifica del corso). Nessuno stato da conservare, job idempotente.
+- **Diff per impronta**: ogni evento porta `extendedProperties.private.h`; si scrive solo se cambia. Il job tocca solo eventi con `spartans=1`.
+- **Sicurezza**: non cancella mai eventi già passati; STOP se il database sembra vuoto o le cancellazioni superano 25 / metà; `FORZA=1` per scavalcare. I log (pubblici) contengono solo conteggi.
+- **Promemoria**: scadenze 7 e 1 giorno prima (popup + email), gare/attività 1 giorno prima, allenamenti nessuno, completate nessuno e grigie. Orari in Europe/Rome.
+- Retry con attesa crescente su 429/5xx/limiti di frequenza; 409 su id già usato (evento cancellato in passato) → PATCH `status: confirmed`.
+
+---
+
 ## v6.5.0 · Ottobre 2026
 
 ### Novità — Calendario: attività e scadenze libere
