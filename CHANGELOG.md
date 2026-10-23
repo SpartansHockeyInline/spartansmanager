@@ -2,6 +2,34 @@
 
 ---
 
+## v6.4.0 · Ottobre 2026
+
+### Novità — Fatture emesse da Aruba (o da un altro software)
+- **Fonte di emissione e numerazione** (*La mia struttura*, `struttura.fonteFatture`): `interna` (predefinita, come prima) oppure `esterna`. Con `esterna`, `generaFatturaSponsor()` ed `emettiNotaFattura()` si fermano con un avviso: emissione e note si fanno nel software esterno e si importano. Così i due registri non numerano in parallelo.
+- **Importa fatture da Aruba** (*Amministrazione → Fatture*, `importaFattureAruba()`): accetta uno o più file `.xml` e `.xml.p7m` scaricati da Aruba (il PDF non serve). `estraiXmlDaP7m()` legge la busta CMS/BER (`_berNodo()`), ricomponendo l'`OCTET STRING` costruita a blocchi: cercare il testo dentro il file non basta, perché i blocchi inseriscono byte di intestazione a metà XML. Supporta anche `.p7m` in base64.
+- **`parseFattureXml()`**: legge FatturaPA con o senza prefisso di namespace; per ogni `FatturaElettronicaBody` produce un record (`numero`, `data`, `tipo` da `TipoDocumento`, sponsor, `imponibile`/`imposta` sommati sui riepiloghi, `totale`, `natura`, `scadenzaPagamento`, `rifNumero`/`rifData` da `DatiFattureCollegate`, `causale`). Più aliquote nella stessa fattura: importi sommati, aliquota = la prima, con avviso.
+- **Controlli**: duplicato = stesso `numero` + `tipo` + `anno` (quindi XML e `.p7m` della stessa fattura non si duplicano); fattura con `IdFiscaleIVA` del cedente diversa da quella della struttura → scartata; file non validi, non FatturaPA o `.p7m` troncato → elencati con il motivo. Sponsor collegato per partita IVA o codice fiscale; nota collegata alla fattura per numero.
+- **Record importati** (`origine:'importata'`): conservano l'XML originale (`xmlOriginale`, fino a 200 kB) e il nome file; ⬇️ lo riscarica. Il `.p7m` è salvato come XML senza firma. Le righe mostrano 📥 e non offrono *Rigenera* né note di credito/debito.
+
+### Modifica — XML FatturaPA allineato al file reale di Aruba
+- `generaXmlFatturaPA(rec, progressivo)` riscritta sulla struttura del file scaricato da Aruba (stessa fattura, 44 elementi su 44, due sole differenze volute): root con `xmlns` predefinito e `xmlns=""` su Header e Body, `encoding="utf-8"`, `NumeroCivico` separato dall'indirizzo, `Contatti/Email`, `ImportoTotaleDocumento`, `Quantita`, `DataScadenzaPagamento`, blocco pagamento sempre presente (IBAN solo se plausibile). `Causale` solo per rettifiche e regolamento in natura/misto; niente `EsigibilitaIVA`. Le note aggiungono `DatiFattureCollegate` e non hanno blocco pagamento.
+- **Differenze volute**: `IdTrasmittente` = codice fiscale (o partita IVA) dell'associazione, perché l'XML lo carichi tu sul portale (Aruba mette il proprio); `ProgressivoInvio` = progressivo del contatore XML.
+
+### Correzioni — file che SdI avrebbe scartato
+- **Regime fiscale**: menu completo RF01–RF19 (salvo RF03). Prima solo RF01 e RF19, quindi non era possibile riprodurre il RF18 usato da Aruba.
+- **Nome file e `ProgressivoInvio`**: `IT<codice>_<5 cifre>.xml` con contatore Firebase `spartans/contatori/xml` (nuovo progressivo a ogni download, anche per la stessa fattura, così un file scartato e corretto non incontra il rifiuto per nome già inviato). Prima il progressivo derivava dalle cifre del numero fattura (`1/26` e `12/6` davano lo stesso `00126`) e il nome file conteneva il numero intero.
+- **IVA 0%**: campo *Natura IVA* (N1–N7) nel contratto sponsor, obbligatorio con aliquota 0 (altrimenti la fattura non viene emessa); `<Natura>` in linea e riepilogo; note di credito/debito la ereditano.
+- **`validaFatturaXml()`**: prima di generare, controlla partita IVA/CF, indirizzo, CAP (5 cifre), comune, provincia (2 lettere), regime fiscale, codice destinatario (7 caratteri), numero (1–20 caratteri con una cifra), data, importi coerenti e natura. Se qualcosa non va l'XML non viene generato e un avviso elenca i campi. Prima uscivano tag vuoti e `CAP 00000`.
+- **Caratteri**: `_xmlTesto()` converte virgolette tipografiche, trattini lunghi, `€`, puntini di sospensione e spazi speciali nell'equivalente ASCII e sostituisce con `?` ciò che resta fuori da Basic Latin + Latin-1.
+
+### Da sapere
+- L'XML è confrontato campo per campo con un file reale, ma **non è validato contro l'XSD ufficiale** (non raggiungibile dall'ambiente di sviluppo): prima del primo invio usa *Controlla file* sul portale.
+- Il codice RF da usare per la tua struttura (es. ASD in regime 398/91) va confermato con il commercialista e deve coincidere con quello del software di fatturazione.
+- **Compatibilità**: fatture e contratti esistenti non cambiano; `fonteFatture` assente = `interna`.
+- Nuove voci di Guida: *Fonte di emissione e numerazione*, *Fatture emesse da Aruba: importarle*, *Regime fiscale della fattura (codici RF)*; aggiornata *Generare la fattura per uno sponsor*.
+
+---
+
 ## v6.3.0 · Ottobre 2026
 
 ### Novità — Sponsorizzazioni pagate in natura (permuta)

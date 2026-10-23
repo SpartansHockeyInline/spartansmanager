@@ -484,7 +484,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.3.0 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.4.0 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -698,7 +698,30 @@ tbody td{padding:10px 13px;vertical-align:middle;}
               <div class="fgroup"><label>Regime fiscale fattura (cod. FatturaPA)</label>
                 <select class="fsel" id="s-regime-fiscale">
                   <option value="RF01">RF01 — Ordinario</option>
+                  <option value="RF02">RF02 — Contribuenti minimi</option>
+                  <option value="RF04">RF04 — Agricoltura e attività connesse e pesca</option>
+                  <option value="RF05">RF05 — Vendita sali e tabacchi</option>
+                  <option value="RF06">RF06 — Commercio fiammiferi</option>
+                  <option value="RF07">RF07 — Editoria</option>
+                  <option value="RF08">RF08 — Gestione servizi telefonia pubblica</option>
+                  <option value="RF09">RF09 — Rivendita documenti di trasporto pubblico e di sosta</option>
+                  <option value="RF10">RF10 — Intrattenimenti, giochi e altre attività (tariffa DPR 640/72)</option>
+                  <option value="RF11">RF11 — Agenzie viaggi e turismo</option>
+                  <option value="RF12">RF12 — Agriturismo</option>
+                  <option value="RF13">RF13 — Vendite a domicilio</option>
+                  <option value="RF14">RF14 — Rivendita beni usati, oggetti d'arte, antiquariato</option>
+                  <option value="RF15">RF15 — Agenzie di vendite all'asta</option>
+                  <option value="RF16">RF16 — IVA per cassa P.A.</option>
+                  <option value="RF17">RF17 — IVA per cassa</option>
+                  <option value="RF18">RF18 — Altro</option>
                   <option value="RF19">RF19 — Forfettario</option>
+                </select>
+                <div style="font-size:11px;color:var(--text3);margin-top:3px;">Il codice giusto per la tua struttura (es. ASD in regime 398/91) conferma con il commercialista: deve coincidere con quello che usi nel software di fatturazione.</div>
+              </div>
+              <div class="fgroup s2"><label>Fonte di emissione e numerazione delle fatture</label>
+                <select class="fsel" id="s-fonte-fatture">
+                  <option value="interna">Spartans Manager — numero progressivo interno, XML da caricare sul portale</option>
+                  <option value="esterna">Software esterno (es. Aruba) — qui importo le fatture emesse</option>
                 </select>
               </div>
               <div class="fgroup s2"><label>Indirizzo (via e numero)</label><input class="fi" id="s-indirizzo"></div>
@@ -1075,7 +1098,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
       </div>
       <div class="tab-panel" id="amm-tab-fatture">
         <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">
-          Registro di tutte le fatture emesse agli sponsor, comprese le eventuali note di credito/debito. Dal 1° gennaio 2024 (DL 36/2022) <strong>tutte</strong> le ASD con partita IVA devono emettere fattura elettronica, senza più soglie di esonero: per ogni riga puoi scaricare il file XML (formato FatturaPA) con "⬇️" e caricarlo sul portale "Fatture e Corrispettivi" dell'Agenzia delle Entrate (servizio gratuito, invio manuale) — verifica il file con la funzione "Controlla file" del portale prima di trasmetterlo per davvero. La numerazione si azzera a ogni nuovo anno (formato NNNN/AAAA) e non è mai modificabile a mano: un errore si corregge sempre con una nota di credito o di debito, mai annullando o rinumerando la fattura originale. Per emettere una fattura apri la scheda dello sponsor interessato → "🧾 Genera fattura".
+          Registro di tutte le fatture emesse agli sponsor, comprese le note di credito/debito. Dal 1° gennaio 2024 (DL 36/2022) <strong>tutte</strong> le ASD con partita IVA devono emettere fattura elettronica, senza più soglie di esonero. Hai due modi di lavorare, da scegliere in "La mia struttura" → <em>Fonte di emissione e numerazione</em>: <strong>Spartans Manager</strong> (numero progressivo interno NNNN/AAAA, mai modificabile a mano; per ogni riga scarichi l'XML FatturaPA con "⬇️" e lo carichi sul portale "Fatture e Corrispettivi" dopo averlo verificato con "Controlla file"; per emettere apri la scheda sponsor → "🧾 Genera fattura") oppure un <strong>software esterno come Aruba</strong>, che emette e numera: qui importi i file scaricati (XML o .p7m) e il registro ne tiene traccia. Un errore si corregge sempre con una nota di credito o di debito, mai annullando o rinumerando la fattura originale.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+          <button class="btn btn-p btn-sm" onclick="document.getElementById('fatture-import-file').click()">📥 Importa fatture da Aruba (XML o .p7m)</button>
+          <input type="file" id="fatture-import-file" accept=".xml,.p7m" multiple style="display:none;" onchange="importaFattureAruba(this.files);this.value=''">
+          <span id="fatture-fonte-info" style="font-size:12px;color:var(--text2);"></span>
         </div>
         <div class="tw"><table><thead><tr>
           <th>N°</th><th>Data</th><th>Sponsor</th><th>Tipo</th><th>Imponibile / IVA</th><th>Totale</th><th>Azioni</th>
@@ -1903,6 +1931,23 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.4.0 · Ottobre 2026</div>
+        <div class="cl-section">Novità — Fatture emesse da Aruba (o da un altro software)</div>
+        <div class="cl-item"><strong>Fonte di emissione e numerazione</strong> (La mia struttura): scegli se le fatture le emette e le numera <em>Spartans Manager</em> (come prima, resta il valore predefinito) oppure un <em>software esterno come Aruba</em>. Con la scelta esterna "Genera fattura" e le note di credito/debito di Spartans Manager sono disattivate, così i due registri non possono numerare in parallelo.</div>
+        <div class="cl-item"><strong>Importa fatture da Aruba</strong> (Amministrazione → Fatture): carica uno o più file scaricati da Aruba, sia l'<strong>XML</strong> sia il <strong>.xml.p7m</strong> firmato (il PDF non serve). Dal .p7m viene estratto l'XML; il registro riceve numero, data, sponsor, imponibile, IVA, totale, natura, scadenza e, per le note, la fattura collegata. Lo sponsor viene collegato per partita IVA o codice fiscale.</div>
+        <div class="cl-item"><strong>Controlli all'importazione</strong>: una fattura già presente (stesso numero, tipo e anno) non viene duplicata, anche se la importi due volte da file diversi (XML e .p7m); una fattura emessa da un'altra partita IVA viene scartata; i file non validi o troncati vengono elencati con il motivo. Le righe importate mostrano 📥 e permettono di riscaricare l'<strong>XML originale</strong> di Aruba (⬇️).</div>
+        <div class="cl-section">Modifica — XML FatturaPA allineato al file reale di Aruba</div>
+        <div class="cl-item"><strong>Stessa struttura</strong> del file scaricato da Aruba (confrontati campo per campo sulla stessa fattura): <em>NumeroCivico</em> separato, <em>Contatti/Email</em>, <em>ImportoTotaleDocumento</em>, <em>Quantita</em>, <em>DataScadenzaPagamento</em>; <em>Causale</em> solo per rettifiche e regolamento in natura (non più duplicata della descrizione); nessuna <em>EsigibilitaIVA</em> (opzionale). Le note collegano la fattura corretta (<em>DatiFattureCollegate</em>). Unica differenza voluta: <em>IdTrasmittente</em> è l'associazione, perché il file lo carichi tu.</div>
+        <div class="cl-section">Correzioni — file che SdI avrebbe scartato</div>
+        <div class="cl-item"><strong>Regime fiscale</strong>: il menu offre ora tutti i codici da RF01 a RF19 (prima solo RF01 e RF19); quello da usare per la tua struttura va confermato con il commercialista e deve coincidere con il software di fatturazione.</div>
+        <div class="cl-item"><strong>Nome file e progressivo</strong>: <code>IT&lt;codice&gt;_&lt;progressivo di 5 cifre&gt;.xml</code>, con un contatore dedicato che dà un progressivo nuovo a ogni file scaricato (prima il progressivo derivava dal numero della fattura e poteva coincidere con un altro documento).</div>
+        <div class="cl-item"><strong>IVA 0%</strong>: nuovo campo <em>Natura IVA</em> (N1–N7) nel contratto, obbligatorio con aliquota 0; senza di esso la fattura non viene emessa. Note di credito/debito ereditano la natura.</div>
+        <div class="cl-item"><strong>Controllo dati prima dell'XML</strong>: se mancano o sono errati indirizzo, CAP (5 cifre), comune, provincia, partita IVA/codice fiscale, codice destinatario, numero o importi, il file non viene generato e un messaggio elenca i campi da completare (prima uscivano tag vuoti e CAP 00000).</div>
+        <div class="cl-item"><strong>Caratteri speciali</strong>: virgolette tipografiche, trattini lunghi, € e simili (tipici di un copia-incolla da Word) vengono convertiti nell'equivalente ASCII, perché il tracciato accetta solo Latin-1.</div>
+        <div class="cl-item"><strong>Da sapere</strong>: l'XML è confrontato con un file reale ma non validato contro lo schema ufficiale; prima del primo invio usa "Controlla file" del portale. Le fatture e i contratti esistenti non cambiano: la fonte resta "Spartans Manager" finché non la modifichi.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.3.0 · Ottobre 2026</div>
         <div class="cl-section">Novità — Sponsorizzazioni pagate in natura (permuta)</div>
         <div class="cl-item"><strong>Scheda sponsor → Contratto</strong>: nuovo campo <em>Modalità di regolamento</em> con tre scelte — <strong>In denaro</strong> (come prima), <strong>In natura</strong> (permuta) e <strong>Misto</strong>. Per natura e misto si indicano la descrizione dei beni/servizi ceduti dallo sponsor, la data di consegna e, nel misto, il valore normale della parte in natura. L'<em>Importo</em> resta il valore in euro della sponsorizzazione (imponibile) e sotto i campi compare "in natura + in denaro".</div>
@@ -2658,6 +2703,32 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <div class="fgroup s2"><label>Oggetto della sponsorizzazione (controprestazioni ASD)</label><textarea class="fta" id="m-sp-contratto-oggetto" placeholder="es. Apposizione del marchio su: divise da gara, banner 3x1m a bordo pista, pagine social (Facebook, Instagram)" rows="3"></textarea></div>
           <div class="fgroup"><label>Importo (€) — imponibile, IVA esclusa</label><input class="fi" id="m-sp-contratto-importo" type="number" step="0.01" oninput="aggiornaTotaleContratto()"></div>
           <div class="fgroup"><label>Aliquota IVA (%)</label><input class="fi" id="m-sp-contratto-iva" type="number" step="0.01" placeholder="22" value="22" oninput="aggiornaTotaleContratto()"></div>
+          <div class="fgroup s2" id="m-sp-contratto-natura-wrap" style="display:none;"><label>Natura IVA (obbligatoria con aliquota 0%)</label>
+            <select class="fsel" id="m-sp-contratto-natura">
+              <option value="">— scegli la natura —</option>
+              <option value="N1">N1 — Escluse ex art. 15</option>
+              <option value="N2.1">N2.1 — Non soggette (artt. 7–7-septies DPR 633/72)</option>
+              <option value="N2.2">N2.2 — Non soggette, altri casi</option>
+              <option value="N3.1">N3.1 — Non imponibili, esportazioni</option>
+              <option value="N3.2">N3.2 — Non imponibili, cessioni intracomunitarie</option>
+              <option value="N3.3">N3.3 — Non imponibili, cessioni verso San Marino</option>
+              <option value="N3.4">N3.4 — Non imponibili, assimilate alle esportazioni</option>
+              <option value="N3.5">N3.5 — Non imponibili, dichiarazioni d'intento</option>
+              <option value="N3.6">N3.6 — Non imponibili, altre operazioni</option>
+              <option value="N4">N4 — Esenti</option>
+              <option value="N5">N5 — Regime del margine / IVA non esposta</option>
+              <option value="N6.1">N6.1 — Inversione contabile, rottami</option>
+              <option value="N6.2">N6.2 — Inversione contabile, oro e argento</option>
+              <option value="N6.3">N6.3 — Inversione contabile, subappalto edile</option>
+              <option value="N6.4">N6.4 — Inversione contabile, fabbricati</option>
+              <option value="N6.5">N6.5 — Inversione contabile, telefoni cellulari</option>
+              <option value="N6.6">N6.6 — Inversione contabile, prodotti elettronici</option>
+              <option value="N6.7">N6.7 — Inversione contabile, edilizia e settori connessi</option>
+              <option value="N6.8">N6.8 — Inversione contabile, settore energetico</option>
+              <option value="N6.9">N6.9 — Inversione contabile, altri casi</option>
+              <option value="N7">N7 — IVA assolta in altro Stato UE</option>
+            </select>
+          </div>
           <div class="fgroup s2"><div id="m-sp-contratto-totale" style="font-size:12px;color:var(--text2);min-height:16px;"></div></div>
           <div class="fgroup"><label>Modalità di regolamento</label>
             <select class="fsel" id="m-sp-contratto-regolamento" onchange="aggiornaRegolamentoContratto()">
@@ -2851,7 +2922,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.3.0 · Ottobre 2026';
+const APP_VERSION = 'v6.4.0 · Ottobre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3064,6 +3135,7 @@ function loadStrutturaForm(){
   const s=DB.struttura;
   ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','iban','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)el.value=s[k]||'';});
+  const fonteSel=document.getElementById('s-fonte-fatture');if(fonteSel)fonteSel.value=s.fonteFatture==='esterna'?'esterna':'interna';
   document.getElementById('logo-nome-display').textContent=s.nome||'Spartans';
   const pw=document.getElementById('logo-preview-wrap');
   pw.innerHTML=s.logo?`<img src="${s.logo}" style="width:100%;height:100%;object-fit:cover;">`:'⚔️';
@@ -3073,6 +3145,7 @@ function loadStrutturaForm(){
 function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
   ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','iban','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)DB.struttura[k]=el.value;});
+  const fonteSelS=document.getElementById('s-fonte-fatture');if(fonteSelS)DB.struttura.fonteFatture=fonteSelS.value==='esterna'?'esterna':'interna';
   document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
 
 // ═══ CONSIGLIO DIRETTIVO ══════════════════════════════════
@@ -7120,7 +7193,7 @@ function openModalSponsor(id=null){
       const c=s.contratto||{};
       const cmap={descr:'m-sp-contratto-descr',oggetto:'m-sp-contratto-oggetto',importo:'m-sp-contratto-importo',aliquotaIva:'m-sp-contratto-iva',periodicita:'m-sp-contratto-periodicita',
         inizio:'m-sp-contratto-inizio',scadenza:'m-sp-contratto-scadenza',pagato:'m-sp-contratto-pagato',allegato:'m-sp-contratto-allegato',
-        regolamento:'m-sp-contratto-regolamento',naturaDescr:'m-sp-contratto-natura-descr',naturaValore:'m-sp-contratto-natura-valore',naturaConsegna:'m-sp-contratto-natura-consegna'};
+        natura:'m-sp-contratto-natura',regolamento:'m-sp-contratto-regolamento',naturaDescr:'m-sp-contratto-natura-descr',naturaValore:'m-sp-contratto-natura-valore',naturaConsegna:'m-sp-contratto-natura-consegna'};
       Object.entries(cmap).forEach(([k,v])=>{const el=document.getElementById(v);if(el&&c[k]!==undefined)el.value=c[k];});
       // Contratto salvato prima di v6.2.2 (importo = totale IVA compresa): il form mostra l'imponibile equivalente
       if(c.importo&&c.importoTipo!=='imponibile'){
@@ -7165,6 +7238,7 @@ function saveSponsor(){
     importo:_fc.importo,
     ...(_fc.importoTipo?{importoTipo:_fc.importoTipo}:{}),
     aliquotaIva:g('m-sp-contratto-iva')||'22',
+    ...((parseFloat(g('m-sp-contratto-iva'))===0&&g('m-sp-contratto-natura'))?{natura:g('m-sp-contratto-natura')}:{}),
     periodicita:g('m-sp-contratto-periodicita')||'una_tantum',
     inizio:g('m-sp-contratto-inizio'),
     scadenza:g('m-sp-contratto-scadenza'),
@@ -7315,6 +7389,7 @@ function aggiornaRegolamentoContratto(){
 }
 // Anteprima nel form sponsor: imponibile + IVA = totale.
 function aggiornaTotaleContratto(nota){
+  {const w=document.getElementById('m-sp-contratto-natura-wrap'),iv=document.getElementById('m-sp-contratto-iva');if(w&&iv)w.style.display=(parseFloat(iv.value)===0)?'':'none';}
   const el=document.getElementById('m-sp-contratto-totale');if(!el)return;
   if(!document.getElementById('m-sp-contratto-importo').value){el.textContent=nota||'';return;}
   const r=_importoContratto(_importoFormContratto());
@@ -7333,10 +7408,12 @@ function _calcolaScompostoIva(totaleLordo, aliquotaPct){
 }
 function generaFatturaSponsor(id){
   if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  if(_fonteFattureEsterna()){alert('La numerazione e l\'emissione delle fatture sono impostate su un software esterno (es. Aruba).\n\nEmetti la fattura da lì, poi importala qui: Amministrazione → Fatture → "Importa fatture da Aruba".\n\nPer emettere da Spartans Manager cambia l\'impostazione in "La mia struttura".');return;}
   const s=(DB.sponsor||[]).find(x=>x.id===id);if(!s)return;
   const c=s.contratto||{};
   if(!c.importo){toast('Inserisci prima l\'importo del contratto','error');return;}
   const scomp=_importoContratto(c);
+  if(scomp.aliquota===0&&!NATURE_IVA_VALIDE.includes(c.natura)){toast('Con IVA 0% scegli la Natura dell\'operazione nella scheda del contratto (es. N4 esente)','error');return;}
   const rg=_regolamentoContratto(c);
   const fmt=n=>'€ '+n.toFixed(2).replace('.',',');
   const regMsg=rg.modalita==='denaro'?'':`\n\nRegolamento ${rg.modalita==='natura'?'in natura (permuta)':'misto'}: in natura ${fmt(rg.natura.tot)}, in denaro ${fmt(rg.denaro.tot)} (IVA compresa). La fattura resta per il valore pieno; la fornitura dello Sponsor va fatturata a parte dallo Sponsor.`;
@@ -7352,6 +7429,7 @@ function generaFatturaSponsor(id){
       sponsorId:s.id,sponsorNome:s.nome,sponsorCf:s.cf||'',sponsorPiva:s.piva||'',sponsorIndirizzo:s.indirizzo||'',
       sponsorCap:s.cap||'',sponsorComune:s.comune||'',sponsorProvincia:s.provincia||'',sponsorCodiceDest:s.codiceDest||'',sponsorPec:s.pec||'',
       descr:c.descr||'Sponsorizzazione',imponibile:scomp.imponibile,aliquotaIva:scomp.aliquota,imposta:scomp.imposta,totale:scomp.totale,
+      ...(scomp.aliquota===0?{natura:c.natura}:{}),
       ...(rg.modalita!=='denaro'?{regolamento:rg.modalita,regolamentoTesto:_testoRegolamento(c,rg),denaroTot:rg.denaro.tot}:{})};
     DB.fatture.push(rec);
     saveDB();
@@ -7382,115 +7460,422 @@ function apriModuloFattura(rec){
   });
   window.open(`${BASE_URL}modulo_fattura_sponsor.html?${p}`,'_blank');
 }
-// Genera il file XML FatturaPA (formato FPR12, verso privati) per
-// l'upload manuale sul portale "Fatture e Corrispettivi" dell'Agenzia
-// delle Entrate. Costruito a mano sulla base della documentazione
-// pubblica del tracciato FatturaPA v1.2: struttura e nomi degli elementi
-// sono corretti per quanto verificabile da qui, ma un XML generato senza
-// una libreria/validatore dedicato va sempre controllato — il portale
-// stesso lo valida e lo scarta se mal formato, quindi un errore qui è un
-// problema di comodità, non di conformità fiscale: non invierà mai una
-// fattura "sbagliata ma accettata". Prima del primo invio reale, usa la
-// funzione "Controlla file" del portale (o fai verificare a Chimienti)
-// prima di proseguire con l'invio.
-function _escapeXml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function generaXmlFatturaPA(rec){
+// ═══ XML FatturaPA e importazione fatture esterne (v6.4.0) ═══════════════════════════════
+// Schema allineato al file reale scaricato da Aruba Fatturazione (FPR12, verso impresa, IVA 22%):
+// stessa struttura, stessi elementi opzionali (NumeroCivico, Contatti/Email, ImportoTotaleDocumento,
+// Quantita, DataScadenzaPagamento), nessuna Causale duplicata della descrizione e nessuna EsigibilitaIVA
+// (opzionale: se assente vale "immediata"). Resta l'unica differenza voluta: IdTrasmittente è l'ASD,
+// perché l'XML di Spartans Manager lo carichi tu sul portale (Aruba mette la propria partita IVA).
+// NOTA: l'XML è costruito a mano e confrontato con un file reale, ma non validato contro l'XSD ufficiale
+// (non raggiungibile dall'ambiente di sviluppo): prima del primo invio usa "Controlla file" del portale.
+const RF_VALIDI=['RF01','RF02','RF04','RF05','RF06','RF07','RF08','RF09','RF10','RF11','RF12','RF13','RF14','RF15','RF16','RF17','RF18','RF19'];
+const NATURE_IVA_VALIDE=['N1','N2.1','N2.2','N3.1','N3.2','N3.3','N3.4','N3.5','N3.6','N4','N5','N6.1','N6.2','N6.3','N6.4','N6.5','N6.6','N6.7','N6.8','N6.9','N7'];
+function _fonteFattureEsterna(){return (DB.struttura&&DB.struttura.fonteFatture)==='esterna';}
+// Testo per XML: il tracciato ammette solo Basic Latin + Latin-1. Virgolette tipografiche, trattini lunghi,
+// € e simili (tipici di un copia-incolla da Word) farebbero scartare il file: li sostituisco con l'equivalente ASCII.
+function _xmlTesto(s){
+  let t=String(s==null?'':s);
+  t=t.replace(/[‘’‚‛′]/g,"'").replace(/[“”„‟″]/g,'"')
+     .replace(/[‐-―−]/g,'-').replace(/€/g,'EUR').replace(/…/g,'...')
+     .replace(/[     ]/g,' ').replace(/[​-‍﻿]/g,'')
+     .replace(/[\r\n\t]+/g,' ')
+     .replace(/[\u0000-\u001F\u007F-\u009F]/g,'')
+     .replace(/[^ -~ -ÿ]/g,'?');
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function _escapeXml(s){return _xmlTesto(s);}
+// "Via Gen. Rocco Maffei, 34" → via + numero civico (come fa Aruba); se non riconosco il civico lascio tutto in Indirizzo
+function _splitIndirizzo(ind){
+  const s=String(ind||'').trim();
+  const m=s.match(/^(.*?)[,\s]+(\d+[A-Za-z]?(?:[\/\-][A-Za-z0-9]+)?)$/);
+  if(m&&m[1].trim()&&m[2].length<=8)return{via:m[1].trim().replace(/[,\s]+$/,''),civico:m[2]};
+  return{via:s,civico:''};
+}
+function _n2(n){return (Math.round((parseFloat(n)||0)*100)/100).toFixed(2);}
+// Controllo preventivo: elenco dei dati che farebbero scartare il file da SdI (vuoto = ok)
+function validaFatturaXml(rec,st){
+  st=st||DB.struttura||{};
+  const e=[];
+  const cifre=(s,n)=>new RegExp('^\\d{'+n+'}$').test(String(s||'').trim());
+  const piva=s=>String(s||'').replace(/\s/g,'').replace(/^IT/i,'');
+  const cfOk=s=>/^(\d{11}|[A-Za-z0-9]{16})$/.test(String(s||'').replace(/\s/g,''));
+  if(!cifre(piva(st.piva),11))e.push('Struttura: Partita IVA (11 cifre) in "La mia struttura"');
+  if(st.cf&&!cfOk(st.cf))e.push('Struttura: Codice Fiscale non valido (11 cifre o 16 caratteri)');
+  if(!String(st.nome||'').trim())e.push('Struttura: denominazione');
+  if(!String(st.indirizzo||'').trim())e.push('Struttura: indirizzo');
+  if(!cifre(st.cap,5))e.push('Struttura: CAP (5 cifre)');
+  if(!String(st.citta||'').trim())e.push('Struttura: comune');
+  if(!/^[A-Za-z]{2}$/.test(String(st.provincia||'').trim()))e.push('Struttura: provincia (sigla di 2 lettere)');
+  if(!RF_VALIDI.includes(st.regimeFiscale))e.push('Struttura: regime fiscale');
+  const nomeSp=String(rec.sponsorNome||'').trim();
+  if(!nomeSp)e.push('Sponsor: denominazione');
+  const pSp=piva(rec.sponsorPiva),cSp=String(rec.sponsorCf||'').replace(/\s/g,'');
+  if(pSp&&!cifre(pSp,11))e.push('Sponsor: Partita IVA (11 cifre)');
+  if(cSp&&!cfOk(cSp))e.push('Sponsor: Codice Fiscale non valido');
+  if(!pSp&&!cSp)e.push('Sponsor: serve almeno Partita IVA o Codice Fiscale');
+  if(!String(rec.sponsorIndirizzo||'').trim())e.push('Sponsor: indirizzo');
+  if(!cifre(rec.sponsorCap,5))e.push('Sponsor: CAP (5 cifre)');
+  if(!String(rec.sponsorComune||'').trim())e.push('Sponsor: comune');
+  if(!/^[A-Za-z]{2}$/.test(String(rec.sponsorProvincia||'').trim()))e.push('Sponsor: provincia (sigla di 2 lettere)');
+  const cd=String(rec.sponsorCodiceDest||'').trim();
+  if(cd&&!/^[A-Za-z0-9]{7}$/.test(cd))e.push('Sponsor: Codice Destinatario SdI (7 caratteri)');
+  if(!cd&&rec.sponsorPec&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(rec.sponsorPec).trim()))e.push('Sponsor: PEC non valida');
+  const num=String(rec.numero||'');
+  if(!num||num.length>20||!/\d/.test(num))e.push('Documento: numero (1-20 caratteri, con almeno una cifra)');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(rec.data||'')))e.push('Documento: data');
+  if(!(parseFloat(rec.imponibile)>0))e.push('Documento: imponibile');
+  if(Math.abs((parseFloat(rec.imponibile)||0)+(parseFloat(rec.imposta)||0)-(parseFloat(rec.totale)||0))>0.011)e.push('Documento: imponibile + IVA non coincide con il totale');
+  if(!(parseFloat(rec.aliquotaIva)>=0))e.push('Documento: aliquota IVA');
+  if(parseFloat(rec.aliquotaIva)===0&&!NATURE_IVA_VALIDE.includes(rec.natura))e.push('Documento: con IVA 0% serve la Natura dell\'operazione (es. N4 esente) nel contratto dello sponsor');
+  return e;
+}
+// Genera l'XML FatturaPA. `progressivo` = progressivo di trasmissione (max 5 caratteri alfanumerici),
+// usato sia in ProgressivoInvio sia nel nome del file (vedi nomeFileXmlFattura).
+function generaXmlFatturaPA(rec,progressivo){
   const st=DB.struttura||{};
+  const t=_xmlTesto;
   const tipoDocMap={fattura:'TD01',nota_credito:'TD04',nota_debito:'TD05'};
   const tipoDocumento=rec.tipoDocXml||tipoDocMap[rec.tipo]||'TD01';
-  const progressivo=String(rec.numero).replace(/[^0-9]/g,'').padStart(5,'0')||'00001';
-  const numeroDoc=rec.numero;
-  const dataDoc=rec.data; // già YYYY-MM-DD
-  const regimeFiscale=st.regimeFiscale||'RF01';
-  const codiceDest=(rec.sponsorCodiceDest||'').trim()||'0000000';
-  const pecDest=(!rec.sponsorCodiceDest&&rec.sponsorPec)?rec.sponsorPec.trim():'';
-  const cedPiva=(st.piva||'').replace(/^IT/i,'');
-  const cesPiva=(rec.sponsorPiva||'').replace(/^IT/i,'');
-  let causale=rec.descr||'Sponsorizzazione';
-  if(rec.fatturaRiferimentoId){
-    const rif=(DB.fatture||[]).find(f=>f.id===rec.fatturaRiferimentoId);
-    if(rif)causale=`${rec.tipo==='nota_credito'?'Nota di credito':'Nota di debito'} a rettifica della fattura n. ${rif.numero} del ${formatDate(rif.data)}. Motivo: ${rec.causale||''}`;
+  const prog=String(progressivo||rec.progressivoXml||'00001');
+  const cedPiva=String(st.piva||'').replace(/\s/g,'').replace(/^IT/i,'');
+  const cedCf=String(st.cf||'').replace(/\s/g,'').toUpperCase();
+  const idTrasm=cedCf||cedPiva;
+  const cesPiva=String(rec.sponsorPiva||'').replace(/\s/g,'').replace(/^IT/i,'');
+  const cesCf=String(rec.sponsorCf||'').replace(/\s/g,'').toUpperCase();
+  const dest=String(rec.sponsorCodiceDest||'').trim().toUpperCase();
+  const pecDest=(!dest&&rec.sponsorPec)?String(rec.sponsorPec).trim():'';
+  const via=_splitIndirizzo(st.indirizzo);
+  const email=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(st.email||'').trim())?String(st.email).trim():'';
+  const rif=rec.fatturaRiferimentoId?(DB.fatture||[]).find(f=>f.id===rec.fatturaRiferimentoId):null;
+  // Causale (max 200 caratteri per elemento, ripetibile): solo per rettifiche e regolamento in natura/misto.
+  // La descrizione del servizio sta già nella riga di dettaglio, come nel file Aruba.
+  const _chunk200=x=>{const out=[];x=String(x||'');for(let i=0;i<x.length;i+=200)out.push(x.slice(i,i+200));return out;};
+  const causali=[];
+  if(rif)causali.push(..._chunk200(`${rec.tipo==='nota_credito'?'Nota di credito':'Nota di debito'} a rettifica della fattura n. ${rif.numero} del ${formatDate(rif.data)}. Motivo: ${rec.causale||''}`));
+  else if(rec.fatturaRiferimentoId&&rec.causale)causali.push(..._chunk200(`Rettifica. Motivo: ${rec.causale}`));
+  if(rec.regolamentoTesto)causali.push(..._chunk200(rec.regolamentoTesto));
+  const aliq=parseFloat(rec.aliquotaIva)||0;
+  const natura=(aliq===0&&NATURE_IVA_VALIDE.includes(rec.natura))?rec.natura:'';
+  const importoPag=(rec.denaroTot!==undefined)?parseFloat(rec.denaroTot)||0:parseFloat(rec.totale)||0;
+  const iban=String(st.iban||'').replace(/\s/g,'').toUpperCase();
+  const r=[];
+  r.push('<?xml version="1.0" encoding="utf-8"?>');
+  r.push('<FatturaElettronica versione="FPR12" xmlns="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2">');
+  r.push('  <FatturaElettronicaHeader xmlns="">');
+  r.push('    <DatiTrasmissione>');
+  r.push('      <IdTrasmittente>');
+  r.push('        <IdPaese>IT</IdPaese>');
+  r.push(`        <IdCodice>${t(idTrasm)}</IdCodice>`);
+  r.push('      </IdTrasmittente>');
+  r.push(`      <ProgressivoInvio>${t(prog)}</ProgressivoInvio>`);
+  r.push('      <FormatoTrasmissione>FPR12</FormatoTrasmissione>');
+  r.push(`      <CodiceDestinatario>${t(dest||'0000000')}</CodiceDestinatario>`);
+  if(pecDest)r.push(`      <PECDestinatario>${t(pecDest)}</PECDestinatario>`);
+  r.push('    </DatiTrasmissione>');
+  r.push('    <CedentePrestatore>');
+  r.push('      <DatiAnagrafici>');
+  r.push('        <IdFiscaleIVA>');
+  r.push('          <IdPaese>IT</IdPaese>');
+  r.push(`          <IdCodice>${t(cedPiva)}</IdCodice>`);
+  r.push('        </IdFiscaleIVA>');
+  if(cedCf)r.push(`        <CodiceFiscale>${t(cedCf)}</CodiceFiscale>`);
+  r.push('        <Anagrafica>');
+  r.push(`          <Denominazione>${t(st.nome)}</Denominazione>`);
+  r.push('        </Anagrafica>');
+  r.push(`        <RegimeFiscale>${t(st.regimeFiscale||'RF01')}</RegimeFiscale>`);
+  r.push('      </DatiAnagrafici>');
+  r.push('      <Sede>');
+  r.push(`        <Indirizzo>${t(via.via)}</Indirizzo>`);
+  if(via.civico)r.push(`        <NumeroCivico>${t(via.civico)}</NumeroCivico>`);
+  r.push(`        <CAP>${t(String(st.cap||'').trim())}</CAP>`);
+  r.push(`        <Comune>${t(st.citta)}</Comune>`);
+  r.push(`        <Provincia>${t(String(st.provincia||'').trim().toUpperCase())}</Provincia>`);
+  r.push('        <Nazione>IT</Nazione>');
+  r.push('      </Sede>');
+  if(email){
+    r.push('      <Contatti>');
+    r.push(`        <Email>${t(email)}</Email>`);
+    r.push('      </Contatti>');
   }
-  // Causale: il tracciato FatturaPA ammette al massimo 200 caratteri per elemento, ripetibile (v6.3.0: spezzata in blocchi)
-  const _chunk200=t=>{const out=[];t=String(t||'');for(let i=0;i<t.length;i+=200)out.push(t.slice(i,i+200));return out.length?out:[''];};
-  const causaleXml=[..._chunk200(causale),...(rec.regolamentoTesto?_chunk200(rec.regolamentoTesto):[])].map(x=>`<Causale>${_escapeXml(x)}</Causale>`).join('\n');
-  const iban=(st.iban||'').trim();
-  // Con regolamento in natura/misto (v6.3.0) l'importo da pagare è la sola quota in denaro; se è tutto in natura non c'è blocco pagamento
-  const importoPag=(rec.denaroTot!==undefined)?rec.denaroTot:rec.totale;
-  const datiPagamento=(iban&&importoPag>0)?`<DatiPagamento><CondizioniPagamento>TP02</CondizioniPagamento><DettaglioPagamento><ModalitaPagamento>MP05</ModalitaPagamento><ImportoPagamento>${importoPag.toFixed(2)}</ImportoPagamento><IBAN>${_escapeXml(iban)}</IBAN></DettaglioPagamento></DatiPagamento>`:'';
-  const sedeCed=`<Sede><Indirizzo>${_escapeXml(st.indirizzo||'')}</Indirizzo><CAP>${_escapeXml(st.cap||'00000')}</CAP><Comune>${_escapeXml(st.citta||'')}</Comune><Provincia>${_escapeXml((st.provincia||'').toUpperCase())}</Provincia><Nazione>IT</Nazione></Sede>`;
-  const sedeCes=`<Sede><Indirizzo>${_escapeXml(rec.sponsorIndirizzo||'')}</Indirizzo><CAP>${_escapeXml(rec.sponsorCap||'00000')}</CAP><Comune>${_escapeXml(rec.sponsorComune||'')}</Comune><Provincia>${_escapeXml((rec.sponsorProvincia||'').toUpperCase())}</Provincia><Nazione>IT</Nazione></Sede>`;
-  const idFiscaleCes=cesPiva?`<IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${_escapeXml(cesPiva)}</IdCodice></IdFiscaleIVA>`:'';
-  const cfCes=rec.sponsorCf?`<CodiceFiscale>${_escapeXml(rec.sponsorCf)}</CodiceFiscale>`:'';
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<p:FatturaElettronica xmlns:p="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" versione="FPR12">
-<FatturaElettronicaHeader>
-<DatiTrasmissione>
-<IdTrasmittente><IdPaese>IT</IdPaese><IdCodice>${_escapeXml(cedPiva)}</IdCodice></IdTrasmittente>
-<ProgressivoInvio>${progressivo}</ProgressivoInvio>
-<FormatoTrasmissione>FPR12</FormatoTrasmissione>
-<CodiceDestinatario>${_escapeXml(codiceDest)}</CodiceDestinatario>
-${pecDest?`<PECDestinatario>${_escapeXml(pecDest)}</PECDestinatario>`:''}
-</DatiTrasmissione>
-<CedentePrestatore>
-<DatiAnagrafici>
-<IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${_escapeXml(cedPiva)}</IdCodice></IdFiscaleIVA>
-${st.cf?`<CodiceFiscale>${_escapeXml(st.cf)}</CodiceFiscale>`:''}
-<Anagrafica><Denominazione>${_escapeXml(st.nome||'')}</Denominazione></Anagrafica>
-<RegimeFiscale>${regimeFiscale}</RegimeFiscale>
-</DatiAnagrafici>
-${sedeCed}
-</CedentePrestatore>
-<CessionarioCommittente>
-<DatiAnagrafici>
-${idFiscaleCes}${cfCes}
-<Anagrafica><Denominazione>${_escapeXml(rec.sponsorNome||'')}</Denominazione></Anagrafica>
-</DatiAnagrafici>
-${sedeCes}
-</CessionarioCommittente>
-</FatturaElettronicaHeader>
-<FatturaElettronicaBody>
-<DatiGenerali>
-<DatiGeneraliDocumento>
-<TipoDocumento>${tipoDocumento}</TipoDocumento>
-<Divisa>EUR</Divisa>
-<Data>${dataDoc}</Data>
-<Numero>${_escapeXml(numeroDoc)}</Numero>
-${causaleXml}
-</DatiGeneraliDocumento>
-</DatiGenerali>
-<DatiBeniServizi>
-<DettaglioLinee>
-<NumeroLinea>1</NumeroLinea>
-<Descrizione>${_escapeXml(rec.descr||'Sponsorizzazione')}</Descrizione>
-<PrezzoUnitario>${rec.imponibile.toFixed(2)}</PrezzoUnitario>
-<PrezzoTotale>${rec.imponibile.toFixed(2)}</PrezzoTotale>
-<AliquotaIVA>${rec.aliquotaIva.toFixed(2)}</AliquotaIVA>
-</DettaglioLinee>
-<DatiRiepilogo>
-<AliquotaIVA>${rec.aliquotaIva.toFixed(2)}</AliquotaIVA>
-<ImponibileImporto>${rec.imponibile.toFixed(2)}</ImponibileImporto>
-<Imposta>${rec.imposta.toFixed(2)}</Imposta>
-<EsigibilitaIVA>I</EsigibilitaIVA>
-</DatiRiepilogo>
-</DatiBeniServizi>
-${datiPagamento}
-</FatturaElettronicaBody>
-</p:FatturaElettronica>`;
+  r.push('    </CedentePrestatore>');
+  r.push('    <CessionarioCommittente>');
+  r.push('      <DatiAnagrafici>');
+  if(cesPiva){
+    r.push('        <IdFiscaleIVA>');
+    r.push('          <IdPaese>IT</IdPaese>');
+    r.push(`          <IdCodice>${t(cesPiva)}</IdCodice>`);
+    r.push('        </IdFiscaleIVA>');
+  }
+  if(cesCf)r.push(`        <CodiceFiscale>${t(cesCf)}</CodiceFiscale>`);
+  r.push('        <Anagrafica>');
+  r.push(`          <Denominazione>${t(rec.sponsorNome)}</Denominazione>`);
+  r.push('        </Anagrafica>');
+  r.push('      </DatiAnagrafici>');
+  r.push('      <Sede>');
+  r.push(`        <Indirizzo>${t(rec.sponsorIndirizzo)}</Indirizzo>`);
+  r.push(`        <CAP>${t(String(rec.sponsorCap||'').trim())}</CAP>`);
+  r.push(`        <Comune>${t(rec.sponsorComune)}</Comune>`);
+  r.push(`        <Provincia>${t(String(rec.sponsorProvincia||'').trim().toUpperCase())}</Provincia>`);
+  r.push('        <Nazione>IT</Nazione>');
+  r.push('      </Sede>');
+  r.push('    </CessionarioCommittente>');
+  r.push('  </FatturaElettronicaHeader>');
+  r.push('  <FatturaElettronicaBody xmlns="">');
+  r.push('    <DatiGenerali>');
+  r.push('      <DatiGeneraliDocumento>');
+  r.push(`        <TipoDocumento>${t(tipoDocumento)}</TipoDocumento>`);
+  r.push('        <Divisa>EUR</Divisa>');
+  r.push(`        <Data>${t(rec.data)}</Data>`);
+  r.push(`        <Numero>${t(rec.numero)}</Numero>`);
+  r.push(`        <ImportoTotaleDocumento>${_n2(rec.totale)}</ImportoTotaleDocumento>`);
+  causali.forEach(c=>r.push(`        <Causale>${t(c)}</Causale>`));
+  r.push('      </DatiGeneraliDocumento>');
+  if(rif){
+    r.push('      <DatiFattureCollegate>');
+    r.push(`        <IdDocumento>${t(rif.numero)}</IdDocumento>`);
+    r.push(`        <Data>${t(rif.data)}</Data>`);
+    r.push('      </DatiFattureCollegate>');
+  }
+  r.push('    </DatiGenerali>');
+  r.push('    <DatiBeniServizi>');
+  r.push('      <DettaglioLinee>');
+  r.push('        <NumeroLinea>1</NumeroLinea>');
+  r.push(`        <Descrizione>${t(String(rec.descr||'Sponsorizzazione').slice(0,1000))}</Descrizione>`);
+  r.push('        <Quantita>1.00</Quantita>');
+  r.push(`        <PrezzoUnitario>${_n2(rec.imponibile)}</PrezzoUnitario>`);
+  r.push(`        <PrezzoTotale>${_n2(rec.imponibile)}</PrezzoTotale>`);
+  r.push(`        <AliquotaIVA>${aliq.toFixed(2)}</AliquotaIVA>`);
+  if(natura)r.push(`        <Natura>${natura}</Natura>`);
+  r.push('      </DettaglioLinee>');
+  r.push('      <DatiRiepilogo>');
+  r.push(`        <AliquotaIVA>${aliq.toFixed(2)}</AliquotaIVA>`);
+  if(natura)r.push(`        <Natura>${natura}</Natura>`);
+  r.push(`        <ImponibileImporto>${_n2(rec.imponibile)}</ImponibileImporto>`);
+  r.push(`        <Imposta>${_n2(rec.imposta)}</Imposta>`);
+  r.push('      </DatiRiepilogo>');
+  r.push('    </DatiBeniServizi>');
+  // Pagamento: come in Aruba (TP02, bonifico MP05, scadenza); IBAN solo se presente e plausibile. Con regolamento
+  // in natura/misto l'importo è la sola quota in denaro; nessun blocco se tutto in natura o per le note di credito.
+  if(tipoDocumento!=='TD04'&&importoPag>0){
+    r.push('    <DatiPagamento>');
+    r.push('      <CondizioniPagamento>TP02</CondizioniPagamento>');
+    r.push('      <DettaglioPagamento>');
+    r.push('        <ModalitaPagamento>MP05</ModalitaPagamento>');
+    r.push(`        <DataScadenzaPagamento>${t(rec.scadenzaPagamento||rec.data)}</DataScadenzaPagamento>`);
+    r.push(`        <ImportoPagamento>${_n2(importoPag)}</ImportoPagamento>`);
+    if(/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban))r.push(`        <IBAN>${t(iban)}</IBAN>`);
+    r.push('      </DettaglioPagamento>');
+    r.push('    </DatiPagamento>');
+  }
+  r.push('  </FatturaElettronicaBody>');
+  r.push('</FatturaElettronica>');
+  return r.join('\n');
 }
-function scaricaXmlFattura(fatturaId){
-  const r=(DB.fatture||[]).find(x=>x.id===fatturaId);if(!r)return;
-  if(!DB.struttura?.piva){toast('Inserisci la Partita IVA dell\'associazione in "La mia struttura" prima di generare l\'XML','error');return;}
-  const xml=generaXmlFatturaPA(r);
+// Nome file SdI: IT<codice trasmittente>_<progressivo di max 5 caratteri alfanumerici>.xml
+function nomeFileXmlFattura(progressivo){
+  const st=DB.struttura||{};
+  const id=String(st.cf||st.piva||'').replace(/\s/g,'').toUpperCase().replace(/^IT(?=\d{11}$)/,'');
+  return `IT${id}_${progressivo}.xml`;
+}
+// Ogni download riceve un nuovo progressivo di trasmissione (contatore su Firebase, mai riutilizzato): così
+// un file scartato da SdI e corretto può essere ricaricato senza il rifiuto per nome file già inviato.
+function _nuovoProgressivoXml(rec){
+  return new Promise((resolve,reject)=>{
+    if(_isDemo)return resolve('00001');
+    if(!fbDb)return reject(new Error('contatore non disponibile'));
+    fbDb.ref('spartans/contatori/xml').transaction(n=>(n||0)+1).then(res=>{
+      const n=res.snapshot.val();
+      if(n>99999)return reject(new Error('contatore esaurito'));
+      const p=String(n).padStart(5,'0');
+      rec.progressivoXml=p;
+      saveDB();
+      resolve(p);
+    }).catch(reject);
+  });
+}
+function _scaricaFileXml(xml,nome){
   const blob=new Blob([xml],{type:'application/xml'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`IT${(DB.struttura.piva||'').replace(/^IT/i,'')}_${r.numero.replace('/','-')}.xml`;
+  a.download=nome;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+async function scaricaXmlFattura(fatturaId){
+  const r=(DB.fatture||[]).find(x=>x.id===fatturaId);if(!r)return;
+  if(r.xmlOriginale){
+    _scaricaFileXml(r.xmlOriginale,r.nomeFileXml||(`${String(r.numero).replace(/[^A-Za-z0-9]+/g,'_')}.xml`));
+    toast('XML originale del software di fatturazione (senza firma digitale)','info');
+    return;
+  }
+  const err=validaFatturaXml(r);
+  if(err.length){alert('Non posso generare l\'XML: completa questi dati e riprova.\n\n'+err.map(x=>'• '+x).join('\n'));return;}
+  let prog;
+  try{prog=await _nuovoProgressivoXml(r);}
+  catch(e){toast('Errore nel contatore dei file XML — riprova','error');return;}
+  _scaricaFileXml(generaXmlFatturaPA(r,prog),nomeFileXmlFattura(prog));
   toast('XML generato — verificalo con "Controlla file" sul portale Fatture e Corrispettivi prima di inviarlo','info');
+}
+
+// ── Importazione delle fatture emesse da un software esterno (Aruba) ──────────────────────
+// Aruba scarica il file XML (non firmato) e il file .xml.p7m (firmato CAdES). Il .p7m è una busta ASN.1/BER
+// che contiene l'XML: lo estraggo leggendo la struttura (il contenuto può essere spezzato in più blocchi
+// "octet string", quindi NON basta cercare il testo dentro il file).
+function _berNodo(b,p,prof){
+  prof=prof||0;
+  if(prof>40||p>=b.length)throw new Error('struttura .p7m non valida');
+  const start=p;
+  const tag=b[p++];
+  let tagNum=tag&0x1f;
+  if(tagNum===0x1f){tagNum=0;while(p<b.length){const x=b[p++];tagNum=tagNum*128+(x&0x7f);if(!(x&0x80))break;}}
+  let len=b[p++],indef=false;
+  if(len===0x80){indef=true;len=0;}
+  else if(len&0x80){const n=len&0x7f;if(n>4)throw new Error('lunghezza ASN.1 non valida');len=0;for(let i=0;i<n;i++)len=len*256+b[p++];}
+  const costruito=!!(tag&0x20);
+  const nodo={tag,tagNum,costruito,start,contentStart:p,children:[]};
+  if(!costruito){
+    if(indef)throw new Error('struttura .p7m non valida');
+    nodo.contentEnd=p+len;nodo.end=nodo.contentEnd;
+    if(nodo.end>b.length)throw new Error('file .p7m troncato');
+    return nodo;
+  }
+  if(indef){
+    while(!(b[p]===0&&b[p+1]===0)){
+      if(p>=b.length)throw new Error('file .p7m troncato');
+      const ch=_berNodo(b,p,prof+1);nodo.children.push(ch);p=ch.end;
+    }
+    nodo.contentEnd=p;nodo.end=p+2;
+  }else{
+    const fine=p+len;
+    if(fine>b.length)throw new Error('file .p7m troncato');
+    while(p<fine){const ch=_berNodo(b,p,prof+1);nodo.children.push(ch);p=ch.end;}
+    nodo.contentEnd=fine;nodo.end=fine;
+  }
+  return nodo;
+}
+function estraiXmlDaP7m(bytes){
+  let b=bytes;
+  if(b[0]!==0x30){ // .p7m in base64 (anche con intestazioni PEM)
+    const s=new TextDecoder('latin1').decode(b).replace(/-----[^-]+-----/g,'').replace(/\s+/g,'');
+    if(!/^[A-Za-z0-9+\/=]+$/.test(s))throw new Error('formato .p7m non riconosciuto');
+    const bin=atob(s);b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
+  }
+  const root=_berNodo(b,0);
+  const sd=root.children[1]&&root.children[1].children[0];                   // ContentInfo → [0] → SignedData
+  const eci=sd&&sd.children.find(c=>c.tag===0x30);                           // encapContentInfo
+  const wrap=eci&&eci.children.find(c=>c.tag===0xA0);                        // [0] eContent
+  const oct=wrap&&wrap.children[0];
+  if(!oct||oct.tagNum!==4)throw new Error('contenuto del .p7m non trovato');
+  const pezzi=[];
+  const raccogli=n=>{if(!n.costruito)pezzi.push(b.subarray(n.contentStart,n.contentEnd));else n.children.forEach(raccogli);};
+  raccogli(oct);
+  let tot=0;pezzi.forEach(p=>{tot+=p.length;});
+  const out=new Uint8Array(tot);let o=0;pezzi.forEach(p=>{out.set(p,o);o+=p.length;});
+  return new TextDecoder('utf-8').decode(out).replace(/^﻿/,'');
+}
+// Legge un XML FatturaPA (anche con prefisso di namespace) e restituisce i record per il registro
+function parseFattureXml(xmlText,nomeFile){
+  const doc=new DOMParser().parseFromString(String(xmlText).replace(/^﻿/,''),'application/xml');
+  if(doc.getElementsByTagName('parsererror').length)throw new Error('XML non valido');
+  const root=doc.documentElement;
+  if(!root||root.localName!=='FatturaElettronica')throw new Error('non è una fattura elettronica (FatturaPA)');
+  const kids=(n,nome)=>Array.from(n.children).filter(c=>c.localName===nome);
+  const pick=(n,path)=>{let cur=[n];for(const seg of path.split('/')){cur=cur.flatMap(x=>kids(x,seg));if(!cur.length)return[];}return cur;};
+  const txt=(n,path)=>{const x=pick(n,path)[0];return x?x.textContent.trim():'';};
+  const num=s=>{const v=parseFloat(s);return isNaN(v)?0:v;};
+  const r2=n=>Math.round(n*100)/100;
+  const head=pick(root,'FatturaElettronicaHeader')[0];
+  if(!head)throw new Error('intestazione della fattura mancante');
+  const cedPiva=txt(head,'CedentePrestatore/DatiAnagrafici/IdFiscaleIVA/IdCodice');
+  const ces=pick(head,'CessionarioCommittente')[0]||head;
+  const nomeCes=txt(ces,'DatiAnagrafici/Anagrafica/Denominazione')||`${txt(ces,'DatiAnagrafici/Anagrafica/Nome')} ${txt(ces,'DatiAnagrafici/Anagrafica/Cognome')}`.trim();
+  const ind=txt(ces,'Sede/Indirizzo'),civ=txt(ces,'Sede/NumeroCivico');
+  const codDest=txt(head,'DatiTrasmissione/CodiceDestinatario');
+  const out=[];
+  pick(root,'FatturaElettronicaBody').forEach(body=>{
+    const td=txt(body,'DatiGenerali/DatiGeneraliDocumento/TipoDocumento')||'TD01';
+    const data=txt(body,'DatiGenerali/DatiGeneraliDocumento/Data');
+    const numero=txt(body,'DatiGenerali/DatiGeneraliDocumento/Numero');
+    if(!numero||!/^\d{4}-\d{2}-\d{2}$/.test(data))throw new Error('numero o data della fattura mancanti');
+    const riep=pick(body,'DatiBeniServizi/DatiRiepilogo');
+    if(!riep.length)throw new Error('riepilogo IVA mancante');
+    const imponibile=r2(riep.reduce((s,x)=>s+num(txt(x,'ImponibileImporto')),0));
+    const imposta=r2(riep.reduce((s,x)=>s+num(txt(x,'Imposta')),0));
+    const totDoc=num(txt(body,'DatiGenerali/DatiGeneraliDocumento/ImportoTotaleDocumento'));
+    const linee=pick(body,'DatiBeniServizi/DettaglioLinee').map(x=>txt(x,'Descrizione')).filter(Boolean);
+    const coll=pick(body,'DatiGenerali/DatiFattureCollegate')[0];
+    const avvisi=[];
+    if(riep.length>1)avvisi.push('più aliquote IVA: importo e imposta sono la somma, aliquota = la prima');
+    out.push({
+      cedentePiva:cedPiva,avvisi,
+      rec:{
+        id:uid(),numero,anno:parseInt(data.slice(0,4),10),data,
+        tipo:({TD01:'fattura',TD04:'nota_credito',TD05:'nota_debito'})[td]||'fattura',
+        ...(({TD01:1,TD04:1,TD05:1})[td]?{}:{tipoDocXml:td}),
+        sponsorNome:nomeCes,sponsorCf:txt(ces,'DatiAnagrafici/CodiceFiscale'),sponsorPiva:txt(ces,'DatiAnagrafici/IdFiscaleIVA/IdCodice'),
+        sponsorIndirizzo:civ&&ind&&!ind.includes(civ)?`${ind}, ${civ}`:ind,
+        sponsorCap:txt(ces,'Sede/CAP'),sponsorComune:txt(ces,'Sede/Comune'),sponsorProvincia:txt(ces,'Sede/Provincia'),
+        sponsorCodiceDest:codDest&&codDest!=='0000000'?codDest:'',sponsorPec:txt(head,'DatiTrasmissione/PECDestinatario'),
+        descr:(linee[0]||'')+(linee.length>1?` (+${linee.length-1} righe)`:''),
+        imponibile,aliquotaIva:num(txt(riep[0],'AliquotaIVA')),imposta,
+        totale:totDoc>0?r2(totDoc):r2(imponibile+imposta),
+        natura:riep.map(x=>txt(x,'Natura')).find(Boolean)||'',
+        scadenzaPagamento:txt(body,'DatiPagamento/DettaglioPagamento/DataScadenzaPagamento'),
+        rifNumero:coll?txt(coll,'IdDocumento'):'',rifData:coll?txt(coll,'Data'):'',
+        causale:pick(body,'DatiGenerali/DatiGeneraliDocumento/Causale').map(x=>x.textContent.trim()).join(' '),
+        origine:'importata',progressivoTrasmissione:txt(head,'DatiTrasmissione/ProgressivoInvio'),
+        nomeFileXml:nomeFile?(/\.xml$/i.test(nomeFile)?nomeFile:nomeFile+'.xml'):'',
+        xmlOriginale:String(xmlText).length<=200000?String(xmlText).replace(/^﻿/,''):'',
+        importataIl:new Date().toISOString()
+      }
+    });
+  });
+  if(!out.length)throw new Error('nessun corpo fattura nel file');
+  return out;
+}
+async function importaFattureAruba(fileList){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  const files=Array.from(fileList||[]);if(!files.length)return;
+  if(!DB.fatture)DB.fatture=[];
+  const pivaStr=String((DB.struttura||{}).piva||'').replace(/\s/g,'').replace(/^IT/i,'');
+  const norm=s=>String(s||'').replace(/\s/g,'').replace(/^IT/i,'').toUpperCase();
+  const nuove=[],gia=[],scartate=[],avvisi=[];
+  for(const f of files){
+    try{
+      const buf=new Uint8Array(await f.arrayBuffer());
+      const isP7m=/\.p7m$/i.test(f.name);
+      const xml=isP7m?estraiXmlDaP7m(buf):new TextDecoder('utf-8').decode(buf);
+      const nomeXml=f.name.replace(/\.p7m$/i,'');
+      parseFattureXml(xml,nomeXml).forEach(({rec,cedentePiva,avvisi:av})=>{
+        const et=`${f.name} (n. ${rec.numero})`;
+        if(pivaStr&&norm(cedentePiva)!==pivaStr){scartate.push(`${et}: emessa da P.IVA ${cedentePiva}, diversa da quella della struttura`);return;}
+        if(DB.fatture.some(x=>x.numero===rec.numero&&x.tipo===rec.tipo&&String(x.anno)===String(rec.anno))){gia.push(et);return;}
+        const sp=(DB.sponsor||[]).find(s=>(norm(rec.sponsorPiva)&&norm(s.piva)===norm(rec.sponsorPiva))||(norm(rec.sponsorCf)&&norm(s.cf)===norm(rec.sponsorCf)));
+        if(sp)rec.sponsorId=sp.id;
+        if(rec.rifNumero){
+          const o=DB.fatture.find(x=>x.numero===rec.rifNumero);
+          if(o)rec.fatturaRiferimentoId=o.id;
+        }
+        av.forEach(a=>avvisi.push(`${et}: ${a}`));
+        DB.fatture.push(rec);nuove.push(et);
+      });
+    }catch(e){scartate.push(`${f.name}: ${e.message}`);}
+  }
+  if(nuove.length){saveDB();}
+  if(document.getElementById('fatture-tbody'))renderRegistroFatture();
+  const righe=[];
+  if(nuove.length)righe.push(`Importate ${nuove.length} fatture.`);
+  if(gia.length)righe.push(`Già presenti (non duplicate): ${gia.length}\n${gia.map(x=>'• '+x).join('\n')}`);
+  if(scartate.length)righe.push(`Non importate: ${scartate.length}\n${scartate.map(x=>'• '+x).join('\n')}`);
+  if(avvisi.length)righe.push(`Da controllare:\n${avvisi.map(x=>'• '+x).join('\n')}`);
+  if(!gia.length&&!scartate.length&&!avvisi.length)toast(`Importate ${nuove.length} fatture`,'success');
+  else alert(righe.join('\n\n'));
 }
 function renderRegistroFatture(){
   const tb=document.getElementById('fatture-tbody');if(!tb)return;
+  const fonteEl=document.getElementById('fatture-fonte-info');
+  if(fonteEl)fonteEl.innerHTML=_fonteFattureEsterna()
+    ?'Fonte di emissione e numerazione: <strong>software esterno (es. Aruba)</strong> — qui registri le fatture importate.'
+    :'Fonte di emissione e numerazione: <strong>Spartans Manager</strong> (cambia in "La mia struttura").';
   const elenco=(DB.fatture||[]).slice().sort((a,b)=>b.data.localeCompare(a.data)||b.numero.localeCompare(a.numero));
   if(!elenco.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🧾</div><h3>Nessuna fattura ancora emessa</h3></div></td></tr>';return;}
   const fmt=n=>'€'+(parseFloat(n)||0).toFixed(2);
@@ -7500,10 +7885,10 @@ function renderRegistroFatture(){
     const rif=r.fatturaRiferimentoId?(DB.fatture||[]).find(f=>f.id===r.fatturaRiferimentoId):null;
     return`<tr>
     <td>${r.numero}</td><td>${formatDate(r.data)}</td><td>${r.sponsorNome}</td>
-    <td><span class="badge ${tipoBadge[r.tipo]||'bg'}">${tipoLabel[r.tipo]||r.tipo}</span>${rif?`<div style="font-size:11px;color:var(--text3);margin-top:2px;">rif. n. ${rif.numero}</div>`:''}</td>
+    <td><span class="badge ${tipoBadge[r.tipo]||'bg'}">${tipoLabel[r.tipo]||r.tipo}</span>${r.origine==='importata'?'<div style="font-size:11px;color:var(--text3);margin-top:2px;">📥 importata</div>':''}${rif?`<div style="font-size:11px;color:var(--text3);margin-top:2px;">rif. n. ${rif.numero}</div>`:''}</td>
     <td>${fmt(r.imponibile)}<div style="font-size:10px;color:var(--text2);">IVA ${r.aliquotaIva}%: ${fmt(r.imposta)}</div></td>
     <td style="font-weight:700;">${fmt(r.totale)}</td>
-    <td><div class="tda"><button class="bico" title="Rigenera documento identico" onclick="rigeneraFattura('${r.id}')">🔁</button><button class="bico" title="Scarica XML FatturaPA per il portale Entrate" onclick="scaricaXmlFattura('${r.id}')">⬇️</button>${r.tipo==='fattura'?`<button class="bico" title="Nota di credito" onclick="emettiNotaFattura('${r.id}','nota_credito')">➖</button><button class="bico" title="Nota di debito" onclick="emettiNotaFattura('${r.id}','nota_debito')">➕</button>`:''}</div></td>
+    <td><div class="tda">${r.origine==='importata'?'':`<button class="bico" title="Rigenera documento identico" onclick="rigeneraFattura('${r.id}')">🔁</button>`}<button class="bico" title="${r.origine==='importata'?'Scarica l\'XML originale importato':'Scarica XML FatturaPA per il portale Entrate'}" onclick="scaricaXmlFattura('${r.id}')">⬇️</button>${(r.tipo==='fattura'&&r.origine!=='importata')?`<button class="bico" title="Nota di credito" onclick="emettiNotaFattura('${r.id}','nota_credito')">➖</button><button class="bico" title="Nota di debito" onclick="emettiNotaFattura('${r.id}','nota_debito')">➕</button>`:''}</div></td>
   </tr>`;}).join('');
 }
 function rigeneraFattura(fatturaId){
@@ -7517,6 +7902,7 @@ function rigeneraFattura(fatturaId){
 // del documento che corregge.
 function emettiNotaFattura(fatturaId,tipo){
   if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  if(_fonteFattureEsterna()){alert('Con la numerazione su software esterno le note di credito e di debito si emettono lì (es. Aruba) e poi si importano qui.');return;}
   const orig=(DB.fatture||[]).find(x=>x.id===fatturaId);if(!orig)return;
   const etichetta=tipo==='nota_credito'?'nota di credito':'nota di debito';
   const causale=prompt(`Emettere una ${etichetta} a rettifica della fattura n. ${orig.numero} del ${formatDate(orig.data)} (${orig.sponsorNome}, €${orig.totale.toFixed(2)})?\nIndica il motivo (es. "fattura duplicata", "importo errato", "integrazione corrispettivo non fatturato"):`);
@@ -7537,6 +7923,7 @@ function emettiNotaFattura(fatturaId,tipo){
       sponsorId:orig.sponsorId,sponsorNome:orig.sponsorNome,sponsorCf:orig.sponsorCf||'',sponsorPiva:orig.sponsorPiva||'',sponsorIndirizzo:orig.sponsorIndirizzo||'',
       sponsorCap:orig.sponsorCap||'',sponsorComune:orig.sponsorComune||'',sponsorProvincia:orig.sponsorProvincia||'',sponsorCodiceDest:orig.sponsorCodiceDest||'',sponsorPec:orig.sponsorPec||'',
       descr:orig.descr||'',imponibile:scomp.imponibile,aliquotaIva:scomp.aliquota,imposta:scomp.imposta,totale:scomp.totale,
+      ...(orig.natura?{natura:orig.natura}:{}),
       fatturaRiferimentoId:orig.id,causale:causale.trim(),
       tipoDocXml:tipo==='nota_credito'?'TD04':'TD05'};
     DB.fatture.push(rec);
@@ -7907,7 +8294,10 @@ const GUIDA_VOCI=[
 
   {cat:'🤝 Sponsor',titolo:'Archiviare il contratto firmato',testo:'Dopo la firma, carica la scansione su Drive e incolla il link nel campo \"Contratto firmato\" nella scheda sponsor.',tag:'contratto firmato allegato archiviare drive sponsor'},
   {cat:'🤝 Sponsor',titolo:'Collegare il contratto a un\'entrata in Amministrazione',testo:'Nella scheda sponsor, imposta \"Stato pagamento\" su \"Incassato\" e inserisci l\'importo: l\'app crea automaticamente un\'entrata in Amministrazione con il badge 🤝 sponsor, per il totale incassato (imponibile + IVA). Se modifichi importo o stato, l\'entrata si aggiorna; se elimini lo sponsor, l\'entrata collegata viene rimossa.',tag:'sponsor entrata amministrazione incassato collegamento automatico'},
-  {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva (azzerata a ogni anno), dati ASD e sponsor, descrizione, imponibile (l\'importo del contratto), IVA e totale. La fattura viene anche registrata in modo permanente in Amministrazione → \"📄 Fatture\", da cui puoi scaricare il file XML (⬇️) da caricare sul portale \"Fatture e Corrispettivi\" dell\'Agenzia delle Entrate — obbligatorio per tutte le ASD con partita IVA dal 2024, senza soglie di esonero. Per correggere un errore NON si annulla la fattura: dal registro si emette una nota di credito (➖) o di debito (➕) che riferisce la fattura originale, la quale resta sempre intatta.',tag:'fattura sponsor generare documento numerazione nota di credito nota di debito xml sdi fatturapa'},
+  {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Con la fonte "Spartans Manager" (La mia struttura): apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva (azzerata a ogni anno), dati ASD e sponsor, descrizione, imponibile (l\'importo del contratto), IVA e totale, ed è registrato in Amministrazione → \"📄 Fatture\". Da lì scarichi l\'XML (⬇️) da caricare sul portale \"Fatture e Corrispettivi\" — obbligatorio per tutte le ASD con partita IVA dal 2024. Se mancano dati (indirizzo, CAP, provincia, ecc.) l\'XML non viene generato e ti viene detto cosa completare. Con IVA 0% scegli la Natura (N1–N7) nel contratto. Per correggere un errore NON si annulla la fattura: dal registro si emette una nota di credito (➖) o di debito (➕) che riferisce la fattura originale, la quale resta sempre intatta. Se invece emetti con Aruba, vedi \"Fatture emesse da Aruba\".',tag:'fattura sponsor generare documento numerazione nota di credito nota di debito xml sdi fatturapa natura iva'},
+  {cat:'🤝 Sponsor',titolo:'Fonte di emissione e numerazione delle fatture',testo:'In La mia struttura → \"Fonte di emissione e numerazione delle fatture\" scegli chi emette e numera: Spartans Manager (predefinito) oppure un software esterno come Aruba. Deve esserci UNA sola fonte di numerazione, altrimenti i registri divergono. Con la scelta esterna, \"Genera fattura\" e le note di credito/debito di Spartans Manager sono disattivate: emetti da Aruba e importi qui le fatture. Cambiare la scelta non modifica le fatture già registrate.',tag:'fonte emissione numerazione aruba esterno fattura contatore'},
+  {cat:'🤝 Sponsor',titolo:'Fatture emesse da Aruba: importarle',testo:'In Aruba scarica per ogni fattura il file XML oppure il .xml.p7m (il PDF non serve). In Spartans Manager vai in Amministrazione → \"📄 Fatture\" → \"📥 Importa fatture da Aruba\" e seleziona uno o più file. Vengono letti numero, data, sponsor, importi, natura, scadenza e, per le note, la fattura collegata; lo sponsor è collegato per partita IVA o codice fiscale. Una fattura già presente non viene duplicata (puoi importare sia XML sia .p7m), una fattura di un\'altra partita IVA viene scartata, e i file non validi sono elencati con il motivo. Le righe importate hanno 📥 e il pulsante ⬇️ riscarica l\'XML originale. Il PDF di cortesia lo conservi in Aruba.',tag:'importare fatture aruba xml p7m registro importazione'},
+  {cat:'🏛️ Struttura',titolo:'Regime fiscale della fattura (codici RF)',testo:'In La mia struttura → \"Regime fiscale fattura\" trovi i codici FatturaPA da RF01 a RF19. Il codice corretto dipende dalla posizione fiscale dell\'associazione (per esempio ASD in regime 398/91): confermalo con il commercialista e usa lo stesso codice del software di fatturazione (Aruba). Un codice errato finisce in ogni fattura emessa.',tag:'regime fiscale rf01 rf18 rf19 fatturapa struttura 398'},
   {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
 
   {cat:'🏛️ Struttura',titolo:'Inserire i dati del Consiglio Direttivo',testo:'Vai su La mia struttura → sezione "⚖️ Consiglio Direttivo" → "+ Aggiungi membro". Inserisci ruolo, nome, cognome, dati anagrafici, CF, residenza, documento d\'identità per ciascun membro (Presidente, Vicepresidente, Tesoriere, Segretario, Consiglieri). Questi dati vengono riutilizzati automaticamente nei contratti, nei verbali e negli altri documenti generabili. Aggiorna questa sezione ogni volta che cambiano le cariche sociali.',tag:'presidente vicepresidente consiglio direttivo legale rappresentante struttura dati contratto verbale'},
@@ -8514,7 +8904,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.3.0';
+    const CURRENT_VER='6.4.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

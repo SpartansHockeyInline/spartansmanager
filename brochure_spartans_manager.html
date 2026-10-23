@@ -401,7 +401,7 @@ footer .foot-links a:hover{color:var(--white);}
 <header class="hero">
   <div class="container hero-grid">
     <div>
-      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v6.3.0</span></div>
+      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v6.4.0</span></div>
       <h1>Tutto il tuo<br>club <span class="accent">in pista.</span><br>Un solo file.</h1>
       <p class="lead">
         Anagrafiche, presenze, abbonamenti, amministrazione, documenti e comunicazioni.
@@ -475,7 +475,7 @@ footer .foot-links a:hover{color:var(--white);}
       <div class="feature">
         <span class="feature-icon">🤝</span>
         <h3>Gestione sponsor</h3>
-        <p>Anagrafica, contratti con importo e scadenze — anche con pagamento in natura (permuta) o misto —, collegamento automatico alle entrate in Amministrazione e fatture elettroniche con registro numerato, nota di credito/debito e file XML pronto per il portale dell'Agenzia delle Entrate.</p>
+        <p>Anagrafica, contratti con importo e scadenze — anche con pagamento in natura (permuta) o misto —, collegamento automatico alle entrate in Amministrazione e fatture elettroniche con registro numerato, nota di credito/debito e file XML pronto per il portale dell'Agenzia delle Entrate — oppure importazione delle fatture emesse da Aruba.</p>
       </div>
       <div class="feature">
         <span class="feature-icon">🛡️</span>
@@ -745,6 +745,21 @@ footer .foot-links a:hover{color:var(--white);}
       <p>Lo storico delle versioni, dalla migrazione su Firebase fino all'ultima release.</p>
     </div>
     <div class="cl-timeline">
+
+      <div class="cl-entry">
+        <div>
+          <div class="cl-version"><span class="v-prefix">v</span>6.4.0</div>
+          <div class="cl-date">Ottobre 2026</div>
+        </div>
+        <div>
+          <h4>Fatture emesse da Aruba e file XML più affidabile</h4>
+          <ul>
+            <li>Le fatture emesse con Aruba (o con un altro software) si importano nel registro caricando i file scaricati, anche firmati: numero, sponsor e importi vengono letti automaticamente e le fatture già presenti non si duplicano</li>
+            <li>Si sceglie chi emette e numera le fatture, Spartans Manager oppure il software esterno, così c'è sempre una sola numerazione</li>
+            <li>Il file XML della fattura segue la stessa struttura di quello di Aruba, con regime fiscale completo, natura dell'operazione per l'IVA a zero, nome file e progressivo nel formato richiesto e un controllo dei dati mancanti prima della generazione</li>
+          </ul>
+        </div>
+      </div>
 
       <div class="cl-entry">
         <div>
@@ -1451,7 +1466,7 @@ footer .foot-links a:hover{color:var(--white);}
   <div class="container">
     <div class="logo">SPARTANS <span>MANAGER</span></div>
     <div class="foot-links">
-      <span id="brochure-version-footer">v6.3.0</span>
+      <span id="brochure-version-footer">v6.4.0</span>
       <a href="#funzionalita">Funzionalità</a>
       <a href="#prezzo">Prezzo</a>
       <a href="#changelog">Changelog</a>
@@ -1469,7 +1484,7 @@ function toggleChangelog(btn){
 // e nel footer, così da non doverli più tenere allineati a mano — basta
 // aggiornare questa costante ad ogni nuova release (deve combaciare con la
 // prima voce del changelog qui sotto e con il changelog in-app/CHANGELOG.md).
-const BROCHURE_VERSION='v6.3.0';
+const BROCHURE_VERSION='v6.4.0';
 document.querySelectorAll('#brochure-version-hero,#brochure-version-footer').forEach(el=>el.textContent=BROCHURE_VERSION);
 // Il numero "di maglia" in hero riprende solo major.minor (es. "5.8"), come una
 // vera numerazione di maglia — niente patch, giusto per dare colpo d'occhio.
