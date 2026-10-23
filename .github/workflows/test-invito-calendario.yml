@@ -10,6 +10,10 @@ on:
           - invita
           - aggiorna
         default: invita
+      serie:
+        description: "numero della prova (cambialo per ripartire da inviti nuovi; 'aggiorna' deve usare lo stesso numero di 'invita')"
+        type: string
+        default: "1"
 permissions:
   contents: read
 jobs:
@@ -23,4 +27,5 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           FASE: ${{ inputs.fase }}
+          SERIE: ${{ inputs.serie }}
         run: python3 .github/scripts/test_invito_calendario.py

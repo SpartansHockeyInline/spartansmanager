@@ -73,13 +73,17 @@ def main():
     if not dry and (not user or not pwd):
         sys.exit('Mancano i Secrets GMAIL_USER e/o GMAIL_APP_PASSWORD (Settings > Secrets and variables > Actions).')
     day = dt.datetime.now(ZoneInfo('Europe/Rome')).date() + dt.timedelta(days=2)
-    uid_a, uid_b = 'prova-a@spartansmanager', 'prova-b@spartansmanager'
+    # SERIE: cambia numero per ripartire da inviti nuovi (UID diversi); 'aggiorna' usa la stessa SERIE di 'invita'.
+    serie = os.environ.get('SERIE', '1').strip() or '1'
+    if not serie.replace('-', '').isalnum() or len(serie) > 12:
+        sys.exit('SERIE non valida: usa solo lettere, numeri e trattini (max 12 caratteri).')
+    uid_a, uid_b = f'prova-a-{serie}@spartansmanager', f'prova-b-{serie}@spartansmanager'
     if fase == 'invita':
-        lavori = [('REQUEST', uid_a, 0, 'PROVA Spartans Manager - A (con organizzatore)', True),
-                  ('REQUEST', uid_b, 0, 'PROVA Spartans Manager - B (senza organizzatore)', False)]
+        lavori = [('REQUEST', uid_a, 0, f'PROVA {serie} Spartans Manager - A (con organizzatore)', True),
+                  ('REQUEST', uid_b, 0, f'PROVA {serie} Spartans Manager - B (senza organizzatore)', False)]
     else:
-        lavori = [('REQUEST', uid_a, 1, 'PROVA Spartans Manager - A (AGGIORNATO)', True),
-                  ('CANCEL', uid_b, 1, 'PROVA Spartans Manager - B (senza organizzatore)', False)]
+        lavori = [('REQUEST', uid_a, 1, f'PROVA {serie} Spartans Manager - A (AGGIORNATO)', True),
+                  ('CANCEL', uid_b, 1, f'PROVA {serie} Spartans Manager - B (senza organizzatore)', False)]
     msgs = []
     for method, uid, seq, summary, con_org in lavori:
         ics = build_ics(method, uid, seq, summary, 'Invito di prova generato da Spartans Manager. Si puo eliminare.', day, user, con_org)
