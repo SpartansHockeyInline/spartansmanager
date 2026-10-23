@@ -264,6 +264,10 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 .ce-match{background:rgba(192,57,43,.22);color:var(--accent2);}
 .ce-train{background:rgba(79,142,247,.18);color:var(--blue);}
 .ce-auto{opacity:.75;}
+.ce-act{background:rgba(212,160,23,.22);color:var(--gold2);}
+.ce-due{background:rgba(247,195,29,.2);color:var(--yellow);font-weight:600;}
+.ce-late{background:rgba(240,90,90,.22);color:var(--red);font-weight:700;}
+.ce-done{text-decoration:line-through;opacity:.55;}
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .cal-nav h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;}
 
@@ -484,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.4.0 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.5.0 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -608,6 +612,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-s btn-sm" onclick="openModal('modal-evento','gara')">⚔️ + Gara</button>
           <button class="btn btn-s btn-sm" onclick="openModal('modal-evento','allenamento')">🏒 + Allenamento</button>
+          <button class="btn btn-s btn-sm" onclick="openModal('modal-evento','attivita')">📌 + Attività</button>
+          <button class="btn btn-s btn-sm" onclick="openModal('modal-evento','scadenza')">⏰ + Scadenza</button>
           <button class="btn btn-s btn-sm" onclick="esportaIcal()" title="Esporta calendario per Google Calendar / Apple Calendar">📆 iCal</button>
         </div>
       </div>
@@ -624,6 +630,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-right:3px;"></span>Gare</span>
         <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--blue);margin-right:3px;"></span>Allenamenti auto</span>
         <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:3px;"></span>Allenamenti manuali</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--gold);margin-right:3px;"></span>Attività</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--yellow);margin-right:3px;"></span>Scadenze</span>
       </div>
 
       <!-- VISTA MENSILE -->
@@ -1829,12 +1837,19 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mh"><div class="mt" id="modal-evento-title">Nuova gara</div><button class="mc" onclick="closeModal('modal-evento')">✕</button></div>
     <div class="mb">
       <div class="fg">
+        <div class="fgroup s2"><label>Tipo</label><select class="fsel" id="m-ev-tipo" onchange="evSetTipo(this.value)">
+          <option value="gara">⚔️ Gara</option>
+          <option value="allenamento">🏒 Allenamento</option>
+          <option value="attivita">📌 Attività</option>
+          <option value="scadenza">⏰ Scadenza</option>
+        </select></div>
         <div class="fgroup s2"><label>Titolo *</label><input class="fi" id="m-ev-titolo"></div>
         <div class="fgroup"><label>Data *</label><input class="fi" id="m-ev-data" type="date"></div>
         <div class="fgroup"><label>Ora</label><input class="fi" id="m-ev-ora" type="time"></div>
         <div class="fgroup"><label>Luogo</label><input class="fi" id="m-ev-luogo"></div>
-        <div class="fgroup"><label>Squadra</label><select class="fsel" id="m-ev-squadra"></select></div>
+        <div class="fgroup"><label>Squadra <span style="font-weight:400;color:var(--text3);">(facoltativa)</span></label><select class="fsel" id="m-ev-squadra"></select></div>
         <div class="fgroup s2"><label>Note</label><textarea class="fta" id="m-ev-note"></textarea></div>
+        <div class="fgroup s2" id="m-ev-fatto-wrap" style="display:none;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="m-ev-fatto" style="width:auto;"> ✅ Già completata</label></div>
       </div>
     </div>
     <div class="mf"><button class="btn btn-s" onclick="closeModal('modal-evento')">Annulla</button><button class="btn btn-p" onclick="saveEvento()">💾 Salva</button></div>
@@ -1862,6 +1877,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" id="modal-evd-body"></div>
     <div class="mf">
       <button class="btn btn-d btn-sm" id="btn-evd-delete">🗑️ Elimina</button>
+      <button class="btn btn-s btn-sm" id="btn-evd-edit" style="display:none;">✏️ Modifica</button>
+      <button class="btn btn-s btn-sm" id="btn-evd-done" style="display:none;"></button>
       <button class="btn btn-s btn-sm" id="btn-evd-h2" style="display:none;">📋 Modulo H2</button>
       <button class="btn btn-s btn-sm" id="btn-evd-conv" style="display:none;">👥 Convocazioni</button>
       <button class="btn btn-s" onclick="closeModal('modal-evento-detail')">Chiudi</button>
@@ -1929,6 +1946,20 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v6.5.0 · Ottobre 2026</div>
+        <div class="cl-section">Novità — Calendario: attività e scadenze libere</div>
+        <div class="cl-item"><strong>Due nuovi tipi di voce</strong>: <em>📌 Attività</em> (riunione, adempimento, impegno qualsiasi) e <em>⏰ Scadenza</em> (es. rinnovo, invio di un documento). Si inseriscono dai pulsanti <strong>📌 + Attività</strong> e <strong>⏰ + Scadenza</strong> del Calendario, oppure cliccando un giorno e scegliendo il <em>Tipo</em> nel modulo. Servono solo titolo e data; ora, luogo, note e squadra sono facoltativi, e non è richiesto alcun corso.</div>
+        <div class="cl-item"><strong>Completata</strong>: attività e scadenze si segnano come completate (✅ Segna completata nel dettaglio, o la spunta nel modulo) e compaiono barrate. Una scadenza non completata dopo la sua data diventa rossa ("Scaduta N giorni fa").</div>
+        <div class="cl-item"><strong>Dashboard</strong>: le scadenze e le attività entro 60 giorni compaiono in <em>Scadenze imminenti</em>; le scadenze non completate e già passate restano in lista, in rosso, finché non le segni completate. Le voci completate escono da <em>Prossimi eventi</em>.</div>
+        <div class="cl-item"><strong>Modifica degli eventi</strong>: ogni evento inserito a mano ha ora il pulsante ✏️ Modifica (prima si poteva solo eliminarlo e rifarlo). Le convocazioni di una gara si conservano. Gli allenamenti automatici restano non modificabili: si rigenerano dal corso.</div>
+        <div class="cl-item"><strong>Filtro per corso</strong>: attività e scadenze senza squadra valgono per tutta l'associazione e restano visibili con qualunque filtro.</div>
+        <div class="cl-item"><strong>Chiusura stagione</strong>: attività e scadenze <em>non completate</em> passano alla stagione successiva; quelle completate, come gare e allenamenti, restano nell'archivio della stagione chiusa (tab Eventi).</div>
+        <div class="cl-section">Correzioni</div>
+        <div class="cl-item"><strong>Clic su un giorno del calendario</strong>: il modulo si apriva sempre con la data di oggi invece del giorno cliccato. Ora preimposta il giorno scelto.</div>
+        <div class="cl-item"><strong>Esporta iCal</strong>: le voci senza orario duravano zero giorni nei calendari esterni (ora occupano il giorno intero); aggiunto l'identificativo di creazione richiesto dallo standard e protetti virgole, punti e virgola e a capo nei titoli e nelle note. Le attività e le scadenze sono esportate con la categoria corrispondente.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v6.4.0 · Ottobre 2026</div>
@@ -2922,7 +2953,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.4.0 · Ottobre 2026';
+const APP_VERSION = 'v6.5.0 · Ottobre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3080,7 +3111,7 @@ function openModal(id,mode){
   ov.querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
   if(id==='modal-abb-socio'){populateSociSel();populatePianiSel();}
   if(id==='modal-corso'){populateMaestriSel();populateImpiantiSel();resetGiorni();}
-  if(id==='modal-evento'){eventoTipo=mode;document.getElementById('modal-evento-title').textContent=mode==='gara'?'Nuova gara':'Nuovo allenamento';document.getElementById('m-ev-data').value=oggiLocale();populateSquadreSel();}
+  if(id==='modal-evento'){document.getElementById('m-ev-fatto').checked=false;evSetTipo(mode||'gara');document.getElementById('m-ev-data').value=oggiLocale();populateSquadreSel();}
   if(id==='modal-movimento'){movTipo=mode;document.getElementById('modal-mov-title').textContent=mode==='entrata'?'Nuova entrata':'Nuova uscita';document.getElementById('m-mov-data').value=oggiLocale();
     const foWrap=document.getElementById('m-mov-fornitore-wrap');
     if(foWrap)foWrap.style.display=mode==='uscita'?'':'none';
@@ -5343,9 +5374,44 @@ function calSetVista(v){
   renderCalendar();
 }
 
+// Tipi di evento. 'attivita' e 'scadenza' sono voci libere (v6.5.0): non legate a un corso,
+// con stato "completata" (e.fatto). Un tipo sconosciuto (dati vecchi) ricade su un aspetto neutro.
+const EV_TIPI={
+  gara:{ico:'⚔️',lbl:'Gara',cls:'ce-match',col:'var(--accent)'},
+  allenamento:{ico:'🏒',lbl:'Allenamento',cls:'ce-train',col:'var(--green)'},
+  attivita:{ico:'📌',lbl:'Attività',cls:'ce-act',col:'var(--gold)',libero:true},
+  scadenza:{ico:'⏰',lbl:'Scadenza',cls:'ce-due',col:'var(--yellow)',libero:true}
+};
+function _evTipo(e){return EV_TIPI[e&&e.tipo]||{ico:'📅',lbl:(e&&e.tipo)||'Evento',cls:'ce-train',col:'var(--text2)'};}
+function _evLibero(e){return !!(EV_TIPI[e&&e.tipo]&&EV_TIPI[e.tipo].libero);}
+// Giorni da oggi alla data (YYYY-MM-DD), in calendario locale: 0 = oggi, 1 = domani, <0 = passata.
+// Date locali e non UTC, altrimenti nel pomeriggio "domani" risulterebbe "oggi".
+function _giorniA(ds){
+  const[y,m,g]=ds.split('-').map(Number);
+  const n=new Date();
+  return Math.round((new Date(y,m-1,g)-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/86400000);
+}
+function evSetTipo(t){
+  if(!EV_TIPI[t])t='gara';
+  eventoTipo=t;
+  const sel=document.getElementById('m-ev-tipo');if(sel)sel.value=t;
+  const lbl=EV_TIPI[t].lbl;
+  document.getElementById('modal-evento-title').textContent=(editingId?'Modifica ':(t==='allenamento'?'Nuovo ':'Nuova '))+lbl.toLowerCase();
+  document.getElementById('m-ev-fatto-wrap').style.display=EV_TIPI[t].libero?'':'none';
+}
+
+// Classe CSS della cella mensile. Scadenza non completata e già passata → rossa; completata → barrata.
+function _evClasse(e){
+  if(_evLibero(e)){
+    return _evTipo(e).cls+(e.fatto?' ce-done':(e.tipo==='scadenza'&&e.data&&_giorniA(e.data)<0?' ce-late':''));
+  }
+  return e.tipo==='gara'?'ce-match':e.autoCorsoId?'ce-train ce-auto':'ce-train';
+}
+
 function _evFiltrati(){
   const corsoF=document.getElementById('cal-filter-corso')?.value||'';
-  return DB.eventi.filter(e=>!corsoF||e.squadraId===corsoF||e.autoCorsoId===corsoF);
+  // Attività e scadenze senza squadra valgono per tutta l'associazione: restano visibili con qualunque filtro.
+  return DB.eventi.filter(e=>!corsoF||e.squadraId===corsoF||e.autoCorsoId===corsoF||(_evLibero(e)&&!e.squadraId));
 }
 
 function renderCalendar(){
@@ -5370,7 +5436,7 @@ function renderCalendar(){
     const isToday=ds===today;
     cells.push(`<div class="cal-day${isToday?' today':''}" onclick="calDayClick('${ds}')">
       <div class="day-num"${isToday?' style="background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;"':''}>${d}</div>
-      ${evs.map(e=>`<div class="cal-event ${e.tipo==='gara'?'ce-match':e.autoCorsoId?'ce-train ce-auto':'ce-train'}" onclick="event.stopPropagation();showEventDetail('${e.id}')" title="${e.titolo}">${e.titolo}</div>`).join('')}
+      ${evs.map(e=>`<div class="cal-event ${_evClasse(e)}" onclick="event.stopPropagation();showEventDetail('${e.id}')" title="${e.titolo}">${_evLibero(e)?_evTipo(e).ico+' ':''}${e.titolo}</div>`).join('')}
     </div>`);
   }
   document.getElementById('cal-body').innerHTML=cells.join('');
@@ -5393,13 +5459,15 @@ function renderAgenda(){
         ${new Date(data+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}
       </div>
       ${evs.map(e=>{
-        const col=e.tipo==='gara'?'var(--accent)':e.autoCorsoId?'var(--blue)':'var(--green)';
-        const icona=e.tipo==='gara'?'⚔️':e.autoCorsoId?'⚡':'🏒';
-        return`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border-radius:8px;border-left:4px solid ${col};margin-bottom:6px;cursor:pointer;" onclick="showEventDetail('${e.id}')">
+        const libero=_evLibero(e);
+        const tardiva=libero&&e.tipo==='scadenza'&&!e.fatto&&e.data&&_giorniA(e.data)<0;
+        const col=tardiva?'var(--red)':libero?_evTipo(e).col:e.tipo==='gara'?'var(--accent)':e.autoCorsoId?'var(--blue)':'var(--green)';
+        const icona=e.fatto?'✅':libero?_evTipo(e).ico:e.tipo==='gara'?'⚔️':e.autoCorsoId?'⚡':'🏒';
+        return`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border-radius:8px;border-left:4px solid ${col};margin-bottom:6px;cursor:pointer;${e.fatto?'opacity:.6;':''}" onclick="showEventDetail('${e.id}')">
           <div style="font-size:18px;">${icona}</div>
           <div style="flex:1;">
-            <div style="font-weight:600;font-size:13px;">${e.titolo}</div>
-            <div style="font-size:11px;color:var(--text2);">${e.ora||''}${e.ora&&e.luogo?' · ':''}${e.luogo||''}${e.squadraNome?' · '+e.squadraNome:''}</div>
+            <div style="font-weight:600;font-size:13px;${e.fatto?'text-decoration:line-through;':''}">${e.titolo}</div>
+            <div style="font-size:11px;color:var(--text2);">${libero?_evTipo(e).lbl+(e.ora||e.luogo||e.squadraNome?' · ':''):''}${e.ora||''}${e.ora&&e.luogo?' · ':''}${e.luogo||''}${e.squadraNome?' · '+e.squadraNome:''}${tardiva?' · <strong style="color:var(--red);">scaduta '+Math.abs(_giorniA(e.data))+' gg fa</strong>':''}</div>
           </div>
         </div>`;
       }).join('')}
@@ -5410,16 +5478,24 @@ function esportaIcal(){
   const eventi=_evFiltrati().filter(e=>e.data);
   if(!eventi.length){toast('Nessun evento da esportare','error');return;}
   let ical='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//'+(DB.struttura?.nome||'Spartans Manager')+'//Spartans Manager//IT\r\nCALSCALE:GREGORIAN\r\n';
+  // Testo libero (titoli di attività/scadenze, note): virgole, punti e virgola e a capo vanno protetti (RFC 5545).
+  const esc=s=>String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+Z$/,'Z');
   eventi.forEach(e=>{
     const dt=e.data.replace(/-/g,'');
     const dtStart=e.ora?`${dt}T${e.ora.replace(':','')}00`:`${dt}`;
     const allDay=!e.ora;
+    // Evento "tutto il giorno": DTEND è esclusivo, quindi è il giorno dopo (con DTEND = DTSTART la durata sarebbe zero).
+    const[yy,mm,gg]=e.data.split('-').map(Number);
+    const dtEnd=oggiLocale(new Date(yy,mm-1,gg+1)).replace(/-/g,'');
     ical+=`BEGIN:VEVENT\r\n`;
     ical+=`UID:${e.id}@spartansmanager\r\n`;
-    ical+=`SUMMARY:${e.titolo}\r\n`;
-    ical+=allDay?`DTSTART;VALUE=DATE:${dt}\r\nDTEND;VALUE=DATE:${dt}\r\n`:`DTSTART:${dtStart}\r\n`;
-    if(e.luogo)ical+=`LOCATION:${e.luogo}\r\n`;
-    if(e.note)ical+=`DESCRIPTION:${e.note.replace(/\n/g,'\\n')}\r\n`;
+    ical+=`DTSTAMP:${stamp}\r\n`;
+    ical+=`SUMMARY:${esc(e.titolo)}\r\n`;
+    ical+=allDay?`DTSTART;VALUE=DATE:${dt}\r\nDTEND;VALUE=DATE:${dtEnd}\r\n`:`DTSTART:${dtStart}\r\n`;
+    if(_evLibero(e))ical+=`CATEGORIES:${_evTipo(e).lbl}\r\n`;
+    if(e.luogo)ical+=`LOCATION:${esc(e.luogo)}\r\n`;
+    if(e.note)ical+=`DESCRIPTION:${esc(e.note)}\r\n`;
     ical+=`END:VEVENT\r\n`;
   });
   ical+='END:VCALENDAR';
@@ -5431,10 +5507,68 @@ function esportaIcal(){
 }
 function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
-function calDayClick(date){document.getElementById('m-ev-data').value=date;openModal('modal-evento','gara');}
+function calDayClick(date){openModal('modal-evento','gara');document.getElementById('m-ev-data').value=date;}
 function populateSquadreSel(){document.getElementById('m-ev-squadra').innerHTML='<option value="">—</option>'+DB.corsi.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');}
-function saveEvento(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}const titolo=document.getElementById('m-ev-titolo').value.trim(),data=document.getElementById('m-ev-data').value;if(!titolo||!data){toast('Titolo e data obbligatori','error');return;}const obj={id:editingId||uid(),titolo,tipo:eventoTipo,data,ora:document.getElementById('m-ev-ora').value,luogo:document.getElementById('m-ev-luogo').value,squadraId:document.getElementById('m-ev-squadra').value,squadraNome:DB.corsi.find(x=>x.id===document.getElementById('m-ev-squadra').value)?.nome||'',note:document.getElementById('m-ev-note').value,convocati:[]};if(editingId){const i=DB.eventi.findIndex(x=>x.id===editingId);if(i>-1)DB.eventi[i]=obj;}else DB.eventi.push(obj);saveDB();closeModal('modal-evento');renderCalendar();renderDashboard();toast('Evento salvato','success');}
-function showEventDetail(id){const ev=DB.eventi.find(x=>x.id===id);if(!ev)return;document.getElementById('modal-evd-title').textContent=ev.tipo==='gara'?'⚔️ Gara':'🏒 Allenamento';document.getElementById('modal-evd-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:9px;"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;">${ev.titolo}</div><div style="font-size:12px;color:var(--text2);">📅 ${formatDate(ev.data)}${ev.ora?' · '+ev.ora:''}${ev.luogo?' · '+ev.luogo:''}</div>${ev.squadraNome?`<div style="font-size:13px;">🏒 ${ev.squadraNome}</div>`:''}${ev.convocati?.length?`<div style="font-size:13px;">👥 Convocati: <strong>${ev.convocati.length}</strong></div>`:''}${ev.autoCorsoId?'<div style="font-size:11px;color:var(--text3);">⚡ Allenamento generato automaticamente</div>':''}${ev.note?`<div style="font-size:12px;color:var(--text2);padding:9px;background:var(--surface2);border-radius:7px;">${ev.note}</div>`:''}</div>`;const bc=document.getElementById('btn-evd-conv');bc.style.display=ev.tipo==='gara'?'':'none';bc.onclick=()=>{closeModal('modal-evento-detail');openConvocazioni(id);};const bh2=document.getElementById('btn-evd-h2');if(bh2){bh2.style.display=ev.tipo==='gara'?'':'none';bh2.onclick=()=>{closeModal('modal-evento-detail');apriModuloH2(id);};}document.getElementById('btn-evd-delete').onclick=()=>{if(!confirm('Eliminare?'))return;DB.eventi=DB.eventi.filter(x=>x.id!==id);saveDB();closeModal('modal-evento-detail');renderCalendar();renderDashboard();};document.getElementById('modal-evento-detail').classList.add('open');}
+function saveEvento(){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  const titolo=document.getElementById('m-ev-titolo').value.trim(),data=document.getElementById('m-ev-data').value;
+  if(!titolo||!data){toast('Titolo e data obbligatori','error');return;}
+  const sqId=document.getElementById('m-ev-squadra').value;
+  // In modifica si parte dall'evento esistente: così convocati, autoCorsoId e ogni altro campo non presente nel modulo si conservano.
+  const old=editingId?DB.eventi.find(x=>x.id===editingId):null;
+  const obj={...(old||{convocati:[]}),id:editingId||uid(),titolo,tipo:eventoTipo,data,
+    ora:document.getElementById('m-ev-ora').value,luogo:document.getElementById('m-ev-luogo').value,
+    squadraId:sqId,squadraNome:DB.corsi.find(x=>x.id===sqId)?.nome||'',
+    note:document.getElementById('m-ev-note').value};
+  if(EV_TIPI[eventoTipo]&&EV_TIPI[eventoTipo].libero)obj.fatto=document.getElementById('m-ev-fatto').checked;else delete obj.fatto;
+  if(old){const i=DB.eventi.findIndex(x=>x.id===editingId);DB.eventi[i]=obj;}else DB.eventi.push(obj);
+  saveDB();closeModal('modal-evento');renderCalendar();renderDashboard();toast('Evento salvato','success');
+}
+// Riapre il modulo con i dati di un evento esistente (gli allenamenti automatici si rigenerano da soli: non modificabili qui).
+function editEvento(id){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  const ev=DB.eventi.find(x=>x.id===id);if(!ev||ev.autoCorsoId)return;
+  closeModal('modal-evento-detail');
+  openModal('modal-evento',ev.tipo);
+  editingId=id;
+  evSetTipo(ev.tipo);
+  document.getElementById('m-ev-titolo').value=ev.titolo||'';
+  document.getElementById('m-ev-data').value=ev.data||'';
+  document.getElementById('m-ev-ora').value=ev.ora||'';
+  document.getElementById('m-ev-luogo').value=ev.luogo||'';
+  document.getElementById('m-ev-squadra').value=ev.squadraId||'';
+  document.getElementById('m-ev-note').value=ev.note||'';
+  document.getElementById('m-ev-fatto').checked=!!ev.fatto;
+}
+function toggleEventoFatto(id){
+  if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
+  const ev=DB.eventi.find(x=>x.id===id);if(!ev)return;
+  ev.fatto=!ev.fatto;
+  saveDB();closeModal('modal-evento-detail');renderCalendar();renderDashboard();
+  toast(ev.fatto?'Segnata come completata':'Riaperta','success');
+}
+function showEventDetail(id){
+  const ev=DB.eventi.find(x=>x.id===id);if(!ev)return;
+  const t=_evTipo(ev),libero=_evLibero(ev);
+  document.getElementById('modal-evd-title').textContent=t.ico+' '+t.lbl;
+  // Stato delle voci libere: completata, oppure (per le scadenze) quanto manca / quanto è in ritardo.
+  let stato='';
+  if(libero){
+    if(ev.fatto)stato='<div style="font-size:12px;font-weight:600;color:var(--green);">✅ Completata</div>';
+    else if(ev.tipo==='scadenza'&&ev.data){
+      const d=_giorniA(ev.data);
+      stato=d<0?`<div style="font-size:12px;font-weight:700;color:var(--red);">⚠️ Scaduta ${Math.abs(d)} ${Math.abs(d)===1?'giorno':'giorni'} fa</div>`
+        :`<div style="font-size:12px;font-weight:600;color:${d<=7?'var(--yellow)':'var(--text2)'};">⏳ ${d===0?'Scade oggi':d===1?'Scade domani':'Scade tra '+d+' giorni'}</div>`;
+    }else stato='<div style="font-size:12px;color:var(--text2);">⏳ Da completare</div>';
+  }
+  document.getElementById('modal-evd-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:9px;"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;${ev.fatto?'text-decoration:line-through;':''}">${ev.titolo}</div><div style="font-size:12px;color:var(--text2);">📅 ${formatDate(ev.data)}${ev.ora?' · '+ev.ora:''}${ev.luogo?' · '+ev.luogo:''}</div>${stato}${ev.squadraNome?`<div style="font-size:13px;">🏒 ${ev.squadraNome}</div>`:''}${ev.convocati?.length?`<div style="font-size:13px;">👥 Convocati: <strong>${ev.convocati.length}</strong></div>`:''}${ev.autoCorsoId?'<div style="font-size:11px;color:var(--text3);">⚡ Allenamento generato automaticamente</div>':''}${ev.note?`<div style="font-size:12px;color:var(--text2);padding:9px;background:var(--surface2);border-radius:7px;">${ev.note}</div>`:''}</div>`;
+  const bc=document.getElementById('btn-evd-conv');bc.style.display=ev.tipo==='gara'?'':'none';bc.onclick=()=>{closeModal('modal-evento-detail');openConvocazioni(id);};
+  const bh2=document.getElementById('btn-evd-h2');if(bh2){bh2.style.display=ev.tipo==='gara'?'':'none';bh2.onclick=()=>{closeModal('modal-evento-detail');apriModuloH2(id);};}
+  const be=document.getElementById('btn-evd-edit');be.style.display=ev.autoCorsoId?'none':'';be.onclick=()=>editEvento(id);
+  const bd=document.getElementById('btn-evd-done');bd.style.display=libero?'':'none';bd.textContent=ev.fatto?'↩️ Riapri':'✅ Segna completata';bd.onclick=()=>toggleEventoFatto(id);
+  document.getElementById('btn-evd-delete').onclick=()=>{if(!confirm('Eliminare?'))return;DB.eventi=DB.eventi.filter(x=>x.id!==id);saveDB();closeModal('modal-evento-detail');renderCalendar();renderDashboard();};
+  document.getElementById('modal-evento-detail').classList.add('open');
+}
 
 // ═══ CONVOCAZIONI ═════════════════════════════════════════
 function openConvocazioni(evId){convEventoId=evId;const ev=DB.eventi.find(x=>x.id===evId);if(!ev)return;document.getElementById('modal-conv-title').textContent=`Convocazioni — ${ev.titolo}`;const conv=ev.convocati||[];const atleti=DB.soci.filter(s=>s.tipologia==='atleta'||s.tipologia==='tecnico'||!s.tipologia);const renderA=(a,isc)=>`<div class="conv-item${isc?' selected':''}" onclick="toggleConvocazione('${a.id}')">${renderAvatar(a,26)}<span style="font-size:12px;">${a.nome} ${a.cognome}</span>${isc?'<span style="margin-left:auto;font-size:11px;">✓</span>':''}</div>`;document.getElementById('conv-disponibili').innerHTML=atleti.filter(a=>!conv.includes(a.id)).map(a=>renderA(a,false)).join('')||'<span style="font-size:11px;color:var(--text3);">Tutti convocati</span>';document.getElementById('conv-selezionati').innerHTML=atleti.filter(a=>conv.includes(a.id)).map(a=>renderA(a,true)).join('')||'<span style="font-size:11px;color:var(--text3);">Nessuno</span>';document.getElementById('modal-convocazioni').classList.add('open');}
@@ -5506,7 +5640,10 @@ function chiudiStagione(){
   };
   DB.stagioniArchivio.push(arch);
   DB.stagioni=DB.stagioni.filter(s=>!s.attiva);
-  DB.eventi=[];DB.abbonamenti=[];DB.presenze={};
+  // Attività e scadenze libere NON completate sopravvivono alla chiusura (una scadenza aperta non deve sparire
+  // col cambio stagione); gare e allenamenti, e le voci già completate, restano solo nello snapshot archiviato.
+  DB.eventi=(DB.eventi||[]).filter(e=>_evLibero(e)&&!e.fatto);
+  DB.abbonamenti=[];DB.presenze={};
   // NB: entrate/uscite NON vengono più azzerate qui — i dati finanziari sono
   // indipendenti dalla stagione sportiva (vedi changelog v4.2.0) e restano
   // visibili/filtrabili in Amministrazione per periodo, senza reset automatico.
@@ -5621,7 +5758,7 @@ function showStagioneDetail(id){
       <thead><tr><th>Data</th><th>Tipo</th><th>Titolo</th><th>Corso</th><th>Luogo</th></tr></thead>
       <tbody>${eventi.map(e=>`<tr>
         <td>${e.data?formatDate(e.data):'—'}</td>
-        <td>${e.tipo==='gara'?'⚔️ Gara':'🏒 Allenamento'}</td>
+        <td>${_evTipo(e).ico} ${_evTipo(e).lbl}${e.fatto?' ✅':''}</td>
         <td style="font-weight:600;">${e.titolo||'—'}</td>
         <td>${e.squadraNome||'—'}</td>
         <td>${e.luogo||'—'}</td>
@@ -5677,7 +5814,7 @@ function renderDashboard(){
   if(gare.length){pg.textContent=formatDate(gare[0].data);pgs.textContent=gare[0].titolo;}else{pg.textContent='—';pgs.textContent='Nessuna gara';}
   // Prossimi eventi
   const evCont=document.getElementById('ds-eventi');
-  const prossimi=DB.eventi.filter(e=>!e.autoCorsoId&&e.data>=today).sort((a,b)=>a.data.localeCompare(b.data)).slice(0,6);
+  const prossimi=DB.eventi.filter(e=>!e.autoCorsoId&&!e.fatto&&e.data>=today).sort((a,b)=>a.data.localeCompare(b.data)).slice(0,6);
   const now14=new Date();
   const todayMidnight=new Date(now14.getFullYear(),now14.getMonth(),now14.getDate());
   const compleanni=[];
@@ -5697,7 +5834,7 @@ function renderDashboard(){
     return '<div style="display:flex;align-items:center;gap:9px;padding:8px;background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.2);border-radius:7px;margin-bottom:5px;"><span style="font-size:15px;">🎂</span><div style="flex:1;"><div style="font-size:13px;font-weight:500;">'+c.nome+'</div><div style="font-size:11px;color:var(--text2);">'+formatDate(c.data)+' · compie '+c.eta+' anni</div></div><div style="font-size:11px;font-weight:700;color:var(--accent);">'+lbl+'</div></div>';
   }).join('');
   if(!prossimi.length&&!compleanni.length)evCont.innerHTML='<div class="empty"><div class="ei">📅</div><p>Nessun evento</p></div>';
-  else evCont.innerHTML=bdHtml+prossimi.map(e=>'<div style="display:flex;align-items:center;gap:9px;padding:8px;background:var(--surface2);border-radius:7px;margin-bottom:5px;cursor:pointer;" onclick="showPage(\'calendario\')"><span style="font-size:15px;">'+(e.tipo==='gara'?'⚔️':'🏒')+'</span><div style="flex:1;"><div style="font-size:13px;font-weight:500;">'+e.titolo+'</div><div style="font-size:11px;color:var(--text2);">'+formatDate(e.data)+(e.ora?' · '+e.ora:'')+(e.luogo?' · '+e.luogo:'')+'</div></div></div>').join('');
+  else evCont.innerHTML=bdHtml+prossimi.map(e=>'<div style="display:flex;align-items:center;gap:9px;padding:8px;background:var(--surface2);border-radius:7px;margin-bottom:5px;cursor:pointer;" onclick="showPage(\'calendario\')"><span style="font-size:15px;">'+_evTipo(e).ico+'</span><div style="flex:1;"><div style="font-size:13px;font-weight:500;">'+e.titolo+'</div><div style="font-size:11px;color:var(--text2);">'+formatDate(e.data)+(e.ora?' · '+e.ora:'')+(e.luogo?' · '+e.luogo:'')+'</div></div></div>').join('');
   // Scadenze — finestra 60 giorni, include atleti e staff
   const cont=document.getElementById('ds-scadenze'),now=new Date();const scad=[];
   const addScad=(nome,tipo,dataScad,onclick)=>{
@@ -5733,11 +5870,12 @@ function renderDashboard(){
       if(diff<=60)scad.push({nome:s.nome,tipo:'🤝 Contratto sponsor',scad:c.scadenza,diff});
     }
   });
-  // Eventi non-allenamento entro 60 giorni
+  // Eventi non-allenamento entro 60 giorni. Le scadenze libere (v6.5.0) non completate restano in lista anche
+  // dopo la data (in rosso, "Scaduta N gg fa") finché non vengono segnate come completate.
   const today2=oggiLocale(now);
-  DB.eventi.filter(e=>e.tipo!=='allenamento'&&!e.autoCorsoId&&e.data>=today2).forEach(e=>{
-    const diff=Math.round((new Date(e.data)-now)/86400000);
-    if(diff<=60)scad.push({nome:e.titolo,tipo:e.tipo==='gara'?'⚔️ Gara':`📅 ${e.tipo||'Evento'}`,scad:e.data,diff});
+  DB.eventi.filter(e=>e.tipo!=='allenamento'&&!e.autoCorsoId&&!e.fatto&&e.data&&(e.data>=today2||e.tipo==='scadenza')).forEach(e=>{
+    const diff=_giorniA(e.data);
+    if(diff<=60)scad.push({nome:e.titolo,tipo:e.tipo==='gara'?'⚔️ Gara':_evLibero(e)?`${_evTipo(e).ico} ${_evTipo(e).lbl}`:`📅 ${e.tipo||'Evento'}`,scad:e.data,diff});
   });
   scad.sort((a,b)=>a.diff-b.diff);
   if(!scad.length)cont.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nessuna scadenza imminente</p></div>';
@@ -8202,8 +8340,8 @@ function globalSearch(q){
   (DB.uscite||[]).filter(u=>`${u.descr||''} ${u.cat||''} ${u.fornitoreNome||''}`.toLowerCase().includes(ql))
     .slice(0,3).forEach(u=>results.push({tipo:'🔴 Uscita',label:u.descr||'—',sub:`€${parseFloat(u.importo||0).toFixed(2)} · ${u.data?formatDate(u.data):''}`,action:`showPage('amministrazione')`}));
   // Eventi
-  DB.eventi.filter(e=>`${e.titolo||''} ${e.luogo||''}`.toLowerCase().includes(ql))
-    .slice(0,3).forEach(e=>results.push({tipo:'📅 Evento',label:e.titolo||'—',sub:e.data?formatDate(e.data):'',action:`showPage('calendario')`}));
+  DB.eventi.filter(e=>`${e.titolo||''} ${e.luogo||''} ${_evLibero(e)?e.note||'':''}`.toLowerCase().includes(ql))
+    .slice(0,3).forEach(e=>results.push({tipo:_evLibero(e)?`${_evTipo(e).ico} ${_evTipo(e).lbl}`:'📅 Evento',label:e.titolo||'—',sub:e.data?formatDate(e.data):'',action:`showPage('calendario')`}));
   if(!results.length){cont.innerHTML='<div style="padding:12px;color:var(--text2);font-size:13px;">Nessun risultato per "'+q+'"</div>';return;}
   cont.innerHTML=results.map(r=>`
     <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''" onclick="${r.action};clearSearch();">
@@ -8246,7 +8384,9 @@ const GUIDA_VOCI=[
   {cat:'📋 Presenze',titolo:'Registrare le presenze giornaliere',testo:'Vai su Registro presenze → Registro. Seleziona corso e data, poi spunta gli atleti presenti. Clicca "💾 Salva presenze". Gli atleti non spuntati vengono salvati come assenti.',tag:'presenze registro allenamento'},
   {cat:'📋 Presenze',titolo:'Vedere le percentuali di presenza',testo:'Vai su Registro presenze → Report %. Il periodo di default è la stagione corrente. Puoi cambiare il periodo con i filtri Dal/Al. La percentuale è calcolata su tutte le sessioni del corso.',tag:'percentuale presenze report statistiche'},
   {cat:'📋 Presenze',titolo:'Atleti con bassa frequenza',testo:'Vai su Registro presenze → Alert. Imposta la soglia (default 50%). Vengono mostrati tutti gli atleti con più di 3 sessioni registrate che sono sotto soglia. Da qui puoi contattarli direttamente.',tag:'alert bassa frequenza presenze'},
-  {cat:'📅 Calendario',titolo:'Aggiungere una gara o un evento',testo:'Vai su Calendario → clicca su un giorno oppure usa i pulsanti "⚔️ + Gara" o "🏒 + Allenamento" in alto. Compila titolo, data, orario e luogo.',tag:'gara evento calendario aggiungere'},
+  {cat:'📅 Calendario',titolo:'Aggiungere una gara o un evento',testo:'Vai su Calendario → clicca su un giorno (il modulo si apre con quella data) oppure usa i pulsanti "⚔️ + Gara", "🏒 + Allenamento", "📌 + Attività" o "⏰ + Scadenza" in alto. Il campo Tipo del modulo permette di cambiare la scelta. Compila titolo, data, orario e luogo.',tag:'gara evento calendario aggiungere allenamento'},
+  {cat:'📅 Calendario',titolo:'Aggiungere un\'attività o una scadenza libera',testo:'Vai su Calendario → "📌 + Attività" per un impegno qualsiasi (riunione, adempimento, consegna) oppure "⏰ + Scadenza" per una data da non perdere (rinnovo, invio di un documento). Servono solo titolo e data; ora, luogo, note e squadra sono facoltativi. Senza squadra la voce vale per tutta l\'associazione e resta visibile anche col filtro corso attivo. Entro 60 giorni compare in Dashboard → Scadenze imminenti.',tag:'attività scadenza adempimento promemoria riunione calendario libera'},
+  {cat:'📅 Calendario',titolo:'Segnare completata, modificare o eliminare una voce',testo:'Clicca la voce nel Calendario per aprirne il dettaglio. Per attività e scadenze c\'è "✅ Segna completata" (la voce diventa barrata ed esce dalla Dashboard; "↩️ Riapri" la riporta attiva). "✏️ Modifica" cambia titolo, data, tipo e il resto (non disponibile per gli allenamenti automatici, che si rigenerano dal corso). Una scadenza non completata dopo la sua data diventa rossa e resta in Dashboard finché non la completi. Alla chiusura della stagione le attività e le scadenze non completate passano alla stagione successiva.',tag:'completata fatto modifica elimina scadenza attività scaduta chiusura stagione'},
   {cat:'📅 Calendario',titolo:'Esportare il calendario su Google Calendar',testo:'Vai su Calendario → clicca "📆 iCal". Viene scaricato un file .ics. Aprilo su Google Calendar (o Apple Calendar) per importare tutti gli eventi.',tag:'ical google calendar apple esportare'},
   {cat:'📄 Documenti',titolo:'Generare una ricevuta di pagamento',testo:'Vai su Genera Documenti → Ricevuta pagamento. Seleziona l\'atleta, inserisci importo, metodo di pagamento (Contanti, Bonifico, Carta, POS, Altro) e causale. Il numero ricevuta è progressivo e salvato su Firebase. Il documento si apre nel browser pronto per la stampa. In alternativa, ogni volta che registri in Amministrazione un\'entrata collegata a un atleta (con importo maggiore di zero), l\'app propone automaticamente di generare la ricevuta già precompilata con gli stessi dati appena inseriti — un\'entrata a €0 (quota esonerata/gratuita) non lo propone più, perché non c\'è un incasso da documentare. Ogni ricevuta generata (da qui o dall\'automatismo) viene anche salvata nel Registro Ricevute — vedi voce dedicata. Per verificare che la funzione stia funzionando correttamente senza toccare la numerazione ufficiale, spunta "🧪 Genera in modalità test": il documento sarà numerato "TEST-0001" ecc. su un contatore separato e marcato "DOCUMENTO DI PROVA — NON VALIDO".',tag:'ricevuta pagamento documento generare metodo automatico amministrazione test prova numerazione'},
   {cat:'📄 Documenti',titolo:'Stampare i documenti su A4',testo:'Tutti i documenti generati (moduli, contratti, ricevute, verbali, Prima nota, Rendiconto) si aprono in una nuova scheda: usa il pulsante "Stampa / Salva PDF". Il foglio è impostato su A4 con margini uniformi su ogni pagina; sezioni, firme e timbro non vengono spezzati a metà pagina. Nella finestra di stampa del browser lascia Formato carta = A4, Margini = Predefiniti e Scala = 100% (o "Adatta" se l\'anteprima mostra tagli), e attiva "Grafica di sfondo" per mantenere i colori delle intestazioni. Il modulo di iscrizione occupa una pagina per i dati e una per l\'informativa Safeguarding; il contratto sponsor può occupare 2-3 pagine a seconda della lunghezza dell\'oggetto.',tag:'stampa stampare pdf a4 margini impaginazione pagina taglio firma timbro documenti'},
@@ -8904,7 +9044,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.4.0';
+    const CURRENT_VER='6.5.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

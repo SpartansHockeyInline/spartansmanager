@@ -2,6 +2,29 @@
 
 ---
 
+## v6.5.0 · Ottobre 2026
+
+### Novità — Calendario: attività e scadenze libere
+- **Nuovi tipi evento** in `DB.eventi`: `tipo:'attivita'` (📌) e `tipo:'scadenza'` (⏰), accanto a `gara` e `allenamento`. Definiti in `EV_TIPI` (icona, etichetta, classe CSS, colore, flag `libero`); `_evTipo(e)` dà l'aspetto (tipo sconosciuto → neutro), `_evLibero(e)` dice se è una voce libera. Campi: `titolo`, `data` obbligatori; `ora`, `luogo`, `note`, `squadraId`/`squadraNome` facoltativi; `fatto` (booleano) solo sulle voci libere.
+- **UI**: pulsanti *📌 + Attività* e *⏰ + Scadenza*; il modulo ha il nuovo campo *Tipo* (`evSetTipo()`, che aggiorna titolo del modulo e visibilità della spunta *Già completata*). Rendering mensile con icona e classi `ce-act`/`ce-due`/`ce-late`/`ce-done`; agenda con tipo, stato e giorni di ritardo; legenda aggiornata; dettaglio con stato (completata / scade tra N giorni / scaduta da N giorni).
+- **Completata**: `toggleEventoFatto(id)` (*✅ Segna completata* / *↩️ Riapri*). Una scadenza non completata con data passata è rossa (`ce-late`).
+- **Modifica evento**: `editEvento(id)` e pulsante *✏️ Modifica* nel dettaglio (assente per `autoCorsoId`). `saveEvento()` ora parte dall'evento esistente (`{...old}`) e non lo ricostruisce da zero: `convocati` e ogni altro campo fuori dal modulo si conservano (prima non esisteva modifica, e un salvataggio con `editingId` avrebbe azzerato `convocati`).
+- **Filtro corso** (`_evFiltrati`): attività e scadenze senza `squadraId` restano visibili con qualunque filtro.
+- **Dashboard**: *Prossimi eventi* esclude le voci `fatto` e usa l'icona del tipo. *Scadenze imminenti* include le voci non completate entro 60 giorni e mantiene le **scadenze** non completate già passate (diff negativo → rosso, "Scaduta N gg fa"). I giorni sono calcolati con `_giorniA()` su data locale (vedi sotto).
+- **Chiusura stagione** (`chiudiStagione`): `DB.eventi` non viene più azzerato del tutto; restano le voci libere non completate. Gare, allenamenti e voci completate rimangono solo nello snapshot (`dati.eventi`), la cui tab *Eventi* mostra ora anche tipo e stato.
+- **Ricerca globale**: l'etichetta usa il tipo; per le voci libere la ricerca guarda anche le note.
+
+### Correzioni
+- **`calDayClick`**: impostava la data e poi `openModal` la sovrascriveva con oggi (apre il modulo azzerando i campi). Ora apre il modulo e poi imposta il giorno cliccato.
+- **`esportaIcal`**: le voci senza orario avevano `DTEND` uguale a `DTSTART` (durata zero, `DTEND` è esclusivo): ora è il giorno dopo. Aggiunti `DTSTAMP` (obbligatorio, RFC 5545) e l'escape di `\`, `;`, `,` e a capo in `SUMMARY`/`LOCATION`/`DESCRIPTION`; `CATEGORIES` per attività e scadenze.
+
+### Da sapere
+- `_giorniA()` conta i giorni in calendario locale. Le altre scadenze della dashboard (tessere, visite, assicurazione, safeguarding, sponsor) usano ancora `new Date('YYYY-MM-DD') - now` (mezzanotte UTC): nel pomeriggio una tessera o una visita che scade oggi può risultare "Scaduta 1gg fa" e una che scade domani "Oggi!" (riprodotto con l'ora di Roma alle 17:31). Non toccato in questa release (fuori dall'ambito della richiesta).
+- **Compatibilità**: nessuna migrazione; gli eventi esistenti non cambiano. Il campo `fatto` è assente = non completata.
+- Nuove voci di Guida: *Aggiungere un'attività o una scadenza libera*, *Segnare completata, modificare o eliminare una voce*; aggiornata *Aggiungere una gara o un evento*.
+
+---
+
 ## v6.4.0 · Ottobre 2026
 
 ### Novità — Fatture emesse da Aruba (o da un altro software)
