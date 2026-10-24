@@ -13,6 +13,15 @@
 - **Promemoria**: scadenze 7 e 1 giorno prima (popup + email), gare/attività 1 giorno prima, allenamenti nessuno, completate nessuno e grigie. Orari in Europe/Rome.
 - Retry con attesa crescente su 429/5xx/limiti di frequenza; 409 su id già usato (evento cancellato in passato) → PATCH `status: confirmed`.
 
+### Correzioni
+- **Giorni alla scadenza** (tessere/visite/assicurazioni in `scadColor`, badge visita atleti, abbonamenti in amministrazione e avvisi, scadenze imminenti della dashboard, contratti sponsor): il conteggio usava `new Date('YYYY-MM-DD') - now` (mezzanotte UTC), quindi in Italia nel pomeriggio una scadenza di oggi dava «Scaduta 1gg fa» e una di domani «Oggi!». Ora tutti i punti usano `_giorniA()` (data locale). `_giorniA()` accetta anche una data con ora (`slice(0,10)`).
+- **Visita medica valida fino al giorno di scadenza compreso**: `visitaOk`/`visitaValida` (checklist atleta, tabella atleti, percorso iscrizione) erano `data > ora corrente` e quindi false già dalla mezzanotte UTC del giorno di scadenza; ora `_giorniA(data) >= 0`.
+
+### Pulizia
+- Rimossi i workflow di prova `test-invito-calendario.yml` e `test-calendar-api.yml` con i relativi script (esito: gli inviti email auto-inviati non vengono aggiunti da Gmail; l'API con account di servizio funziona ed è quella usata dal job). I Secrets `GMAIL_USER` e `GMAIL_APP_PASSWORD` non servono più e possono essere eliminati da GitHub.
+- `.gitignore`: `__pycache__/`.
+- Guida: voce «Sincronizzazione Google Calendar» riscritta con i passaggi verificati (ruolo nel progetto del database, condivisione del calendario secondario, riattivazione del job dopo l'inattività).
+
 ---
 
 ## v6.5.0 · Ottobre 2026

@@ -1965,6 +1965,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         <div class="cl-item"><strong>Senso unico</strong>: l'app è la fonte; le modifiche fatte direttamente su Google vengono sovrascritte. Gli eventi già passati non vengono mai cancellati dal calendario, nemmeno dopo la chiusura stagione.</div>
         <div class="cl-item"><strong>Promemoria</strong>: le scadenze avvisano 7 giorni e 1 giorno prima (anche via email), gare e attività 1 giorno prima; le voci completate sono grigie e senza avvisi.</div>
         <div class="cl-item"><strong>Configurazione una tantum</strong>: vedi la Guida, voce «Sincronizzazione Google Calendar».</div>
+        <div class="cl-section">Correzioni</div>
+        <div class="cl-item"><strong>Giorni alla scadenza</strong>: tessere, visite mediche, assicurazioni, abbonamenti e contratti sponsor calcolavano i giorni con la mezzanotte UTC; nel pomeriggio una scadenza di oggi risultava «Scaduta 1gg fa» e una di domani «Oggi!». Ora il conteggio usa la data locale, come per le scadenze del calendario.</div>
+        <div class="cl-item"><strong>Visita medica</strong>: il certificato è valido fino al giorno di scadenza compreso (prima risultava non valido già dalla mezzanotte del giorno stesso). Vale per checklist atleta, tabella atleti e percorso di iscrizione.</div>
       </div>
 
       <div class="cl-entry">
@@ -3051,7 +3054,7 @@ function updateBadges(){
   const bSoci=document.getElementById('badge-soci');
   if(bSoci)bSoci.textContent=(DB.soci||[]).filter(s=>s.tipologia==='atleta'||s.tipologia==='amatore'||!s.tipologia).length;
 }
-function scadColor(d){if(!d)return'var(--text2)';const diff=(new Date(d)-new Date())/86400000;return diff<0?'var(--red)':diff<30?'var(--yellow)':'var(--green)';}
+function scadColor(d){if(!d)return'var(--text2)';const diff=_giorniA(d);return diff<0?'var(--red)':diff<30?'var(--yellow)':'var(--green)';}
 function toast(msg,type='success'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast ${type}`;t.innerHTML=`<span>${{success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'}[type]||'ℹ️'}</span><span>${msg}</span>`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(40px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3200);}
 
 // ═══ MOBILE MENU ══════════════════════════════════════════
@@ -3715,7 +3718,7 @@ function renderStaff(search=''){
     const eta=getEtaAnagrafica(s.nascita);
     let visitaBadge='<span class="badge bgy">—</span>';
     if(s.visitaScad){
-      const diff=(new Date(s.visitaScad)-new Date())/86400000;
+      const diff=_giorniA(s.visitaScad);
       if(diff<0)visitaBadge=`<span class="badge br">Scaduta</span>`;
       else if(diff<30)visitaBadge=`<span class="badge by">⚠ ${Math.round(diff)}gg</span>`;
       else visitaBadge=`<span class="badge bg">✓ ${formatDate(s.visitaScad)}</span>`;
@@ -3984,7 +3987,7 @@ function computeChecklist(s){
   const pianoGratuito=!!(pianoCk&&parseFloat(pianoCk.prezzo)===0);
   const hasPagamento=pianoGratuito||(DB.entrate||[]).some(e=>e.socioId===s.id);
   const fisrOk=!!s.tesseraFisr;
-  const visitaOk=!!(s.visitaScad&&(new Date(s.visitaScad)-new Date())>0);
+  const visitaOk=!!(s.visitaScad&&_giorniA(s.visitaScad)>=0);
   return [
     {key:'anagrafica',label:'Anagrafica completa',ok:anagraficaOk},
     {key:'corso',label:'Corso assegnato',ok:corsoOk},
@@ -4152,7 +4155,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     const categoriaFisr=annoNascita?getCategoriaFisr(annoNascita):'—';
     const abb=getAbbStatoSocio(s.id);
     const abbOk=abb?abb.stato==='attivo':null;
-    const visitaOk=s.visitaScad?!!(new Date(s.visitaScad)-new Date()>0):null;
+    const visitaOk=s.visitaScad?_giorniA(s.visitaScad)>=0:null;
     const assicOk=s.assicurazione?s.assicurazione==='pagata':null;
     const cl=computeChecklist(s);
     const ckByKey={};
@@ -4198,7 +4201,7 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     const assicBadge=`<span class="badge ${assicOk?'bg':'bgy'}" title="${assicTitle}">${assicOk?'✓':'✗'}</span>`;
     // Visita medica: flag semplice (valida/non valida) — la data e il conto
     // alla rovescia restano nel dettaglio (tooltip) e nelle Scadenze imminenti.
-    const visitaValida=!!(s.visitaScad&&(new Date(s.visitaScad)-new Date())>0);
+    const visitaValida=!!(s.visitaScad&&_giorniA(s.visitaScad)>=0);
     const visitaTitle=s.visitaScad?`Scadenza: ${formatDate(s.visitaScad)}${visitaValida?'':' (scaduta)'}`:'Nessuna visita registrata';
     const visitaBadge=`<span class="badge ${visitaValida?'bg':'bgy'}" title="${visitaTitle}">${visitaValida?'✓':'✗'}</span>`;
     const cl=computeChecklist(s);
@@ -4647,7 +4650,7 @@ function renderSollecitiAbb(){
     const email=s?.email||s?.g1Email||'';
     const tel=s?.tel||s?.g1Tel||'';
     const scaduto=a.scadenza<oggi;
-    const diff=Math.round((new Date(a.scadenza)-now)/86400000);
+    const diff=_giorniA(a.scadenza);
     const badge=scaduto?`<span class="badge br">⚠️ Scaduto ${Math.abs(diff)}gg fa</span>`:`<span class="badge by">⏳ Scade in ${diff}gg</span>`;
     const stagione=getStagioneCorrente()?.label||'';
     const testoEmail=`Gentile ${a.socioNome},\n\nLa informiamo che il suo abbonamento "${a.pianoNome}" ${scaduto?'è scaduto il':'scade il'} ${formatDate(a.scadenza)}.\n\nLa preghiamo di provvedere al rinnovo.\n\nCordiali saluti,\nStaff ASD Spartans Hockey Inline`;
@@ -4695,7 +4698,7 @@ function renderStoricoAbb(){
     <thead><tr><th>Socio</th><th>Piano</th><th>Inizio</th><th>Scadenza</th><th>Stato</th></tr></thead>
     <tbody>${lista.map(a=>{
       const stato=!a.scadenza?'attivo':a.scadenza<oggi?'scaduto':'attivo';
-      const diff=a.scadenza?Math.round((new Date(a.scadenza)-new Date())/86400000):null;
+      const diff=a.scadenza?_giorniA(a.scadenza):null;
       const statoLabel=stato==='scaduto'?`<span class="badge br">Scaduto</span>`:diff!==null&&diff<=30?`<span class="badge by">⏳ ${diff}gg</span>`:`<span class="badge bg">Attivo</span>`;
       return`<tr>
         <td style="font-weight:600;">${a.socioNome}</td>
@@ -4800,7 +4803,7 @@ function renderAlertAbbAtleta(atletaId){
     alertEl.style.display='';
     alertEl.innerHTML=`<div style="background:rgba(192,57,43,.1);border:1px solid var(--red);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--red);">⚠️ Abbonamento <strong>${scaduto.pianoNome}</strong> scaduto il ${formatDate(scaduto.scadenza)}</div>`;
   }else if(inScadenza){
-    const diff=Math.round((new Date(inScadenza.scadenza)-new Date())/86400000);
+    const diff=_giorniA(inScadenza.scadenza);
     alertEl.style.display='';
     alertEl.innerHTML=`<div style="background:rgba(212,160,23,.1);border:1px solid var(--gold);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--gold);">⏳ Abbonamento <strong>${inScadenza.pianoNome}</strong> in scadenza tra ${diff} giorni (${formatDate(inScadenza.scadenza)})</div>`;
   }else{
@@ -4829,7 +4832,7 @@ function renderChecklistIscritto(){
   const pianoCk2=abbAttivoCk2?(DB.piani||[]).find(p=>p.id===abbAttivoCk2.pianoId):null;
   const hasPagamento=pagamenti.length>0||!!(pianoCk2&&parseFloat(pianoCk2.prezzo)===0);
   const fisrOk=!!s.tesseraFisr;
-  const visitaOk=s.visitaScad&&(new Date(s.visitaScad)-new Date())>0;
+  const visitaOk=!!(s.visitaScad&&_giorniA(s.visitaScad)>=0);
   const corsoOk=!!s.corsoId;
 
   function step(num,fase,titolo,ok,dettaglio,action){
@@ -5413,7 +5416,7 @@ function _evLibero(e){return !!(EV_TIPI[e&&e.tipo]&&EV_TIPI[e.tipo].libero);}
 // Giorni da oggi alla data (YYYY-MM-DD), in calendario locale: 0 = oggi, 1 = domani, <0 = passata.
 // Date locali e non UTC, altrimenti nel pomeriggio "domani" risulterebbe "oggi".
 function _giorniA(ds){
-  const[y,m,g]=ds.split('-').map(Number);
+  const[y,m,g]=String(ds).slice(0,10).split('-').map(Number);
   const n=new Date();
   return Math.round((new Date(y,m-1,g)-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/86400000);
 }
@@ -5865,7 +5868,7 @@ function renderDashboard(){
   const cont=document.getElementById('ds-scadenze'),now=new Date();const scad=[];
   const addScad=(nome,tipo,dataScad,onclick)=>{
     if(!dataScad)return;
-    const diff=Math.round((new Date(dataScad)-now)/86400000);
+    const diff=_giorniA(dataScad);
     if(diff<=60)scad.push({nome,tipo,scad:dataScad,diff,onclick});
   };
   DB.soci.forEach(s=>{
@@ -5892,7 +5895,7 @@ function renderDashboard(){
   (DB.sponsor||[]).forEach(s=>{
     const c=s.contratto||{};
     if(c.scadenza){
-      const diff=Math.round((new Date(c.scadenza)-now)/86400000);
+      const diff=_giorniA(c.scadenza);
       if(diff<=60)scad.push({nome:s.nome,tipo:'🤝 Contratto sponsor',scad:c.scadenza,diff});
     }
   });
@@ -7315,7 +7318,7 @@ function renderSponsor(){
     const c=s.contratto||{};
     let scadCol='var(--text2)';
     if(c.scadenza){
-      const diff=Math.round((new Date(c.scadenza)-now)/86400000);
+      const diff=_giorniA(c.scadenza);
       scadCol=diff<0?'var(--red)':diff<=30?'var(--yellow)':'var(--text2)';
     }
     return`<tr>
@@ -8398,7 +8401,7 @@ document.addEventListener('click',e=>{
 
 // ═══ GUIDA ════════════════════════════════════════════════
 const GUIDA_VOCI=[
-  {cat:'📅 Calendario',titolo:'Sincronizzazione Google Calendar',testo:'Sincronizza in automatico, ogni ora, tutti gli eventi con un calendario Google (a senso unico: app → Google). Configurazione una tantum: 1) su Google Calendar crea un calendario secondario "Spartans Manager" e condividilo con l\'account di servizio del progetto Firebase con permesso "Apporta modifiche agli eventi"; 2) su Google Cloud crea un secondo account di servizio di sola lettura sul Realtime Database (ruolo "Visualizzatore Firebase Realtime Database") e scarica la chiave JSON; 3) su GitHub, Settings → Secrets → Actions, salva la chiave come FIREBASE_SA_JSON (e quella del calendario come GOOGLE_SA_JSON) e aggiungi la variabile FIREBASE_DB_URL; 4) in La mia struttura attiva la sincronizzazione e incolla l\'ID del calendario; 5) lancia il workflow una volta con "simula" attivo e controlla i conteggi. Non incollare mai le chiavi in chat o nel codice.',tag:'google calendar sincronizzazione sync calendario promemoria'},
+  {cat:'📅 Calendario',titolo:'Sincronizzazione Google Calendar',testo:'Sincronizza in automatico, ogni ora, gli eventi con un calendario Google (a senso unico: app → Google; le modifiche fatte su Google vengono sovrascritte). Configurazione una tantum: 1) su Google Calendar crea un calendario secondario "Spartans Manager" e, nelle sue impostazioni, condividilo con l\'email dell\'account di servizio del calendario con permesso "Apporta modifiche agli eventi" (la condivisione del calendario principale non vale per quello secondario); 2) su Google Cloud crea un secondo account di servizio per la sola lettura del database e scarica la chiave JSON; poi, nel progetto Firebase che contiene il database (non in quello dell\'account), vai in IAM → Concedi l\'accesso, inserisci l\'email di quell\'account e dagli il ruolo "Firebase Viewer" (o "Firebase Realtime Database Viewer"); 3) su GitHub, Settings → Secrets → Actions, salva le chiavi come FIREBASE_SA_JSON (lettura database) e GOOGLE_SA_JSON (calendario) e aggiungi la variabile FIREBASE_DB_URL; 4) in La mia struttura attiva la sincronizzazione, incolla l\'ID del calendario (Integra il calendario → ID calendario, termina con @group.calendar.google.com) e salva; 5) lancia il workflow una volta con "simula" attivo e controlla i conteggi, poi senza. Se il calendario smette di aggiornarsi, riattiva il workflow da Actions (GitHub spegne i job pianificati dopo circa 60 giorni senza attività nel repository). Non incollare mai le chiavi in chat o nel codice.',tag:'google calendar sincronizzazione sync calendario promemoria'},
   {cat:'💰 Amministrazione',titolo:'Saldo conto corrente e saldo cassa',testo:'Nel tab "Riepilogo" di Amministrazione, oltre al saldo totale, vedi separatamente il saldo del conto corrente e il saldo della cassa. Ogni movimento (entrata o uscita) finisce in uno dei due in base al Metodo scelto: Bonifico, Carta, POS e Altro aggiornano il conto corrente; Contanti aggiorna la cassa (un movimento senza metodo conta come cassa). Il saldo parte dai valori reali del 05/10/2026 (c/c €1.670, cassa €80) e si aggiorna con i movimenti; Se vuoi spostare un movimento da un conto all\'altro, modificalo (✏️) e cambia il Metodo. La Prima nota mostra lo stesso dettaglio per il periodo filtrato.',tag:'saldo conto corrente cassa contanti bonifico carta pos altro riepilogo metodo di pagamento'},
   {cat:'👤 Anagrafiche',titolo:'Aggiungere un nuovo atleta',testo:'Vai su Anagrafiche → Atleti → "+ Nuovo atleta". Compila i dati nei 6 tab: Anagrafica, Sanitario, Genitori, Taglie, Pagamenti, Documenti. Il campo "Tipologia" distingue tra Atleta e Amatore.',tag:'atleta aggiungere nuovo socio'},
   {cat:'👤 Anagrafiche',titolo:'Importare atleti dal Google Form',testo:'Vai su Anagrafiche → Atleti → "📊 Sheets". Incolla il CSV esportato dal Google Form. L\'app riconosce tutte le 39 colonne e aggiorna i campi vuoti se l\'atleta esiste già.',tag:'importare csv google form sheets'},
