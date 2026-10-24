@@ -34,7 +34,22 @@ TIPI = {
     'allenamento': {'ico': '🏒', 'colore': '9',  'durata': 90},
     'attivita':    {'ico': '📌', 'colore': '5',  'durata': 60},
     'scadenza':    {'ico': '⏰', 'colore': '6',  'durata': 30},
+    # scadenze di atleti, staff e sponsor ricavate dalle anagrafiche (non sono eventi del calendario dell'app)
+    'documenti':   {'ico': '📋', 'colore': '6',  'durata': 30},
 }
+
+# (raccolta, campo, etichetta) delle scadenze nelle anagrafiche: le stesse della dashboard "Scadenze imminenti".
+SCADENZE_ANAGRAFICHE = [
+    ('soci', 'tesseraAsdScad', 'Tessera ASD', 'atleta', 'atleti'),
+    ('soci', 'tesseraFisrScad', 'Tessera FISR', 'atleta', 'atleti'),
+    ('soci', 'visitaScad', 'Visita medica', 'atleta', 'atleti'),
+    ('soci', 'assicurazioneScad', 'Assicurazione', 'atleta', 'atleti'),
+    ('staff', 'tesseraAsdScad', 'Tessera ASD staff', 'persona', 'persone'),
+    ('staff', 'tesseraFisrScad', 'Tessera FISR staff', 'persona', 'persone'),
+    ('staff', 'visitaScad', 'Visita medica staff', 'persona', 'persone'),
+    ('staff', 'safegScad', 'Formazione Safeguarding', 'persona', 'persone'),
+    ('sponsor', 'contratto.scadenza', 'Contratto sponsor', 'contratto', 'contratti'),
+]
 TIPI_PREDEFINITI = {k: True for k in TIPI}
 
 
@@ -64,7 +79,7 @@ def promemoria(tipo, tutto_il_giorno, fatto):
     if fatto or tipo == 'allenamento':
         return {'useDefault': False, 'overrides': []}
     giorno = lambda n: (n * 1440 - 540) if tutto_il_giorno else n * 1440  # n giorni prima (09:00 se tutto il giorno)
-    if tipo == 'scadenza':
+    if tipo in ('scadenza', 'documenti'):
         o = [('popup', giorno(7)), ('popup', giorno(1)), ('email', giorno(1))]
     else:
         o = [('popup', giorno(1))]
@@ -106,7 +121,7 @@ def costruisci(e):
         corpo['end'] = {'date': (giorno + dt.timedelta(days=1)).isoformat()}
         tutto = True
     corpo['reminders'] = promemoria(tipo, tutto, fatto)
-    if tipo in ('scadenza', 'attivita') or fatto:
+    if tipo in ('scadenza', 'attivita', 'documenti') or fatto:
         corpo['transparency'] = 'transparent'
     return corpo
 
@@ -115,9 +130,34 @@ def impronta(corpo):
     return hashlib.sha1(json.dumps(corpo, sort_keys=True, ensure_ascii=False).encode('utf-8')).hexdigest()[:16]
 
 
-def calcola_desiderati(eventi, tipi):
+def valore(d, percorso):
+    for k in percorso.split('.'):
+        d = d.get(k) if isinstance(d, dict) else None
+    return d
+
+
+def scadenze_anagrafiche(anagrafiche, oggi):
+    """Eventi "documenti": uno per (categoria, giorno) con il NUMERO di persone in scadenza, mai i nomi.
+    Solo da oggi in avanti: le scadenze gia' passate non vengono riportate sul calendario."""
+    eventi = []
+    for raccolta, campo, etichetta, sing, plur in SCADENZE_ANAGRAFICHE:
+        per_giorno = {}
+        for r in (anagrafiche or {}).get(raccolta, []):
+            d = str(valore(r, campo) or '')[:10]
+            if re.fullmatch(r'\d{4}-\d{2}-\d{2}', d) and d >= oggi.isoformat():
+                per_giorno[d] = per_giorno.get(d, 0) + 1
+        for d, n in per_giorno.items():
+            eventi.append({'tipo': 'documenti', 'data': d, 'chiave': f'd|{raccolta}|{campo}|{d}',
+                           'titolo': f"{etichetta}: {n} {sing if n == 1 else plur} in scadenza",
+                           'note': "Apri Spartans Manager (dashboard → Scadenze imminenti) per i nominativi."})
+    return eventi
+
+
+def calcola_desiderati(eventi, tipi, oggi=None, anagrafiche=None):
     """{id_google: corpo} per gli eventi dei tipi abilitati. Ritorna anche i conteggi per tipo e gli scartati."""
     desiderati, per_tipo, scartati = {}, {}, 0
+    if anagrafiche is not None and oggi is not None:
+        eventi = list(eventi) + scadenze_anagrafiche(anagrafiche, oggi)
     for e in eventi:
         if not isinstance(e, dict):
             continue
@@ -128,7 +168,7 @@ def calcola_desiderati(eventi, tipi):
         if corpo is None:
             scartati += 1
             continue
-        gid = id_google(chiave_evento(e))
+        gid = id_google(e.get('chiave') or chiave_evento(e))
         corpo['extendedProperties'] = {'private': {'spartans': '1', 'h': impronta(corpo)}}
         desiderati[gid] = corpo
         per_tipo[tipo] = per_tipo.get(tipo, 0) + 1
@@ -233,8 +273,8 @@ def elimina(sess, cal, gid):
         errore(r, "l'eliminazione")
 
 
-def sincronizza(sess, cal, eventi, tipi, oggi, simula=False, forza=False):
-    desiderati, per_tipo, scartati = calcola_desiderati(eventi, tipi)
+def sincronizza(sess, cal, eventi, tipi, oggi, simula=False, forza=False, anagrafiche=None):
+    desiderati, per_tipo, scartati = calcola_desiderati(eventi, tipi, oggi, anagrafiche)
     esistenti = elenca(sess, cal)
     creare, aggiornare, eliminare, invariati = piano(esistenti, desiderati, oggi)
     valvola(esistenti, desiderati, eliminare, forza)
@@ -265,13 +305,14 @@ def normalizza_lista(v):
 def leggi_firebase(sess, db_url):
     base = db_url.rstrip('/') + '/spartans/data/'
     out = {}
-    for nome in ('struttura', 'eventi'):
+    for nome in ('struttura', 'eventi', 'soci', 'staff', 'sponsor'):
         r = chiama(sess, 'get', base + nome + '.json')
         if r.status_code >= 300:
             sys.exit(f'Firebase ha risposto {r.status_code} leggendo "{nome}". Controlla FIREBASE_DB_URL e che '
                      "l'account di servizio abbia il ruolo di lettura sul Realtime Database.")
         out[nome] = r.json()
-    return out['struttura'] or {}, normalizza_lista(out['eventi'])
+    anagrafiche = {k: normalizza_lista(out[k]) for k in ('soci', 'staff', 'sponsor')}
+    return out['struttura'] or {}, normalizza_lista(out['eventi']), anagrafiche
 
 
 def impostazioni(struttura):
@@ -296,7 +337,7 @@ def main():
     from google.auth.transport.requests import AuthorizedSession
     s_fb = AuthorizedSession(service_account.Credentials.from_service_account_info(
         info_fb, scopes=['https://www.googleapis.com/auth/firebase.database', 'https://www.googleapis.com/auth/userinfo.email']))
-    struttura, eventi = leggi_firebase(s_fb, db_url)
+    struttura, eventi, anagrafiche = leggi_firebase(s_fb, db_url)
     attivo, cal, tipi = impostazioni(struttura)
     if not attivo:
         print("Sincronizzazione disattivata in 'La mia struttura'. Nessuna azione.")
@@ -305,7 +346,7 @@ def main():
         sys.exit("Sincronizzazione attiva ma manca l'ID del calendario in 'La mia struttura'.")
     s_g = AuthorizedSession(service_account.Credentials.from_service_account_info(
         info_g, scopes=['https://www.googleapis.com/auth/calendar']))
-    res = sincronizza(s_g, cal, eventi, tipi, oggi_roma(), simula, forza)
+    res = sincronizza(s_g, cal, eventi, tipi, oggi_roma(), simula, forza, anagrafiche)
     print(('SIMULAZIONE (nessuna scrittura) - ' if simula else '') + 'eventi nell\'app: %d | da sincronizzare: %d (%s) | scartati per data non valida: %d'
           % (len(eventi), res['desiderati'], ', '.join(f'{k}: {v}' for k, v in sorted(res['per_tipo'].items())) or 'nessuno', res['scartati']))
     print('nel calendario: %d | creati: %d | aggiornati: %d | eliminati: %d | invariati: %d'
