@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.6.0 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.7.0 · Ottobre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -726,6 +726,9 @@ tbody td{padding:10px 13px;vertical-align:middle;}
                 </select>
                 <div style="font-size:11px;color:var(--text3);margin-top:3px;">Il codice giusto per la tua struttura (es. ASD in regime 398/91) conferma con il commercialista: deve coincidere con quello che usi nel software di fatturazione.</div>
               </div>
+              <div class="fgroup"><label>Codice SDI (Codice Destinatario)</label><input class="fi" id="s-codice-sdi" maxlength="7" placeholder="7 caratteri" style="text-transform:uppercase;"></div>
+              <div class="fgroup"><label>PEC</label><input class="fi" id="s-pec" type="email" placeholder="associazione@pec.it"></div>
+              <div class="fgroup s2" style="margin-top:-6px;"><div style="font-size:11px;color:var(--text3);">Servono per ricevere le fatture elettroniche dei fornitori. Non compaiono nelle fatture emesse: nel file XML Codice Destinatario e PEC sono dati di chi riceve la fattura (lo sponsor), che si inseriscono nella scheda sponsor.</div></div>
               <div class="fgroup s2"><label>Fonte di emissione e numerazione delle fatture</label>
                 <select class="fsel" id="s-fonte-fatture">
                   <option value="interna">Spartans Manager — numero progressivo interno, XML da caricare sul portale</option>
@@ -1960,6 +1963,13 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.7.0 · Ottobre 2026</div>
+        <div class="cl-section">Novità — La mia struttura</div>
+        <div class="cl-item"><strong>Codice SDI e PEC dell'associazione</strong>: due nuovi campi in <em>La mia struttura</em>. Il Codice SDI (Codice Destinatario) deve avere 7 caratteri tra lettere e cifre e viene salvato in maiuscolo; la PEC deve essere un indirizzo valido. Entrambi sono facoltativi e, se non validi, il salvataggio si ferma con un avviso.</div>
+        <div class="cl-item"><strong>Uso</strong>: servono per ricevere le fatture elettroniche dei fornitori. Non cambiano le fatture emesse: nel file XML Codice Destinatario e PEC sono dati di chi riceve la fattura (lo sponsor) e restano nella scheda sponsor.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.6.0 · Ottobre 2026</div>
         <div class="cl-section">Novità — Sincronizzazione con Google Calendar</div>
         <div class="cl-item"><strong>Calendario Google sempre allineato</strong>: in <em>La mia struttura</em> puoi attivare la sincronizzazione di <em>tutti</em> gli eventi (gare, allenamenti, attività, scadenze) con un calendario Google dell'associazione. Un job automatico li aggiorna ogni ora; scegli quali tipi inviare.</div>
@@ -2978,7 +2988,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.6.0 · Ottobre 2026';
+const APP_VERSION = 'v6.7.0 · Ottobre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3189,7 +3199,7 @@ document.addEventListener('click',e=>{if(e.target.classList.contains('mo'))close
 // ═══ STRUTTURA ════════════════════════════════════════════
 function loadStrutturaForm(){
   const s=DB.struttura;
-  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','iban','indirizzo','descr','affiliazione']
+  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','codiceSdi','pec','iban','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)el.value=s[k]||'';});
   const fonteSel=document.getElementById('s-fonte-fatture');if(fonteSel)fonteSel.value=s.fonteFatture==='esterna'?'esterna':'interna';
   const gA=document.getElementById('s-gcal-attivo');if(gA)gA.checked=!!s.gcalAttivo;
@@ -3202,7 +3212,13 @@ function loadStrutturaForm(){
   renderConsiglioDirettivoList();
 }
 function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura","warning");return;}
-  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','iban','indirizzo','descr','affiliazione']
+  // Codice SDI (7 caratteri alfanumerici) e PEC: normalizzati e controllati prima di salvare
+  const _sdiEl=document.getElementById('s-codice-sdi'),_pecEl=document.getElementById('s-pec');
+  const _sdi=_sdiEl?_sdiEl.value.replace(/\s/g,'').toUpperCase():'',_pec=_pecEl?_pecEl.value.trim():'';
+  if(_sdi&&!/^[A-Z0-9]{7}$/.test(_sdi)){toast('Codice SDI non valido: servono 7 caratteri tra lettere e cifre (o lascia il campo vuoto)','error');return;}
+  if(_pec&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(_pec)){toast('PEC non valida: controlla l\'indirizzo','error');return;}
+  if(_sdiEl)_sdiEl.value=_sdi;if(_pecEl)_pecEl.value=_pec;
+  ['nome','telefono','email','web','piva','cf','tipo','natura','anno','citta','cap','provincia','regimeFiscale','codiceSdi','pec','iban','indirizzo','descr','affiliazione']
    .forEach(k=>{const el=document.getElementById('s-'+k.replace(/([A-Z])/g,'-$1').toLowerCase());if(el)DB.struttura[k]=el.value;});
   const fonteSelS=document.getElementById('s-fonte-fatture');if(fonteSelS)DB.struttura.fonteFatture=fonteSelS.value==='esterna'?'esterna':'interna';
   const gAS=document.getElementById('s-gcal-attivo');if(gAS)DB.struttura.gcalAttivo=gAS.checked;
@@ -8469,6 +8485,7 @@ const GUIDA_VOCI=[
   {cat:'🤝 Sponsor',titolo:'Generare la fattura per uno sponsor',testo:'Con la fonte "Spartans Manager" (La mia struttura): apri la scheda dello sponsor → sezione Documenti → \"🧾 Genera fattura\". Il documento riporta numerazione progressiva (azzerata a ogni anno), dati ASD e sponsor, descrizione, imponibile (l\'importo del contratto), IVA e totale, ed è registrato in Amministrazione → \"📄 Fatture\". Da lì scarichi l\'XML (⬇️) da caricare sul portale \"Fatture e Corrispettivi\" — obbligatorio per tutte le ASD con partita IVA dal 2024. Se mancano dati (indirizzo, CAP, provincia, ecc.) l\'XML non viene generato e ti viene detto cosa completare. Con IVA 0% scegli la Natura (N1–N7) nel contratto. Per correggere un errore NON si annulla la fattura: dal registro si emette una nota di credito (➖) o di debito (➕) che riferisce la fattura originale, la quale resta sempre intatta. Se invece emetti con Aruba, vedi \"Fatture emesse da Aruba\".',tag:'fattura sponsor generare documento numerazione nota di credito nota di debito xml sdi fatturapa natura iva'},
   {cat:'🤝 Sponsor',titolo:'Fonte di emissione e numerazione delle fatture',testo:'In La mia struttura → \"Fonte di emissione e numerazione delle fatture\" scegli chi emette e numera: Spartans Manager (predefinito) oppure un software esterno come Aruba. Deve esserci UNA sola fonte di numerazione, altrimenti i registri divergono. Con la scelta esterna, \"Genera fattura\" e le note di credito/debito di Spartans Manager sono disattivate: emetti da Aruba e importi qui le fatture. Cambiare la scelta non modifica le fatture già registrate.',tag:'fonte emissione numerazione aruba esterno fattura contatore'},
   {cat:'🤝 Sponsor',titolo:'Fatture emesse da Aruba: importarle',testo:'In Aruba scarica per ogni fattura il file XML oppure il .xml.p7m (il PDF non serve). In Spartans Manager vai in Amministrazione → \"📄 Fatture\" → \"📥 Importa fatture da Aruba\" e seleziona uno o più file. Vengono letti numero, data, sponsor, importi, natura, scadenza e, per le note, la fattura collegata; lo sponsor è collegato per partita IVA o codice fiscale. Una fattura già presente non viene duplicata (puoi importare sia XML sia .p7m), una fattura di un\'altra partita IVA viene scartata, e i file non validi sono elencati con il motivo. Le righe importate hanno 📥 e il pulsante ⬇️ riscarica l\'XML originale. Il PDF di cortesia lo conservi in Aruba.',tag:'importare fatture aruba xml p7m registro importazione'},
+  {cat:'🏛️ Struttura',titolo:'Codice SDI e PEC dell\'associazione',testo:'In La mia struttura trovi i campi Codice SDI (Codice Destinatario) e PEC. Il Codice SDI ha 7 caratteri tra lettere e cifre e viene salvato in maiuscolo; la PEC deve essere un indirizzo email valido. Entrambi sono facoltativi. Servono per ricevere le fatture elettroniche dei fornitori: non compaiono nelle fatture che emetti, perché nel file XML Codice Destinatario e PEC sono dati di chi riceve la fattura. Per le fatture agli sponsor vanno inseriti nella scheda sponsor.',tag:'codice sdi codice destinatario pec posta elettronica certificata struttura fatture ricevute'},
   {cat:'🏛️ Struttura',titolo:'Regime fiscale della fattura (codici RF)',testo:'In La mia struttura → \"Regime fiscale fattura\" trovi i codici FatturaPA da RF01 a RF19. Il codice corretto dipende dalla posizione fiscale dell\'associazione (per esempio ASD in regime 398/91): confermalo con il commercialista e usa lo stesso codice del software di fatturazione (Aruba). Un codice errato finisce in ogni fattura emessa.',tag:'regime fiscale rf01 rf18 rf19 fatturapa struttura 398'},
   {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
 
@@ -9076,7 +9093,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.6.0';
+    const CURRENT_VER='6.7.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

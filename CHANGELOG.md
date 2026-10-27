@@ -2,6 +2,16 @@
 
 ---
 
+## v6.7.0 · Ottobre 2026
+
+### Novità — La mia struttura
+- **Codice SDI e PEC dell'associazione**: nuovi campi `struttura.codiceSdi` e `struttura.pec` (id `s-codice-sdi`, `s-pec`), caricati/salvati con gli altri dati struttura. Facoltativi.
+- **Validazione al salvataggio** (`saveStruttura`): Codice SDI = 7 caratteri `[A-Z0-9]`, spazi rimossi e maiuscolo forzato; PEC = indirizzo email valido. Se un campo non è valido il salvataggio si ferma con un avviso e non scrive nulla.
+- **Perimetro**: servono per ricevere le fatture dei fornitori e non entrano nell'XML FatturaPA emesso, dove `CodiceDestinatario` e `PECDestinatario` riguardano il cessionario/committente (lo sponsor, già gestito nella scheda sponsor). Nessuna modifica a `generaXmlFatturaPA` né a `validaFatturaXml`.
+- Guida: nuova voce «Codice SDI e PEC dell'associazione».
+
+---
+
 ## v6.6.0 · Ottobre 2026
 
 ### Novità — Sincronizzazione con Google Calendar
