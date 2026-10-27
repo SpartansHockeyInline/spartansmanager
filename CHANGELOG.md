@@ -2,6 +2,16 @@
 
 ---
 
+## v6.7.1 · Ottobre 2026
+
+### Novità — Contratti
+- **PEC dell'ASD nei contratti**: `struttura.pec` viene passata come parametro `asdPec` a `modulo_contratto_sponsor.html` (riga «PEC» nel blocco «Dati dell'Associazione», nascosta se vuota) e a `modulo_cocoo_sportivo.html` (", PEC …" nel paragrafo delle parti, assente se vuota).
+- Nel co.co.co. `asdPec` è aggiunto solo alla chiamata del contratto, non all'oggetto `ps` condiviso con gli altri moduli: la PEC non compare in documenti che non la prevedono.
+- Il Codice SDI non è riportato in nessun contratto. Il timbro dell'associazione non è modificato.
+- Guida e nota nel form «La mia struttura» aggiornate.
+
+---
+
 ## v6.7.0 · Ottobre 2026
 
 ### Novità — La mia struttura

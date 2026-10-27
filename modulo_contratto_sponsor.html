@@ -67,6 +67,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
       <div class="field" style="grid-column:span 2;"><label>Sede legale</label><div class="fval" id="f-asd-indirizzo">&nbsp;</div></div>
       <div class="field"><label>Affiliazione</label><div class="fval" id="f-asd-affiliazione">&nbsp;</div></div>
     </div>
+    <div class="grid g3" style="margin-top:6px;" id="f-asd-pec-row">
+      <div class="field" style="grid-column:span 3;"><label>PEC</label><div class="fval" id="f-asd-pec">&nbsp;</div></div>
+    </div>
   </div>
 
   <div class="section"><div class="st gold">Dati dello Sponsor</div>
@@ -283,6 +286,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:12.5px;color:var(--dark);b
   set('f-asd-piva','asdPiva');set('f-asd-piva2','asdPiva');
   set('f-asd-indirizzo','asdIndirizzo');set('f-asd-indirizzo2','asdIndirizzo');
   set('f-asd-affiliazione','asdAffiliazione');set('f-asd-affiliazione2','asdAffiliazione');
+  // PEC dell'ASD (v6.7.1): la riga compare solo se è compilata in "La mia struttura"
+  if(get('asdPec'))set('f-asd-pec','asdPec');
+  else{const r=document.getElementById('f-asd-pec-row');if(r)r.style.display='none';}
 
   // Presidente ASD
   set('f-asd-presidente','asdPresidente');

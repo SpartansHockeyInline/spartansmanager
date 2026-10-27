@@ -37,7 +37,7 @@
 
 <div class="parti">
   <p><strong>TRA</strong></p>
-  <p id="asd-riga">l'Associazione Sportiva Dilettantistica <span id="p-asdNome"></span>, con sede in <span id="p-asdIndirizzoCompleto"></span>, Codice Fiscale <span id="p-asdCf"></span><span id="p-asdPivaWrap"></span>, affiliata FISR, in persona del legale rappresentante/delegato <span id="p-rappresentante"></span>, di seguito denominata <strong>"Associazione"</strong>,</p>
+  <p id="asd-riga">l'Associazione Sportiva Dilettantistica <span id="p-asdNome"></span>, con sede in <span id="p-asdIndirizzoCompleto"></span>, Codice Fiscale <span id="p-asdCf"></span><span id="p-asdPivaWrap"></span><span id="p-asdPecWrap"></span>, affiliata FISR, in persona del legale rappresentante/delegato <span id="p-rappresentante"></span>, di seguito denominata <strong>"Associazione"</strong>,</p>
   <p><strong>E</strong></p>
   <p id="collab-riga"><span id="p-nomeCompleto"></span>, nato/a a <span id="p-luogo"></span> il <span id="p-nascita"></span>, residente in <span id="p-indirizzo"></span>, Codice Fiscale <span id="p-cf"></span>, di seguito denominato/a <strong>"Collaboratore"</strong>,</p>
   <p>si conviene e si stipula quanto segue.</p>
@@ -105,6 +105,7 @@ document.getElementById('p-asdNome').textContent=v('asdNome');
 document.getElementById('p-asdIndirizzoCompleto').textContent=v('asdIndirizzo')+', '+v('asdCap')+' '+v('asdCitta');
 document.getElementById('p-asdCf').textContent=v('asdCf');
 document.getElementById('p-asdPivaWrap').textContent=v('asdPiva')?(' — P.IVA '+v('asdPiva')):'';
+document.getElementById('p-asdPecWrap').textContent=v('asdPec')?(', PEC '+v('asdPec')):'';
 document.getElementById('p-rappresentante').textContent=v('rappresentante')||v('presidente');
 document.getElementById('p-nomeCompleto').textContent=(v('nome')+' '+v('cognome')).trim();
 document.getElementById('p-luogo').textContent=v('luogo');
