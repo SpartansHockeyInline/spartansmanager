@@ -34,6 +34,14 @@ function fmtData(iso){
   return iso;
 }
 
+function esitoVotoHtml(membri){
+  const votanti=membri.filter(m=>!m.interessato).map(m=>`${m.nome} ${m.cognome}`);
+  const astenuti=membri.filter(m=>m.interessato).map(m=>`${m.nome} ${m.cognome}`);
+  return astenuti.length
+    ? `La delibera risulta <strong>approvata</strong> a maggioranza dei presenti aventi diritto di voto, con il voto favorevole di ${esc(votanti.join(', ')||'—')}, e con l'astensione di ${esc(astenuti.join(', '))} in quanto part${astenuti.length>1?'i interessate':'e interessata'}.`
+    : `La delibera risulta <strong>approvata all'unanimità</strong> dei presenti.`;
+}
+
 const TEMPLATES={
   contoCorrente:(f,ctx)=>{
     const operativi=ctx.membri.filter(m=>m.operativita).map(m=>`${m.nome} ${m.cognome}`);
@@ -98,6 +106,45 @@ const TEMPLATES={
       <p>di fissare in € ${esc(f.importo)||'________'} la quota associativa per la stagione sportiva ${esc(f.stagione)||'________'}, dando mandato alla struttura amministrativa dell'Associazione di darne comunicazione ai soci.</p>`
     };
   },
+  modificaStatuto:(f,ctx)=>{
+    const nl=t=>esc(t).replace(/\n/g,'<br>');
+    const rif=esc(f.rif)||'[motivo della modifica]';
+    const rifArt=f.rifArt?` (${esc(f.rifArt)})`:'';
+    const rilievi=(f.rilievi||[]).filter(Boolean);
+    const mods=(f.modifiche||[]).filter(m=>m.articolo||m.proposto);
+    const esito=esitoVotoHtml(ctx.membri);
+    const quorumTxt=esc(f.assQuorum)||'nel rispetto dei quorum costitutivi e deliberativi previsti dallo statuto per l\'assemblea straordinaria';
+    const blocchiMod=mods.map((m,i)=>`
+      <p><strong>2.${i+1}) ${esc(m.articolo)}</strong></p>
+      ${m.vigente?`<p><em>Testo vigente:</em> «${nl(m.vigente)}»</p>`:''}
+      <p><em>Testo proposto:</em> «${nl(m.proposto)}»</p>
+      <p>Il Consiglio <strong>delibera</strong> di approvare la proposta di modifica sopra riportata, da sottoporre all'assemblea straordinaria dei soci. ${esito}</p>`).join('');
+    return {
+      odg:[
+        `Esame di: ${rif}`,
+        `Approvazione delle proposte di modifica dello statuto${rifArt}`,
+        `Indizione dell'assemblea straordinaria dei soci`
+      ],
+      esitoProprio:true,
+      corpo:`
+      <p><strong>Punto 1 — Esame di: ${rif}</strong></p>
+      <p>Il Presidente riferisce al Consiglio in merito a: ${rif}.</p>
+      ${f.premessa?`<p>${nl(f.premessa)}</p>`:''}
+      ${rilievi.length?`<p>I rilievi e i motivi da recepire sono i seguenti:</p><ul>${rilievi.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
+      <p>Il Consiglio ne prende atto.</p>
+      <p><strong>Punto 2 — Approvazione delle proposte di modifica dello statuto</strong></p>
+      <p>Il Presidente illustra i testi proposti. Il Consiglio, nell'esercizio del potere di elaborare le proposte di modifica dello statuto${rifArt}, e dopo ampia discussione, procede a votazioni separate. La modifica dello statuto diventa efficace solo con l'approvazione dell'assemblea straordinaria dei soci.</p>
+      ${blocchiMod}
+      <p><strong>Punto 3 — Indizione dell'assemblea straordinaria dei soci</strong></p>
+      <p>Poiché la modifica dello statuto spetta all'assemblea straordinaria, il Consiglio</p>
+      <div class="delibera-header">DELIBERA</div>
+      <p>di indire l'assemblea straordinaria dei soci, da convocarsi a cura del Presidente, con il seguente ordine del giorno: 1) approvazione delle modifiche dello statuto sopra riportate; 2) mandato al Presidente per gli adempimenti conseguenti.</p>
+      <p>Prima convocazione: <strong>${fmtData(f.assData)}</strong> alle ore <strong>${esc(f.assOra1)||'________'}</strong>. Seconda convocazione: <strong>${fmtData(f.assData)}</strong> alle ore <strong>${esc(f.assOra2)||'________'}</strong>. Luogo: ${esc(f.assLuogo)||'la sede sociale'}.</p>
+      <p>L'avviso di convocazione sarà inviato${f.assAvviso?` il ${fmtData(f.assAvviso)}`:''} nei modi e con il preavviso${f.assPreavviso?` di almeno ${esc(f.assPreavviso)} giorni`:''} previsti dallo statuto. L'assemblea è validamente costituita e delibera ${quorumTxt}.</p>
+      <p>${esito}</p>
+      <p>Il Consiglio dà inoltre mandato al Presidente di curare l'invio dell'avviso, la trasmissione della documentazione all'organismo sportivo di affiliazione e ogni ulteriore adempimento conseguente.</p>`
+    };
+  },
   libero:(f,ctx)=>{
     const corpoUtente=(esc(f.corpo)||'[testo della delibera]').replace(/\n/g,'</p><p>');
     return {
@@ -121,7 +168,8 @@ function build(){
   const ctx={membri:payload.membri||[],asdNome:payload.asdNome,asdCf:payload.asdCf};
   const tpl=TEMPLATES[payload.tipo];
   if(!tpl){document.getElementById('content').innerHTML='<p class="err">Tipo di delibera non riconosciuto.</p>';return;}
-  const {odg,corpo}=tpl(payload.campi||{},ctx);
+  const {odg,corpo,esitoProprio}=tpl(payload.campi||{},ctx);
+  const odgList=(Array.isArray(odg)?odg:[odg]).concat(['Varie ed eventuali']);
 
   const n=ctx.membri.length;
   const quorum=Math.floor(n/2)+1;
@@ -131,18 +179,14 @@ function build(){
     let t=`Il/la ${esc(m.ruolo)} ${esc(m.nome)} ${esc(m.cognome)}, in quanto parte direttamente interessata alla presente delibera, dichiara di astenersi dal voto.`;
     return t;
   });
-  const votanti=ctx.membri.filter(m=>!m.interessato).map(m=>`${m.nome} ${m.cognome}`);
-  const astenuti=ctx.membri.filter(m=>m.interessato).map(m=>`${m.nome} ${m.cognome}`);
-  const esitoVoto=astenuti.length
-    ? `La delibera risulta <strong>approvata</strong> a maggioranza dei presenti aventi diritto di voto, con il voto favorevole di ${esc(votanti.join(', ')||'—')}, e con l'astensione di ${esc(astenuti.join(', '))} in quanto part${astenuti.length>1?'i interessate':'e interessata'}.`
-    : `La delibera risulta <strong>approvata all'unanimità</strong> dei presenti.`;
+  const esitoVoto=esitoVotoHtml(ctx.membri);
 
   const html=`
     <h1>Verbale di riunione del Consiglio Direttivo</h1>
     <h2>${esc(ctx.asdNome)}</h2>
-    <p>L'anno ${new Date(payload.data?payload.data.split('/').reverse().join('-'):Date.now()).getFullYear()||'________'}, il giorno <strong>${esc(payload.data)}</strong>, alle ore <strong>${esc(payload.ora)||'________'}</strong>, presso la sede sociale sita in ${esc(payload.asdIndirizzo)}, ${esc(payload.asdCap)} ${esc(payload.asdCitta)}, si è riunito il Consiglio Direttivo dell'Associazione per discutere e deliberare sul seguente</p>
+    <p>L'anno ${new Date(payload.data?payload.data.split('/').reverse().join('-'):Date.now()).getFullYear()||'________'}, il giorno <strong>${esc(payload.data)}</strong>, alle ore <strong>${esc(payload.ora)||'________'}</strong>, presso ${(payload.campi&&payload.campi.luogoRiunione)?esc(payload.campi.luogoRiunione):`la sede sociale sita in ${esc(payload.asdIndirizzo)}, ${esc(payload.asdCap)} ${esc(payload.asdCitta)}`}, si è riunito il Consiglio Direttivo dell'Associazione per discutere e deliberare sul seguente</p>
     <p class="odg">ORDINE DEL GIORNO</p>
-    <p>${[odg,'Varie ed eventuali'].map((p,i)=>`${i+1}. ${p}`).join('<br>')}</p>
+    <p>${odgList.map((p,i)=>`${i+1}. ${p}`).join('<br>')}</p>
     <p>Sono presenti alla seduta i seguenti Consiglieri:</p>
     <p>${ctx.membri.map(m=>`Sig./Sig.ra ${esc(m.nome)} ${esc(m.cognome)}, ${esc(m.ruolo)}`).join('<br>')}</p>
     <p>Il Consiglio Direttivo risulta composto da n. ${n} membri, di cui n. ${n} presenti alla seduta: la presenza è superiore alla maggioranza assoluta richiesta (n. ${quorum}), sicché la seduta è validamente costituita.</p>
@@ -150,7 +194,7 @@ function build(){
     <p>Si passa alla trattazione dei punti all'ordine del giorno.</p>
     ${corpo}
     ${noteAstensioni.length?`<p style="margin-top:14px;"><em>${noteAstensioni.join(' ')}</em></p>`:''}
-    <p style="margin-top:6px;">${esitoVoto}</p>
+    ${esitoProprio?'':`<p style="margin-top:6px;">${esitoVoto}</p>`}
     <p style="margin-top:18px;">Passando al punto "Varie ed eventuali", nessuno dei presenti chiede la parola.</p>
     <p>Esauriti i punti all'ordine del giorno e non essendovi altro da discutere o deliberare, il Presidente dichiara sciolta la seduta.</p>
     <p>Del che è redatto il presente verbale, che viene letto, approvato e sottoscritto seduta stante da tutti i Consiglieri presenti.</p>

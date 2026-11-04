@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.7.1 · Ottobre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.8.0 · Novembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1313,7 +1313,8 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <option value="safeguarding">Nomina Responsabile Safeguarding</option>
             <option value="assemblea">Convocazione assemblea dei soci</option>
             <option value="quote">Determinazione quote associative</option>
-            <option value="libero">Altro (testo libero — regolamenti, deleghe, provvedimenti, nomine, modifiche statuto...)</option>
+            <option value="modificaStatuto">Modifica statuto (proposta del CD + indizione assemblea straordinaria)</option>
+            <option value="libero">Altro (testo libero — regolamenti, deleghe, provvedimenti, nomine...)</option>
           </select>
           <div id="verbale-campi-tipo" style="margin-bottom:14px;"></div>
           <div style="padding-top:12px;border-top:1px solid var(--border);margin-bottom:12px;">
@@ -1961,6 +1962,16 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v6.8.0 · Novembre 2026</div>
+        <div class="cl-section">Novità — Verbale Consiglio Direttivo</div>
+        <div class="cl-item"><strong>Nuova tipologia «Modifica statuto»</strong>: genera il verbale con cui il CD esamina un rilievo (per esempio del RASD), approva le proposte di modifica dello statuto con votazioni separate e indice l'assemblea straordinaria. Si indicano il motivo, i rilievi (uno per riga), una o più modifiche con testo vigente e proposto, e i dati dell'assemblea (data, ore di prima e seconda convocazione, luogo, quorum).</div>
+        <div class="cl-item"><strong>Controllo del preavviso</strong>: se tra la data di invio dell'avviso e la data dell'assemblea passano meno giorni del preavviso minimo indicato, l'app avvisa prima di generare il verbale.</div>
+        <div class="cl-item"><strong>Premessa facoltativa</strong>: serve per registrare una riunione precedente non verbalizzata. Va compilata solo con quanto è realmente avvenuto. Il verbale riporta sempre la data in cui è stato effettivamente redatto e non può essere retrodatato.</div>
+        <div class="cl-item"><strong>Esiti per punto</strong>: nel nuovo tipo ogni votazione ha il proprio esito (all'unanimità, oppure a maggioranza con astenuti). Gli altri tipi restano invariati. Il verbale può ora indicare luogo e modalità della riunione, per esempio la videoconferenza.</div>
+        <div class="cl-item"><strong>Competenza</strong>: il verbale CD è una proposta. La modifica dello statuto diventa efficace solo con l'approvazione dell'assemblea straordinaria, come precisato nel testo generato.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v6.7.1 · Ottobre 2026</div>
@@ -2994,7 +3005,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.7.1 · Ottobre 2026';
+const APP_VERSION = 'v6.8.0 · Novembre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -6541,6 +6552,25 @@ const VERBALE_CAMPI_TIPO={
       <div class="fgroup"><label>Stagione di riferimento</label><input class="fi" id="vb-quote-stagione" placeholder="es. 2026/2027"></div>
       <div class="fgroup"><label>Importo quota (€)</label><input class="fi" id="vb-quote-importo" placeholder="es. 150"></div>
     </div>`,
+  modificaStatuto:()=>`
+    <div class="fgroup" style="margin-bottom:8px;"><label>Motivo / riferimento della modifica</label><input class="fi" id="vb-ms-rif" placeholder="es. richiesta di integrazione del RASD del 28/10/2026"></div>
+    <div class="fgroup" style="margin-bottom:8px;"><label>Rilievi o motivi da recepire (uno per riga)</label><textarea class="fta" id="vb-ms-rilievi" style="min-height:70px;" placeholder="es. art. 3, comma 5: la gestione impianti va classificata come attività secondaria e strumentale"></textarea></div>
+    <div class="fgroup" style="margin-bottom:8px;"><label>Premessa su una riunione precedente (facoltativa — solo se è davvero avvenuta)</label><textarea class="fta" id="vb-ms-premessa" style="min-height:60px;" placeholder="es. Il Consiglio si è già riunito il 28/10/2026, senza redigere verbale, convenendo di adeguare lo statuto ai rilievi ricevuti."></textarea></div>
+    <div class="fgroup" style="margin-bottom:8px;"><label>Luogo o modalità della riunione</label><input class="fi" id="vb-ms-luogoriun" placeholder="es. la sede sociale / in videoconferenza ai sensi dello statuto"></div>
+    <div class="fgroup" style="margin-bottom:8px;"><label>Articoli dello statuto da citare (facoltativo)</label><input class="fi" id="vb-ms-rifart" placeholder="es. art. 19 lett. j) competenze CD; art. 13 c.2 lett. a) assemblea straordinaria"></div>
+    <div style="font-weight:600;font-size:12px;margin:12px 0 6px;">Modifiche proposte</div>
+    <div id="vb-ms-mods"></div>
+    <button type="button" class="btn btn-sm" style="margin-bottom:12px;" onclick="vbMsAddMod()">+ Aggiungi modifica</button>
+    <div style="font-weight:600;font-size:12px;margin:6px 0;">Assemblea straordinaria da indire</div>
+    <div class="fg">
+      <div class="fgroup"><label>Data assemblea</label><input class="fi" id="vb-ms-ass-data" type="date"></div>
+      <div class="fgroup"><label>Ora 1ª convocazione</label><input class="fi" id="vb-ms-ass-ora1" type="time"></div>
+      <div class="fgroup"><label>Ora 2ª convocazione</label><input class="fi" id="vb-ms-ass-ora2" type="time"></div>
+      <div class="fgroup"><label>Luogo</label><input class="fi" id="vb-ms-ass-luogo" placeholder="es. sede sociale"></div>
+      <div class="fgroup"><label>Data invio avviso</label><input class="fi" id="vb-ms-ass-avviso" type="date"></div>
+      <div class="fgroup"><label>Preavviso minimo (giorni)</label><input class="fi" id="vb-ms-ass-preavviso" type="number" min="0" placeholder="es. 15"></div>
+      <div class="fgroup s2"><label>Quorum assemblea (facoltativo, come da statuto)</label><textarea class="fta" id="vb-ms-ass-quorum" style="min-height:50px;" placeholder="es. in prima convocazione con la presenza di 2/3 degli aventi diritto, in seconda con 1/3, a maggioranza dei presenti"></textarea></div>
+    </div>`,
   libero:()=>`
     <div class="fgroup" style="margin-bottom:8px;"><label>Oggetto della delibera</label><input class="fi" id="vb-libero-oggetto" placeholder="es. Approvazione regolamento interno / Nomina commissione / Modifica statuto..."></div>
     <div class="fgroup"><label>Testo della delibera (cosa viene deciso)</label><textarea class="fta" id="vb-libero-corpo" style="min-height:100px;" placeholder="Descrivi qui cosa il Consiglio delibera. Il resto del verbale (intestazione, presenti, quorum, formula di chiusura) viene generato automaticamente."></textarea></div>`
@@ -6557,7 +6587,23 @@ function renderVerbaleCampiTipo(){
     const sel=document.getElementById('vb-safeg-membro');
     sel.innerHTML='<option value="">— Seleziona —</option>'+cd.map(m=>`<option value="${m.id}">${m.nome} ${m.cognome} (${m.ruolo})</option>`).join('');
   }
+  if(tipo==='modificaStatuto')vbMsAddMod();
   renderVerbaleConsiglieriCheck();
+}
+function vbMsAddMod(){
+  const box=document.getElementById('vb-ms-mods');if(!box)return;
+  const el=document.createElement('div');
+  el.className='vb-ms-mod';
+  el.style.cssText='padding:10px;background:var(--surface2);border-radius:7px;margin-bottom:8px;';
+  el.innerHTML=`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><input class="fi vb-ms-art" placeholder="Articolo (es. Art. 4, comma 2)" style="flex:1;"><button type="button" class="btn btn-sm" onclick="vbMsRemoveMod(this)">✕</button></div>
+    <textarea class="fta vb-ms-vig" style="min-height:60px;margin-bottom:6px;" placeholder="Testo vigente (facoltativo)"></textarea>
+    <textarea class="fta vb-ms-prop" style="min-height:60px;" placeholder="Testo proposto"></textarea>`;
+  box.appendChild(el);
+}
+function vbMsRemoveMod(btn){
+  const el=btn.closest('.vb-ms-mod');
+  if(el&&document.querySelectorAll('.vb-ms-mod').length>1)el.remove();
 }
 function onCocooMembroChange(){
   const id=document.getElementById('vb-cocoo-membro').value;
@@ -6616,6 +6662,37 @@ function apriVerbaleCD(){
   else if(tipo==='safeguarding')campi={membroId:document.getElementById('vb-safeg-membro').value,dal:document.getElementById('vb-safeg-dal').value};
   else if(tipo==='assemblea')campi={data:document.getElementById('vb-ass-data').value,luogo:document.getElementById('vb-ass-luogo').value,odg:document.getElementById('vb-ass-odg').value};
   else if(tipo==='quote')campi={stagione:document.getElementById('vb-quote-stagione').value,importo:document.getElementById('vb-quote-importo').value};
+  else if(tipo==='modificaStatuto'){
+    const mods=[...document.querySelectorAll('.vb-ms-mod')].map(el=>({
+      articolo:el.querySelector('.vb-ms-art').value.trim(),
+      vigente:el.querySelector('.vb-ms-vig').value.trim(),
+      proposto:el.querySelector('.vb-ms-prop').value.trim()
+    })).filter(m=>m.articolo||m.vigente||m.proposto);
+    if(!mods.length||mods.some(m=>!m.articolo||!m.proposto)){toast('Per ogni modifica indica l\'articolo e il testo proposto','error');return;}
+    const assData=document.getElementById('vb-ms-ass-data').value;
+    if(!assData){toast('Inserisci la data dell\'assemblea straordinaria','error');return;}
+    const avviso=document.getElementById('vb-ms-ass-avviso').value;
+    const minG=parseInt(document.getElementById('vb-ms-ass-preavviso').value,10)||0;
+    if(avviso&&minG){
+      const g=Math.round((new Date(assData)-new Date(avviso))/864e5);
+      if(g<minG&&!confirm(`Tra l'invio dell'avviso e l'assemblea passano ${g} giorni, meno dei ${minG} richiesti dallo statuto. Generare comunque il verbale?`))return;
+    }
+    campi={
+      rif:document.getElementById('vb-ms-rif').value.trim(),
+      rilievi:document.getElementById('vb-ms-rilievi').value.split('\n').map(r=>r.trim()).filter(Boolean),
+      premessa:document.getElementById('vb-ms-premessa').value.trim(),
+      luogoRiunione:document.getElementById('vb-ms-luogoriun').value.trim(),
+      rifArt:document.getElementById('vb-ms-rifart').value.trim(),
+      modifiche:mods,
+      assData:formatDate(assData),
+      assOra1:document.getElementById('vb-ms-ass-ora1').value,
+      assOra2:document.getElementById('vb-ms-ass-ora2').value,
+      assLuogo:document.getElementById('vb-ms-ass-luogo').value.trim(),
+      assAvviso:avviso?formatDate(avviso):'',
+      assPreavviso:minG||'',
+      assQuorum:document.getElementById('vb-ms-ass-quorum').value.trim()
+    };
+  }
   else if(tipo==='libero')campi={oggetto:document.getElementById('vb-libero-oggetto').value,corpo:document.getElementById('vb-libero-corpo').value};
   const st=DB.struttura;
   const payload={
@@ -8496,7 +8573,8 @@ const GUIDA_VOCI=[
   {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
 
   {cat:'🏛️ Struttura',titolo:'Inserire i dati del Consiglio Direttivo',testo:'Vai su La mia struttura → sezione "⚖️ Consiglio Direttivo" → "+ Aggiungi membro". Inserisci ruolo, nome, cognome, dati anagrafici, CF, residenza, documento d\'identità per ciascun membro (Presidente, Vicepresidente, Tesoriere, Segretario, Consiglieri). Questi dati vengono riutilizzati automaticamente nei contratti, nei verbali e negli altri documenti generabili. Aggiorna questa sezione ogni volta che cambiano le cariche sociali.',tag:'presidente vicepresidente consiglio direttivo legale rappresentante struttura dati contratto verbale'},
-  {cat:'📄 Documenti',titolo:'Generare un verbale del Consiglio Direttivo',testo:'Vai su Genera documenti → card "🗳️ Verbale Consiglio Direttivo". Scegli il tipo di delibera (apertura conto corrente, contratto co.co.co., nomina Safeguarding, convocazione assemblea, quote associative, o testo libero per tutto il resto), compila i campi specifici, e per ogni consigliere presente segna "interessato/conflitto" se ha un interesse diretto nella delibera: verrà registrato come astenuto, con eventuale delega di rappresentanza per la firma. L\'elenco dei consiglieri viene letto automaticamente da "La mia struttura" — se è vuoto, aggiungili prima da lì. Il verbale generato aggiunge sempre in automatico, come ultimo punto dell\'ordine del giorno, "Varie ed eventuali" — non serve indicarlo tu.',tag:'verbale consiglio direttivo delibera conto corrente cocoo safeguarding assemblea quote conflitto interesse astensione delega varie ed eventuali odg'},
+  {cat:'📄 Documenti',titolo:'Verbale di modifica dello statuto (rilievi RASD)',testo:'Vai su Genera documenti → "Verbale Consiglio Direttivo" → tipo "Modifica statuto". Indica il motivo (per esempio la richiesta di integrazione del RASD), i rilievi uno per riga, e per ogni articolo il testo vigente e quello proposto ("+ Aggiungi modifica" per più articoli). Compila poi i dati dell\'assemblea straordinaria: data, ore di prima e seconda convocazione, luogo, data di invio dell\'avviso e preavviso minimo previsto dal tuo statuto. L\'app avvisa se i giorni di preavviso non bastano. Il verbale CD approva solo una proposta: la modifica è efficace dopo il voto dell\'assemblea straordinaria. La premessa su una riunione precedente è facoltativa e va compilata solo se la riunione è davvero avvenuta; la data del verbale è sempre quella reale di redazione.',tag:'verbale modifica statuto rasd assemblea straordinaria preavviso integrazione rilievi proposta'},
+  {cat:'📄 Documenti',titolo:'Generare un verbale del Consiglio Direttivo',testo:'Vai su Genera documenti → card "🗳️ Verbale Consiglio Direttivo". Scegli il tipo di delibera (apertura conto corrente, contratto co.co.co., nomina Safeguarding, convocazione assemblea, quote associative, modifica statuto con indizione dell\'assemblea straordinaria, o testo libero per tutto il resto), compila i campi specifici, e per ogni consigliere presente segna "interessato/conflitto" se ha un interesse diretto nella delibera: verrà registrato come astenuto, con eventuale delega di rappresentanza per la firma. L\'elenco dei consiglieri viene letto automaticamente da "La mia struttura" — se è vuoto, aggiungili prima da lì. Il verbale generato aggiunge sempre in automatico, come ultimo punto dell\'ordine del giorno, "Varie ed eventuali" — non serve indicarlo tu.',tag:'verbale consiglio direttivo delibera conto corrente cocoo safeguarding assemblea quote conflitto interesse astensione delega varie ed eventuali odg modifica statuto rasd'},
   {cat:'☁️ Sincronizzazione',titolo:'Capire chi altro è collegato e sta scrivendo',testo:'Quando un altro utente accede all\'app con le stesse credenziali del club, in basso a sinistra (accanto allo stato di connessione) compare un indicatore "👥 N collegati": passandoci sopra il mouse (o toccandolo su mobile) vedi le email di chi è collegato. A ogni nuovo collegamento o scollegamento ricevi anche un avviso a comparsa. Se quella persona ha in corso una modifica in salvataggio, in cima allo schermo lampeggia un banner giallo con il suo nome: è il segnale per aspettare qualche secondo prima di salvare a tua volta, così le due modifiche non si sovrascrivono a vicenda.',tag:'presenza utenti collegati multiutente conflitto scrittura simultanea banner sincronizzazione firebase'},
   {cat:'🏛️ Struttura',titolo:'Archiviare i documenti della struttura',testo:'Vai su La mia struttura → Documenti. Per ogni documento (Statuto, Atto Costitutivo, ecc.) inserisci nome, data e link al file su Drive: il nome diventa un link cliccabile che apre il documento.',tag:'documenti struttura statuto atto costitutivo drive link'},
 
@@ -9099,7 +9177,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.7.1';
+    const CURRENT_VER='6.8.0';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

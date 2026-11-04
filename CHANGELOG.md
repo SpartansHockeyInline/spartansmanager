@@ -2,6 +2,18 @@
 
 ---
 
+## v6.8.0 · Novembre 2026
+
+### Novità — Verbale Consiglio Direttivo
+- **Nuova tipologia `modificaStatuto`** nel generatore verbali (`VERBALE_CAMPI_TIPO.modificaStatuto` in `index.html`, `TEMPLATES.modificaStatuto` in `modulo_verbale_cd.html`): esame di un rilievo (es. RASD), approvazione con votazioni separate delle proposte di modifica dello statuto, indizione dell'assemblea straordinaria.
+- **Campi**: motivo/riferimento, rilievi (uno per riga), premessa facoltativa su riunione precedente, luogo/modalità della riunione, articoli da citare, elenco ripetibile di modifiche (articolo, testo vigente, testo proposto), dati assemblea (data, ore 1ª e 2ª convocazione, luogo, data invio avviso, preavviso minimo, quorum).
+- **Controllo preavviso** in `apriVerbaleCD`: se i giorni tra invio avviso e assemblea sono meno del preavviso minimo, `confirm()` prima di generare.
+- **`build()`**: `odg` può essere un array (più punti, con «Varie ed eventuali» sempre in coda); il template può dichiarare `esitoProprio:true` per sopprimere l'esito globale finale; `campi.luogoRiunione` sostituisce «presso la sede sociale…» se valorizzato. Estratta `esitoVotoHtml(membri)`, senza cambiare il testo degli altri tipi.
+- **Perimetro**: il verbale CD è una proposta; la modifica è efficace solo con l'assemblea straordinaria. Il verbale riporta sempre la data di redazione effettiva; la premessa su una riunione precedente è solo testo libero compilato dall'utente.
+- Guida: nuova voce «Verbale di modifica dello statuto (rilievi RASD)»; label del tipo «Altro» senza più «modifiche statuto».
+
+---
+
 ## v6.7.1 · Ottobre 2026
 
 ### Novità — Contratti
