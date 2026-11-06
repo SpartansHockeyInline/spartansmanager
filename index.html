@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.8.0 · Novembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.8.1 · Novembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1964,6 +1964,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.8.1 · Novembre 2026</div>
+        <div class="cl-section">Fix — Quote mensili arretrate</div>
+        <div class="cl-item"><strong>Arretrati contati in eccesso quando il pagamento precede l'abbonamento</strong> — se una quota veniva incassata prima della data di inizio del piano (per esempio pagata il 29/10 con piano assegnato dal 30/10), il pagamento veniva ignorato e l'atleta risultava con un mese di arretrato in più. Ora i pagamenti si confrontano per mese: un incasso registrato nel mese di inizio dell'abbonamento viene sempre contato.</div>
+        <div class="cl-section">Novità — Atleti inattivi</div>
+        <div class="cl-item"><strong>Inattivi invisibili nelle presenze</strong> — gli atleti con stato «Inattivo» non compaiono più nel registro presenze, nello storico, nel report, nella classifica, negli alert e nell'esportazione CSV, e il salvataggio di una sessione non registra più un'assenza per loro. Le sessioni svolte mentre erano inattivi non generano assenze quando tornano «Attivo»: la percentuale riparte dalle sessioni in cui erano a registro.</div>
+        <div class="cl-item"><strong>Badge Anagrafiche senza inattivi</strong> — il numero accanto a «Anagrafiche» nel menu conta solo gli iscritti non inattivi (atleti e amatori), così indica a colpo d'occhio chi è iscritto e presumibilmente paga. Gli inattivi restano nell'elenco e si possono filtrare per stato.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.8.0 · Novembre 2026</div>
         <div class="cl-section">Novità — Verbale Consiglio Direttivo</div>
         <div class="cl-item"><strong>Nuova tipologia «Modifica statuto»</strong>: genera il verbale con cui il CD esamina un rilievo (per esempio del RASD), approva le proposte di modifica dello statuto con votazioni separate e indice l'assemblea straordinaria. Si indicano il motivo, i rilievi (uno per riga), una o più modifiche con testo vigente e proposto, e i dati dell'assemblea (data, ore di prima e seconda convocazione, luogo, quorum).</div>
@@ -3005,7 +3014,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.8.0 · Novembre 2026';
+const APP_VERSION = 'v6.8.1 · Novembre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3081,7 +3090,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function formatDate(d){if(!d)return'—';const[y,m,g]=d.split('-');return`${g}/${m}/${y}`;}
 function updateBadges(){
   const bSoci=document.getElementById('badge-soci');
-  if(bSoci)bSoci.textContent=(DB.soci||[]).filter(s=>s.tipologia==='atleta'||s.tipologia==='amatore'||!s.tipologia).length;
+  if(bSoci)bSoci.textContent=(DB.soci||[]).filter(s=>(s.tipologia==='atleta'||s.tipologia==='amatore'||!s.tipologia)&&!isSocioInattivo(s)).length;
 }
 function scadColor(d){if(!d)return'var(--text2)';const diff=_giorniA(d);return diff<0?'var(--red)':diff<30?'var(--yellow)':'var(--green)';}
 function toast(msg,type='success'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast ${type}`;t.innerHTML=`<span>${{success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'}[type]||'ℹ️'}</span><span>${msg}</span>`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(40px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3200);}
@@ -4063,6 +4072,11 @@ function mesiTraDate(periodoInizio,periodoFine){
   }
   return mesi;
 }
+// v6.8.1: gli atleti con stato "Inattivo" sono invisibili a presenze e conteggi.
+function isSocioInattivo(s){return !!s&&s.stato==='inattivo';}
+function getAtletiCorsoAttivi(corsoId){
+  return DB.soci.filter(s=>!isSocioInattivo(s)&&(s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId)));
+}
 function getStatoPagamentoMensile(s){
   // "Sospeso" e "Inattivo" congelano del tutto il conteggio: l'atleta non
   // viene considerato né in regola né arretrato finché non torna attivo.
@@ -4102,8 +4116,10 @@ function getStatoPagamentoMensile(s){
     return{label:`⚠ ${arretrato} mes${arretrato>1?'i':'e'} arretrat${arretrato>1?'i':'o'}`,ok:false};
   }
 
-  const inizioComplessivo=new Date(abbonamentiAtleta[0].inizio);
-  const totalePagato=(DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&new Date(e.data)>=inizioComplessivo&&isQuotaEntrata(e))
+  // v6.8.1: i pagamenti si confrontano per MESE, non per giorno. Un incasso
+  // registrato prima della data di inizio abbonamento (es. pagato il 29/10,
+  // piano assegnato dal 30/10) ricade comunque nel mese di inizio e va contato.
+  const totalePagato=(DB.entrate||[]).filter(e=>e.socioId===s.id&&e.data&&e.data.slice(0,7)>=abbonamentiAtleta[0].inizio.slice(0,7)&&isQuotaEntrata(e))
     .reduce((sum,e)=>sum+(parseFloat(e.importo)||0),0);
 
   // Somma l'importo ATTESO mese per mese (non più a blocco), usando la quota
@@ -5170,7 +5186,7 @@ function loadPresenze(){
   if(!corsoId||!data){cont.innerHTML='<div class="empty"><div class="ei">✅</div><h3>Seleziona corso e data</h3></div>';return;}
   const corso=DB.corsi.find(x=>x.id===corsoId),key=`${corsoId}_${data}`;
   const saved=DB.presenze[key]||{};
-  const atleti=DB.soci.filter(s=>s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId));
+  const atleti=getAtletiCorsoAttivi(corsoId);
   if(!atleti.length){cont.innerHTML='<div class="empty"><div class="ei">👥</div><h3>Nessun atleta in questo corso</h3></div>';return;}
   cont.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">${corso?.nome||''} · ${formatDate(data)}</div>`+atleti.map(a=>{
     const present=saved[a.id]===true;
@@ -5185,7 +5201,7 @@ function salvaPresenze(){if(_isDemo){toast("🎭 Modalità demo — sola lettura
   const key=`${corsoId}_${data}`;
   if(!DB.presenze[key])DB.presenze[key]={};
   // Assicura che tutti gli atleti del corso abbiano un valore (true o false)
-  const atleti=DB.soci.filter(s=>s.corsoId===corsoId||(s.tipologia==='atleta'&&!s.corsoId));
+  const atleti=getAtletiCorsoAttivi(corsoId);
   atleti.forEach(a=>{
     if(DB.presenze[key][a.id]===undefined)DB.presenze[key][a.id]=false;
   });
@@ -5216,12 +5232,12 @@ function renderStoricoPresenze(){
 
   const atletiCache={};
   const getAtletiCorso=(cId)=>{
-    if(!atletiCache[cId])atletiCache[cId]=DB.soci.filter(s=>s.corsoId===cId||(s.tipologia==='atleta'&&!s.corsoId));
+    if(!atletiCache[cId])atletiCache[cId]=getAtletiCorsoAttivi(cId);
     return atletiCache[cId];
   };
   const nomeCorso=(cId)=>(DB.corsi||[]).find(c=>c.id===cId)?.nome||'—';
 
-  const totPresenze=entries.reduce((sum,[,v])=>sum+Object.values(v).filter(x=>x===true).length,0);
+  const totPresenze=entries.reduce((sum,[,v])=>sum+Object.entries(v).filter(([sid,x])=>x===true&&!isSocioInattivo(DB.soci.find(z=>z.id===sid))).length,0);
   const mediaPresenze=entries.length?Math.round(totPresenze/entries.length):0;
 
   cont.innerHTML=`
@@ -5235,7 +5251,7 @@ function renderStoricoPresenze(){
       const us=k.indexOf('_');
       const cId=k.slice(0,us),data=k.slice(us+1);
       const atleti=getAtletiCorso(cId);
-      const pres=Object.values(v).filter(x=>x===true).length;
+      const pres=Object.entries(v).filter(([sid,x])=>x===true&&!isSocioInattivo(DB.soci.find(z=>z.id===sid))).length;
       const perc=atleti.length?Math.round(pres/atleti.length*100):0;
       const color=perc>=80?'var(--green)':perc>=50?'var(--yellow)':'var(--red)';
       return`<tr>${corsoId?'':`<td>${nomeCorso(cId)}</td>`}<td>${formatDate(data)}</td><td style="color:var(--green);">${pres}</td><td style="color:var(--red);">${atleti.length-pres}</td><td>${atleti.length}</td><td style="color:${color};font-weight:600;">${perc}%</td></tr>`;
@@ -7059,7 +7075,7 @@ function _getPresenzeStats(corsoIdFiltro, dal, al){
   keys.forEach(k=>{
     const[cid,data]=k.split('_');
     if(!sessioniPerCorso[cid])sessioniPerCorso[cid]=[];
-    sessioniPerCorso[cid].push(data);
+    sessioniPerCorso[cid].push({data,key:k});
   });
   // Data di iscrizione atleta per corso (primo giorno in cui compare nelle presenze)
   const primaPresenzaAtleta={};// socioId_corsoId -> data prima comparsa
@@ -7086,6 +7102,8 @@ function _getPresenzeStats(corsoIdFiltro, dal, al){
     const[cid,data]=k.split('_');
     const corso=DB.corsi.find(c=>c.id===cid);
     Object.entries(presenze[k]).forEach(([socioId,presente])=>{
+      // v6.8.1: gli inattivi non compaiono in report, classifica e alert
+      if(isSocioInattivo(DB.soci.find(x=>x.id===socioId)))return;
       const key2=socioId+'_'+cid;
       if(!stats[key2])stats[key2]={socioId,corsoId:cid,corsoNome:corso?.nome||'—',presenti:0};
       if(presente)stats[key2].presenti++;
@@ -7094,8 +7112,10 @@ function _getPresenzeStats(corsoIdFiltro, dal, al){
   // % calcolata su sessioni DALLA data di iscrizione dell'atleta
   return Object.values(stats).map(s=>{
     const dataIngresso=primaPresenzaAtleta[s.socioId+'_'+s.corsoId]||dal||'';
-    // Sessioni valide = solo quelle successive all'ingresso dell'atleta
-    const sessioniValide=(sessioniPerCorso[s.corsoId]||[]).filter(d=>!dataIngresso||d>=dataIngresso).length||1;
+    // Sessioni valide = solo quelle successive all'ingresso dell'atleta in cui
+    // l'atleta era effettivamente a registro. v6.8.1: le sessioni salvate mentre
+    // era Inattivo non lo contengono, quindi non generano assenze al rientro.
+    const sessioniValide=(sessioniPerCorso[s.corsoId]||[]).filter(x=>(!dataIngresso||x.data>=dataIngresso)&&presenze[x.key][s.socioId]!==undefined).length||1;
     const atleta=DB.soci.find(x=>x.id===s.socioId);
     return{id:s.socioId,nome:atleta?`${atleta.nome} ${atleta.cognome}`:'Sconosciuto',
       corsoNome:s.corsoNome,presenti:s.presenti,assenti:sessioniValide-s.presenti,
@@ -7214,6 +7234,7 @@ function esportaPresenze(){
     const corso=DB.corsi.find(c=>c.id===cid)?.nome||cid;
     Object.entries(presenze[k]).forEach(([socioId,presente])=>{
       const atleta=DB.soci.find(s=>s.id===socioId);
+      if(isSocioInattivo(atleta))return;
       const nome=atleta?`${atleta.nome} ${atleta.cognome}`:'Sconosciuto';
       csv+=`${data},${corso},"${nome}",${presente?'Sì':'No'}\n`;
     });
@@ -8540,8 +8561,9 @@ const GUIDA_VOCI=[
   {cat:'👤 Anagrafiche',titolo:'Generare il certificato di iscrizione',testo:'Vai su Genera Documenti → Certificato di iscrizione. Seleziona l\'atleta: il documento certifica formalmente l\'iscrizione all\'ASD per la stagione sportiva in corso, con tessera ASD/FISR e firma del presidente.',tag:'certificato iscrizione documento atleta'},
   {cat:'👤 Anagrafiche',titolo:'Generare l\'attestato di frequenza',testo:'Vai su Genera Documenti → Attestato di frequenza. Seleziona l\'atleta e inserisci data inizio e data fine del periodo: il documento attesta la partecipazione alle attività nel periodo indicato, con firma del presidente.',tag:'attestato frequenza documento periodo atleta'},
   {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab "✅ Checklist" per il dettaglio con barra di avanzamento e link diretti alle sezioni da completare. Gli stessi 7 passi (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) sono visibili anche direttamente nella tabella Atleti, come colonne ✓/✗ contrassegnate con una spunta nel nome (es. "Corso ✓") per distinguerle dalle colonne dati omonime — così vedi lo stato di tutti gli atleti scorrendo l\'elenco, senza aprire ogni scheda singolarmente.',tag:'checklist nuovo iscritto onboarding passi tabella colonne'},
-  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" mostra "✅ in regola", "⚠ N mesi arretrati" oppure "⏸ Sospeso". Il calcolo si basa sulla data di INIZIO dell\'abbonamento assegnato all\'atleta (non sulla data di creazione della scheda) e confronta il totale dei pagamenti ricevuti — entrate in Amministrazione con categoria "Quota associativa"/"Abbonamento" — con l\'importo atteso in base al/ai piano/i assegnato/i, escludendo automaticamente gli eventuali mesi coperti da un periodo di inattività registrato (vedi voce dedicata). Il mese in corso viene considerato dovuto fin dal giorno 1 (non è prorato sui giorni effettivi). Un atleta "Sospeso" non viene mai valutato: resta neutro finché non torna Attivo o Inattivo. Se l\'atleta non ha mai avuto un abbonamento assegnato, l\'app conta semplicemente i mesi con almeno un pagamento, da inizio stagione.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato sospeso'},
-  {cat:'👤 Anagrafiche',titolo:'Sospeso vs Inattivo — quale usare',testo:'"Sospeso" congela del tutto l\'atleta: non compare tra le quote arretrate in Dashboard, non è selezionabile per registrare nuovi pagamenti/ricevute, e il suo stato pagamenti resta neutro ("⏸ Sospeso") finché non lo riporti ad Attivo o Inattivo — usalo per chi ha lasciato l\'associazione o è in una situazione da valutare, senza sapere ancora per quanto. "Inattivo" invece serve per pause temporanee con un periodo definito (infortunio, trasferimento, ecc.): l\'atleta resta normalmente conteggiato per gli altri mesi, e va abbinato a un "Periodo di inattività" (vedi voce dedicata) per escludere solo i mesi realmente non dovuti — altrimenti il solo stato "Inattivo" senza un periodo registrato non esclude nulla dal calcolo.',tag:'sospeso inattivo differenza stato atleta quando usare'},
+  {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" mostra "✅ in regola", "⚠ N mesi arretrati" oppure "⏸ Sospeso". Il calcolo si basa sulla data di INIZIO dell\'abbonamento assegnato all\'atleta (non sulla data di creazione della scheda) e confronta il totale dei pagamenti ricevuti — entrate in Amministrazione con categoria "Quota associativa"/"Abbonamento" — con l\'importo atteso in base al/ai piano/i assegnato/i, escludendo automaticamente gli eventuali mesi coperti da un periodo di inattività registrato (vedi voce dedicata). Il mese in corso viene considerato dovuto fin dal giorno 1 (non è prorato sui giorni effettivi). I pagamenti si confrontano per mese: un incasso registrato nel mese di inizio dell\'abbonamento viene contato anche se è precedente al giorno di inizio. Un atleta "Sospeso" non viene mai valutato: resta neutro finché non torna Attivo o Inattivo. Se l\'atleta non ha mai avuto un abbonamento assegnato, l\'app conta semplicemente i mesi con almeno un pagamento, da inizio stagione.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato sospeso'},
+  {cat:'✅ Presenze',titolo:'Atleti inattivi nelle presenze',testo:'Gli atleti con stato "Inattivo" non compaiono nel registro presenze, nello storico, nel report, nella classifica, negli alert e nell\'esportazione CSV: per loro non viene registrata nessuna assenza. Quando tornano "Attivo" ricompaiono nel registro e la percentuale riparte dalle sessioni in cui erano a registro, senza assenze arretrate per il periodo di inattività. Le presenze e le assenze già registrate prima dell\'inattività restano nello storico.',tag:'presenze inattivo inattivi assenze registro report classifica alert'},
+  {cat:'👤 Anagrafiche',titolo:'Sospeso vs Inattivo — quale usare',testo:'"Sospeso" congela del tutto l\'atleta: non compare tra le quote arretrate in Dashboard, non è selezionabile per registrare nuovi pagamenti/ricevute, e il suo stato pagamenti resta neutro ("⏸ Sospeso") finché non lo riporti ad Attivo o Inattivo — usalo per chi ha lasciato l\'associazione o è in una situazione da valutare, senza sapere ancora per quanto. "Inattivo" è per chi è fermo e non va considerato iscritto pagante: il suo stato pagamenti resta neutro ("💤 Inattivo"), non compare nelle presenze (né nelle assenze) e non è incluso nel contatore del menu Anagrafiche. Per una pausa con date precise, mentre l\'atleta resta "Attivo" per gli altri mesi, usa invece un "Periodo di inattività" nella scheda (vedi voce dedicata).',tag:'sospeso inattivo differenza stato atleta quando usare'},
   {cat:'👤 Anagrafiche',titolo:'Registrare un periodo di inattività',testo:'Nella scheda atleta (tab Anagrafica), sotto ai campi Nome/Cognome/Stato, la sezione "⏸️ Periodi di inattività" permette di aggiungere uno o più intervalli (data inizio, data fine — lasciala vuota se il periodo è ancora in corso — e un motivo facoltativo). I mesi coperti da un periodo qui non vengono conteggiati come dovuti nel calcolo dei pagamenti mensili, e restano esclusi anche se in seguito riporti l\'atleta su "Attivo": è il periodo storico registrato a contare, non lo stato attuale.',tag:'periodo inattivita infortunio pausa mesi esclusi pagamenti'},
   {cat:'💳 Abbonamenti',titolo:'Gestire una tariffa diversa per il mese di iscrizione',testo:'Se il primo mese ha un prezzo diverso dai successivi (es. quota di iscrizione + quota ridotta a settembre, poi quota piena da ottobre), il modo corretto è assegnare all\'atleta un SECONDO abbonamento quando cambia la tariffa: 1) crea (se non esiste) un piano "Quota mensile" con il prezzo standard e durata "1 mese"; 2) nella scheda atleta, imposta la data di inizio dell\'abbonamento alla data reale di iscrizione (es. 15/09) — se il totale versato nel primo mese (iscrizione + quota ridotta) coincide con la quota piena, non serve nessun piano separato; 3) se invece il primo mese ha un totale diverso dalla quota a regime, crea un piano dedicato per quel mese (es. "Quota settembre ridotta") e assegnalo con inizio alla data di iscrizione — poi, quando parte la tariffa piena, assegna il piano standard con la sua data di inizio: l\'app userà automaticamente il piano corretto per ciascun periodo. In entrambi i casi, ricordati di registrare ogni pagamento in Amministrazione con categoria "Quota associativa" o "Abbonamento", altrimenti non verrà conteggiato.',tag:'tariffa mese iscrizione settembre ridotta piano cambio prezzo abbonamento sequenza'},
   {cat:'📊 Dashboard',titolo:'Quote mensili arretrate',testo:'La card "💳 Quote mensili arretrate" in Dashboard elenca direttamente gli atleti non in regola con la quota mensile (calcolato sui pagamenti reali in Amministrazione), con pulsanti per sollecitare subito il pagamento via email o WhatsApp. È l\'unico posto dell\'app che segnala la regolarità dei pagamenti: la card "Scadenze imminenti" non include più gli abbonamenti (li includeva in passato, ma creava doppioni e falsi allarmi per chi non aveva ancora pagato) — resta dedicata a tessere, visite mediche, assicurazioni, contratti sponsor ed eventi.',tag:'dashboard arretrati quote mensili sollecito email whatsapp scadenze'},
@@ -9177,7 +9199,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.8.0';
+    const CURRENT_VER='6.8.1';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

@@ -2,6 +2,20 @@
 
 ---
 
+## v6.8.1 · Novembre 2026
+
+### Fix — Quote mensili arretrate
+- **`getStatoPagamentoMensile`**: il totale pagato filtrava le entrate con `new Date(e.data) >= inizioComplessivo` (confronto per giorno). Un incasso datato prima dell'inizio del primo abbonamento (es. pagato il 29/10, piano dal 30/10) veniva scartato: `totalePagato = 0` e gli arretrati risultavano di un mese in più (caso Emilia e Ines Damato: «2 mesi» invece di 1). Ora il confronto è per mese (`e.data.slice(0,7) >= abbonamentiAtleta[0].inizio.slice(0,7)`) e `inizioComplessivo` è stato rimosso.
+
+### Novità — Atleti inattivi
+- **Nuovi helper** `isSocioInattivo(s)` e `getAtletiCorsoAttivi(corsoId)`.
+- **Presenze**: `loadPresenze` e `salvaPresenze` usano solo atleti non inattivi (prima `salvaPresenze` scriveva `false` anche per gli inattivi). `renderStoricoPresenze` (totale sessione, presenti, media, «Atleti nel corso»), `_getPresenzeStats` (report, classifica, alert) ed `esportaPresenze` escludono gli inattivi.
+- **`_getPresenzeStats`**: le sessioni valide di un atleta sono quelle successive al suo ingresso in cui è presente a registro (`presenze[chiave][socioId] !== undefined`). Le sessioni salvate mentre era inattivo non lo contengono e non diventano assenze al rientro. Le assenze già registrate prima dell'inattività restano.
+- **Badge Anagrafiche** (`updateBadges`): conta atleti/amatori con stato diverso da «Inattivo». «Visualizzati» in tabella e «Soci totali» in Dashboard non cambiano.
+- Guida: aggiornate «Stato pagamenti mensili in tabella» e «Sospeso vs Inattivo», nuova voce «Atleti inattivi nelle presenze».
+
+---
+
 ## v6.8.0 · Novembre 2026
 
 ### Novità — Verbale Consiglio Direttivo
