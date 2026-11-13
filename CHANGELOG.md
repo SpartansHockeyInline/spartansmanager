@@ -2,6 +2,20 @@
 
 ---
 
+## v6.9.0 · Novembre 2026
+
+### Novità — Verbale Assemblea straordinaria
+- **Nuovo modulo `modulo_verbale_assemblea.html`** e nuova card «Verbale Assemblea straordinaria dei soci» in Genera documenti (`apriVerbaleAssemblea()` in `index.html`). Pensato per documentare, a assemblea avvenuta, l'approvazione delle modifiche dello statuto proposte dal CD (verbale `modificaStatuto`).
+- **Campi**: data, convocazione (prima/seconda, con ora della prima andata deserta), luogo, data delibera CD e avviso con modalità, presidente e segretario (precompilati da «La mia struttura»), aventi diritto, presenti totali e deleghe, quorum (frazioni modificabili, default 2/3 e 1/3), elenco presenti, motivo, modifiche ripetibili (articolo, vigente, proposto, favorevoli/contrari/astenuti), voti sul mandato al Presidente, discussione, ora di chiusura.
+- **Quorum costitutivo**: se `presenti × b < aventi × a` per la frazione `a/b` della convocazione scelta, l'app blocca la generazione e indica il numero minimo di presenti. Il modulo stampa comunque un avviso se il quorum non risulta raggiunto.
+- **Esito calcolato**: una proposta è «approvata» se i favorevoli superano la metà dei presenti, altrimenti «non approvata». Conferma se favorevoli + contrari + astenuti ≠ presenti, o se il preavviso tra avviso e assemblea è inferiore al minimo.
+- **Importazione dal CD**: `apriVerbaleCD()` salva in `localStorage` (`sm_ultimeModificheStatuto`, con try/catch) modifiche e date dell'ultimo verbale `modificaStatuto`; `vaImportaDaCD()` le riversa nel form. Funziona solo sullo stesso dispositivo.
+- **Fix payload verbali**: il link a `modulo_verbale_cd.html` e `modulo_verbale_assemblea.html` passa ora `encodeURIComponent(encoded)`. Il base64 contiene `+`, che `URLSearchParams` legge come spazio: con certi testi il JSON risultava alterato («Impossibile leggere i dati del verbale»). I moduli leggono già con `URLSearchParams.get`, quindi non cambiano.
+- **`initGeneraDocumenti`**: aggiunge la prima riga di modifica e precompila presidente/segretario solo se vuoti e non modificati a mano, così una compilazione in corso non viene azzerata dalle sincronizzazioni.
+- Guida: nuova voce «Verbale dell'assemblea straordinaria (modifica statuto)».
+
+---
+
 ## v6.8.1 · Novembre 2026
 
 ### Fix — Quote mensili arretrate

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Verbale Assemblea straordinaria</title>
+<style>
+  @page{size:A4;margin:2cm;}
+  *{box-sizing:border-box;}
+  body{font-family:'Times New Roman',Times,serif;font-size:12.5px;line-height:1.55;color:#111;max-width:800px;margin:0 auto;padding:30px;background:#fff;}
+  h1{font-size:15px;text-align:center;text-transform:uppercase;margin-bottom:4px;letter-spacing:.3px;}
+  h2{font-size:12.5px;text-align:center;font-weight:bold;margin-top:0;margin-bottom:22px;}
+  p{margin:8px 0;text-align:justify;}
+  ul{margin:6px 0 6px 22px;padding:0;}
+  .odg{font-weight:bold;text-align:center;margin:18px 0 10px;}
+  .delibera-header{font-weight:bold;text-align:center;margin:16px 0;}
+  .punto{font-weight:bold;margin-top:18px;}
+  .firme{display:flex;flex-wrap:wrap;gap:30px;justify-content:space-around;margin-top:50px;}
+  .firma{flex:1;min-width:180px;text-align:center;}
+  .firma .linea{border-top:1px solid #333;margin-top:45px;padding-top:4px;font-size:11px;}
+  .avviso{color:#b00020;font-weight:bold;}
+  .noprint{text-align:center;margin:20px 0;}
+  .noprint button{font-family:inherit;font-size:13px;padding:8px 20px;border-radius:6px;border:1px solid #333;background:#f5f5f5;cursor:pointer;}
+  .noprint button:hover{background:#eee;}
+  .err{color:#b00020;text-align:center;padding:40px;}
+  @media print{.noprint{display:none;}body{padding:0;max-width:none;}.firme,.firma{break-inside:avoid;page-break-inside:avoid;}.delibera-header,.odg,.punto,h1,h2{break-after:avoid;page-break-after:avoid;}}
+</style>
+</head>
+<body>
+<div class="noprint"><button onclick="window.print()">🖨️ Stampa / Salva PDF</button></div>
+<div id="content"><p class="err">Caricamento…</p></div>
+
+<script>
+function esc(s){return (s===null||s===undefined?'':s).toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function nl(t){return esc(t).replace(/\n/g,'<br>');}
+function num(v){const n=parseInt(v,10);return isNaN(n)?0:n;}
+function parseFrac(s){
+  const m=/^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(s||'');
+  return m&&+m[2]>0?{a:+m[1],b:+m[2],txt:m[1]+'/'+m[2]}:null;
+}
+function annoDa(dmy){const p=(dmy||'').split('/');return p.length===3?p[2]:'________';}
+
+// Esito di una votazione: approvata se i favorevoli superano la metà dei presenti.
+function esitoVoto(v,presenti){
+  const fav=num(v.fav),con=num(v.con),ast=num(v.ast);
+  const approvata=fav*2>presenti;
+  return {fav,con,ast,approvata,
+    riga:`Posta in votazione, la proposta ottiene: favorevoli n. ${fav}, contrari n. ${con}, astenuti n. ${ast}.`};
+}
+
+function build(){
+  const raw=new URLSearchParams(window.location.search).get('d');
+  const box=document.getElementById('content');
+  if(!raw){box.innerHTML='<p class="err">Parametri mancanti.</p>';return;}
+  let p;
+  try{p=JSON.parse(decodeURIComponent(escape(atob(raw))));}
+  catch(e){box.innerHTML='<p class="err">Impossibile leggere i dati del verbale.</p>';return;}
+
+  const seconda=p.conv==='seconda';
+  const aventi=num(p.aventi),presenti=num(p.presenti),deleghe=num(p.deleghe);
+  const mods=(p.modifiche||[]).filter(m=>m.articolo||m.proposto);
+  const frac=parseFrac(seconda?p.quorum2:p.quorum1);
+  const percent=aventi>0?Math.round(presenti*1000/aventi)/10:0;
+  const quorumOk=frac?presenti*frac.b>=aventi*frac.a:true;
+  const convTxt=seconda?'seconda':'prima';
+
+  const elenco=(p.elenco||[]).filter(Boolean);
+  const articoli=mods.map(m=>esc(m.articolo)).join('; ');
+  const mand=esitoVoto(p.mandato||{},presenti);
+
+  const blocchi=mods.map((m,i)=>{
+    const e=esitoVoto(m,presenti);
+    return `
+    <p><strong>1.${i+1}) ${esc(m.articolo)}</strong></p>
+    ${m.vigente?`<p><em>Testo vigente:</em> «${nl(m.vigente)}»</p>`:''}
+    <p><em>Testo proposto:</em> «${nl(m.proposto)}»</p>
+    <p>${e.riga} ${e.approvata
+      ?`Avendo la proposta riportato il voto favorevole della maggioranza dei presenti, l'assemblea <strong>approva</strong> la modifica di ${esc(m.articolo)} nel testo proposto sopra riportato.`
+      :`La proposta non ha riportato il voto favorevole della maggioranza dei presenti: l'assemblea <strong>non approva</strong> la modifica di ${esc(m.articolo)}, che resta nel testo vigente.`}</p>`;
+  }).join('');
+
+  const html=`
+    <h1>Verbale di assemblea straordinaria dei soci</h1>
+    <h2>${esc(p.asdNome)}</h2>
+    <p>L'anno ${esc(annoDa(p.data))}, il giorno <strong>${esc(p.data)}</strong>, alle ore <strong>${esc(p.ora)||'________'}</strong>, presso ${esc(p.luogo)||`la sede sociale sita in ${esc(p.asdIndirizzo)}, ${esc(p.asdCap)} ${esc(p.asdCitta)}`}, si è riunita in <strong>${convTxt} convocazione</strong> l'assemblea straordinaria dei soci di ${esc(p.asdNome)}${p.asdCf?` (C.F. ${esc(p.asdCf)})`:''}, convocata dal Presidente${p.cdData?` in esecuzione della delibera del Consiglio Direttivo del ${esc(p.cdData)}`:''}${p.avvisoData?`, con avviso del ${esc(p.avvisoData)}${p.avvisoModi?` comunicato mediante ${esc(p.avvisoModi)}`:''}`:''}, per discutere e deliberare sul seguente</p>
+    <p class="odg">ORDINE DEL GIORNO</p>
+    <p>1. Modifica dello statuto${articoli?`: ${articoli}`:''}${p.rif?` (${esc(p.rif)})`:''};<br>2. Mandato al Presidente per gli adempimenti conseguenti.</p>
+    ${seconda?`<p>La prima convocazione, fissata per lo stesso giorno alle ore ${esc(p.ora1)||'________'}, è andata deserta per mancanza del numero legale.</p>`:''}
+    <p>Assume la presidenza dell'assemblea ${esc(p.presiede)||'________'}, che chiama a fungere da segretario verbalizzante ${esc(p.segretario)||'________'}, il quale accetta l'incarico.</p>
+    <p>Il Presidente accerta e dà atto che l'assemblea è stata regolarmente convocata e che sono presenti n. <strong>${presenti}</strong> associati aventi diritto di voto su n. <strong>${aventi}</strong> aventi diritto (${percent.toString().replace('.',',')}%)${deleghe?`, di cui n. ${deleghe} rappresentati per delega scritta`:''}.${frac
+      ?` Per la ${convTxt} convocazione lo statuto richiede la presenza di ${frac.txt} degli aventi diritto${quorumOk?`: l'assemblea è pertanto validamente costituita ed atta a deliberare.`:`: <span class="avviso">il quorum costitutivo non risulta raggiunto.</span>`}`
+      :` Il Presidente dichiara l'assemblea validamente costituita nel rispetto del quorum previsto dallo statuto.`}</p>
+    ${elenco.length?`<p>Sono presenti:</p><ul>${elenco.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
+    <p>Si passa alla trattazione dei punti all'ordine del giorno.</p>
+
+    <p class="punto">Punto 1 — Modifica dello statuto</p>
+    <p>Il Presidente illustra all'assemblea le proposte di modifica dello statuto${p.rif?` formulate a seguito di: ${esc(p.rif)}`:''}, elaborate dal Consiglio Direttivo, e ne dà lettura nel testo vigente e nel testo proposto.${p.discussione?` ${nl(p.discussione)}`:' Dopo breve discussione, si procede a votazioni separate per ciascuna modifica.'}</p>
+    ${blocchi}
+
+    <p class="punto">Punto 2 — Mandato al Presidente</p>
+    <p>Il Presidente propone di conferirgli mandato per tutti gli adempimenti conseguenti alle modifiche approvate, ivi compresa la trasmissione del presente verbale e del testo dello statuto all'organismo sportivo di affiliazione e al Registro nazionale delle attività sportive dilettantistiche (RASD), e per la sottoscrizione degli atti necessari.</p>
+    <p>${mand.riga} ${mand.approvata?`L'assemblea <strong>approva</strong> il conferimento del mandato.`:`L'assemblea <strong>non approva</strong> il conferimento del mandato.`}</p>
+
+    <p style="margin-top:18px;">Null'altro essendovi da deliberare, il Presidente dichiara chiusa l'assemblea alle ore <strong>${esc(p.oraChiusura)||'________'}</strong>.</p>
+    <p>Del che è redatto il presente verbale, che viene letto, approvato e sottoscritto.</p>
+    <div class="firme">
+      <div class="firma"><div>Il Presidente dell'assemblea</div><div class="linea">${esc(p.presiede)||'________'}</div></div>
+      <div class="firma"><div>Il Segretario verbalizzante</div><div class="linea">${esc(p.segretario)||'________'}</div></div>
+    </div>`;
+  box.innerHTML=html;
+  document.title='Verbale Assemblea straordinaria - '+(p.data||'');
+}
+build();
+</script>
+</body>
+</html>
