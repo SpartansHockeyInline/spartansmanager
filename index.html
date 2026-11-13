@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.1 · Novembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.2 · Novembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -799,6 +799,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
           <select class="fsel" id="filter-corso" onchange="applyFilters()" style="max-width:150px;"><option value="">Tutti i corsi</option></select>
           <select class="fsel" id="filter-macrogruppo" onchange="applyFilters()" style="max-width:150px;"><option value="">Tutti i macrogruppi</option></select>
           <select class="fsel" id="filter-stato" onchange="applyFilters()" style="max-width:130px;"><option value="">Tutti gli stati</option><option value="attivo">Attivo</option><option value="sospeso">Sospeso</option><option value="inattivo">Inattivo</option></select>
+          <select class="fsel" id="filter-visita" onchange="applyFilters()" style="max-width:190px;" title="Filtra per visita medica">
+            <option value="">Visita medica: tutte</option>
+            <option value="agonistica">Agonistica valida</option>
+            <option value="no-agonistica">Senza agonistica valida</option>
+            <option value="non-agonistica">Non agonistica valida</option>
+            <option value="valida-senza-tipo">Valida, tipo non indicato</option>
+            <option value="scaduta">Scaduta</option>
+            <option value="mancante">Mancante</option>
+          </select>
           <select class="fsel" id="filter-eta" onchange="applyFilters()" style="max-width:150px;">
             <option value="">Tutte le categorie</option>
             <option value="primi-passi">Primi Passi</option>
@@ -2007,6 +2016,13 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.9.2 · Novembre 2026</div>
+        <div class="cl-section">Novità — Anagrafiche</div>
+        <div class="cl-item"><strong>Filtro «Visita medica»</strong> accanto agli altri filtri, utilizzabile anche da smartphone. Opzioni: agonistica valida, <em>senza agonistica valida</em> (tutti gli altri: non agonistica, scaduta, mancante), non agonistica valida, valida con tipo non indicato, scaduta, mancante. Si combina con corso, stato e categoria (per esempio «Under 14» + «Senza agonistica valida») e si azzera con «Reset».</div>
+        <div class="cl-item"><strong>Visita valida</strong> significa scadenza registrata e non passata. Il tipo (agonistica o non agonistica) si legge dal campo «Tipo visita» nel tab Sanitario della scheda atleta: dove non è compilato, la visita risulta «valida, tipo non indicato» e non conta come agonistica.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.9.1 · Novembre 2026</div>
         <div class="cl-section">Novità — Verbale Assemblea dei soci (versione standard)</div>
         <div class="cl-item"><strong>Verbale utilizzabile per qualsiasi assemblea</strong>: la card in Genera documenti ora si chiama «Verbale Assemblea dei soci» e permette di scegliere assemblea <em>ordinaria</em> o <em>straordinaria</em>. I punti all'ordine del giorno non sono più fissi: li aggiungi tu, ciascuno con titolo, testo vigente (facoltativo), testo proposto o contenuto della delibera, note di discussione e voti. Per le modifiche di statuto inserisci un punto per articolo.</div>
@@ -3076,7 +3092,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.9.1 · Novembre 2026';
+const APP_VERSION = 'v6.9.2 · Novembre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -4068,11 +4084,12 @@ function applyFilters(){
   const mg=document.getElementById('filter-macrogruppo')?.value||'';
   const stato=document.getElementById('filter-stato')?.value||'';
   const eta=document.getElementById('filter-eta')?.value||'';
-  renderSoci(search,tip,corso,stato,eta,mg);
+  const visita=document.getElementById('filter-visita')?.value||'';
+  renderSoci(search,tip,corso,stato,eta,mg,visita);
 }
 
 function resetFilters(){
-  ['filter-search','filter-tipologia','filter-corso','filter-macrogruppo','filter-stato','filter-eta'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['filter-search','filter-tipologia','filter-corso','filter-macrogruppo','filter-stato','filter-eta','filter-visita'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderSoci();
 }
 
@@ -4226,7 +4243,16 @@ function getStatoPagamentoMensile(s){
   const mesiArretrati=Math.max(1,Math.ceil(differenza/ultimaQuota));
   return{label:`⚠ ${mesiArretrati} mes${mesiArretrati>1?'i':'e'} arretrat${mesiArretrati>1?'i':'o'}`,ok:false};
 }
-function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilter='',mgFilter=''){
+// v6.9.2: stato della visita medica per il filtro Anagrafiche.
+// Valida = scadenza registrata e non passata (valida anche il giorno di scadenza).
+function statoVisitaSocio(s){
+  if(!s.visitaScad)return 'mancante';
+  if(_giorniA(s.visitaScad)<0)return 'scaduta';
+  if(s.visitaTipo==='agonistica')return 'agonistica';
+  if(s.visitaTipo==='non-agonistica')return 'non-agonistica';
+  return 'valida-senza-tipo';
+}
+function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilter='',mgFilter='',visitaFilter=(document.getElementById('filter-visita')?.value||'')){
   const tb=document.getElementById('soci-tbody');
   if(!tb)return;
 
@@ -4249,6 +4275,11 @@ function renderSoci(filter='',tipFilter='',corsoFilter='',statoFilter='',etaFilt
     if(corsoFilter&&s.corsoId!==corsoFilter)return false;
     if(mgFilter&&s.macrogruppoId!==mgFilter)return false;
     if(statoFilter&&(s.stato||'attivo')!==statoFilter)return false;
+    if(visitaFilter){
+      const sv=statoVisitaSocio(s);
+      if(visitaFilter==='no-agonistica'){if(sv==='agonistica')return false;}
+      else if(sv!==visitaFilter)return false;
+    }
     if(etaFilter&&s.nascita){
       const annoNascita=parseInt(s.nascita.slice(0,4));
       const catFisr=getCategoriaFisr(annoNascita);
@@ -8743,6 +8774,7 @@ const GUIDA_VOCI=[
   {cat:'👤 Anagrafiche',titolo:'Generare l\'attestato di frequenza',testo:'Vai su Genera Documenti → Attestato di frequenza. Seleziona l\'atleta e inserisci data inizio e data fine del periodo: il documento attesta la partecipazione alle attività nel periodo indicato, con firma del presidente.',tag:'attestato frequenza documento periodo atleta'},
   {cat:'👤 Anagrafiche',titolo:'Checklist nuovo iscritto',testo:'Apri la scheda di un atleta → tab "✅ Checklist" per il dettaglio con barra di avanzamento e link diretti alle sezioni da completare. Gli stessi 7 passi (anagrafica completa, corso assegnato, moduli iscrizione/privacy firmati, primo pagamento, tessera FISR, certificato medico) sono visibili anche direttamente nella tabella Atleti, come colonne ✓/✗ contrassegnate con una spunta nel nome (es. "Corso ✓") per distinguerle dalle colonne dati omonime — così vedi lo stato di tutti gli atleti scorrendo l\'elenco, senza aprire ogni scheda singolarmente.',tag:'checklist nuovo iscritto onboarding passi tabella colonne'},
   {cat:'👤 Anagrafiche',titolo:'Stato pagamenti mensili in tabella',testo:'La colonna "Pagamenti mensili" mostra "✅ in regola", "⚠ N mesi arretrati" oppure "⏸ Sospeso". Il calcolo si basa sulla data di INIZIO dell\'abbonamento assegnato all\'atleta (non sulla data di creazione della scheda) e confronta il totale dei pagamenti ricevuti — entrate in Amministrazione con categoria "Quota associativa"/"Abbonamento" — con l\'importo atteso in base al/ai piano/i assegnato/i, escludendo automaticamente gli eventuali mesi coperti da un periodo di inattività registrato (vedi voce dedicata). Il mese in corso viene considerato dovuto fin dal giorno 1 (non è prorato sui giorni effettivi). I pagamenti si confrontano per mese: un incasso registrato nel mese di inizio dell\'abbonamento viene contato anche se è precedente al giorno di inizio. Un atleta "Sospeso" non viene mai valutato: resta neutro finché non torna Attivo o Inattivo. Se l\'atleta non ha mai avuto un abbonamento assegnato, l\'app conta semplicemente i mesi con almeno un pagamento, da inizio stagione.',tag:'pagamenti mensili quota arretrato regola amministrazione entrate abbonamento piano scontato sospeso'},
+  {cat:'👤 Anagrafiche',titolo:'Filtrare per visita medica agonistica',testo:'In Anagrafiche usa il filtro "Visita medica" (funziona anche da smartphone). "Agonistica valida" mostra chi ha una visita agonistica non scaduta; "Senza agonistica valida" mostra tutti gli altri, cioè chi ha solo la non agonistica, chi ha la visita scaduta e chi non l\'ha mai consegnata. Il tipo si legge dal campo "Tipo visita" del tab Sanitario nella scheda atleta: se non è compilato la visita risulta "valida, tipo non indicato" e non conta come agonistica. La visita è valida fino al giorno di scadenza compreso. Puoi combinare il filtro con corso, stato e categoria; "Reset" lo azzera.',tag:'visita medica agonistica filtro anagrafiche smartphone certificato idoneità scadenza'},
   {cat:'✅ Presenze',titolo:'Atleti inattivi nelle presenze',testo:'Gli atleti con stato "Inattivo" non compaiono nel registro presenze, nello storico, nel report, nella classifica, negli alert e nell\'esportazione CSV: per loro non viene registrata nessuna assenza. Quando tornano "Attivo" ricompaiono nel registro e la percentuale riparte dalle sessioni in cui erano a registro, senza assenze arretrate per il periodo di inattività. Le presenze e le assenze già registrate prima dell\'inattività restano nello storico.',tag:'presenze inattivo inattivi assenze registro report classifica alert'},
   {cat:'👤 Anagrafiche',titolo:'Sospeso vs Inattivo — quale usare',testo:'"Sospeso" congela del tutto l\'atleta: non compare tra le quote arretrate in Dashboard, non è selezionabile per registrare nuovi pagamenti/ricevute, e il suo stato pagamenti resta neutro ("⏸ Sospeso") finché non lo riporti ad Attivo o Inattivo — usalo per chi ha lasciato l\'associazione o è in una situazione da valutare, senza sapere ancora per quanto. "Inattivo" è per chi è fermo e non va considerato iscritto pagante: il suo stato pagamenti resta neutro ("💤 Inattivo"), non compare nelle presenze (né nelle assenze) e non è incluso nel contatore del menu Anagrafiche. Per una pausa con date precise, mentre l\'atleta resta "Attivo" per gli altri mesi, usa invece un "Periodo di inattività" nella scheda (vedi voce dedicata).',tag:'sospeso inattivo differenza stato atleta quando usare'},
   {cat:'👤 Anagrafiche',titolo:'Registrare un periodo di inattività',testo:'Nella scheda atleta (tab Anagrafica), sotto ai campi Nome/Cognome/Stato, la sezione "⏸️ Periodi di inattività" permette di aggiungere uno o più intervalli (data inizio, data fine — lasciala vuota se il periodo è ancora in corso — e un motivo facoltativo). I mesi coperti da un periodo qui non vengono conteggiati come dovuti nel calcolo dei pagamenti mensili, e restano esclusi anche se in seguito riporti l\'atleta su "Attivo": è il periodo storico registrato a contare, non lo stato attuale.',tag:'periodo inattivita infortunio pausa mesi esclusi pagamenti'},
@@ -9381,7 +9413,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.9.1';
+    const CURRENT_VER='6.9.2';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

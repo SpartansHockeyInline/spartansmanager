@@ -2,6 +2,17 @@
 
 ---
 
+## v6.9.2 · Novembre 2026
+
+### Novità — Filtro visita medica in Anagrafiche
+- **Nuovo select `filter-visita`** nella barra filtri di Anagrafiche (visibile anche su mobile, dove la colonna «Visita» resta nascosta), con valori `agonistica`, `no-agonistica`, `non-agonistica`, `valida-senza-tipo`, `scaduta`, `mancante`.
+- **Helper `statoVisitaSocio(s)`**: `mancante` se manca `visitaScad`; `scaduta` se `_giorniA(visitaScad) < 0`; altrimenti in base a `visitaTipo` (`agonistica`, `non-agonistica`, o `valida-senza-tipo` se vuoto). `no-agonistica` include tutto tranne `agonistica`.
+- **`renderSoci`** riceve `visitaFilter` come settimo parametro con default letto dal select, così il filtro resta coerente anche quando `renderSoci()` viene richiamata senza argomenti (dopo un salvataggio). `applyFilters` lo passa, `resetFilters` lo azzera.
+- Il badge ✓/✗ della colonna «Visita» non è cambiato: indica ancora solo se la scadenza è valida, senza distinguere il tipo.
+- Guida: nuova voce «Filtrare per visita medica agonistica».
+
+---
+
 ## v6.9.1 · Novembre 2026
 
 ### Novità — Verbale Assemblea dei soci (versione standard)
