@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.0 · Novembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.1 · Novembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -1330,10 +1330,10 @@ tbody td{padding:10px 13px;vertical-align:middle;}
         </div>
         <div class="card" style="border:1px solid var(--border);grid-column:1 / -1;">
           <div style="font-size:20px;margin-bottom:8px;">🏛️</div>
-          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Verbale Assemblea straordinaria dei soci</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Verbale dell'assemblea che approva le modifiche dello statuto: verifica del quorum costitutivo, votazioni separate per ciascun articolo con esito calcolato (maggioranza dei presenti) e mandato al Presidente. Da compilare dopo che l'assemblea si è tenuta.</div>
-          <button type="button" class="btn btn-sm" style="margin-bottom:12px;" onclick="vaImportaDaCD()">⬇️ Importa modifiche e dati dall'ultimo verbale CD «Modifica statuto»</button>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Verbale Assemblea dei soci</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Verbale standard di assemblea ordinaria o straordinaria: convocazione, verifica del quorum costitutivo, presenti e deleghe, punti all'ordine del giorno che scrivi tu (bilancio, nomine, modifiche dello statuto, ecc.) con voti ed esito calcolato. Da compilare dopo che l'assemblea si è tenuta.</div>
           <div class="fg" style="margin-bottom:8px;">
+            <div class="fgroup"><label>Tipo di assemblea</label><select class="fsel" id="va-tipo" onchange="vaTipoChange()"><option value="straordinaria">Straordinaria</option><option value="ordinaria">Ordinaria</option></select></div>
             <div class="fgroup"><label>Data assemblea</label><input class="fi" id="va-data" type="date"></div>
             <div class="fgroup"><label>Convocazione in cui si è tenuta</label><select class="fsel" id="va-conv" onchange="vaConvChange()"><option value="prima">Prima convocazione</option><option value="seconda">Seconda convocazione</option></select></div>
             <div class="fgroup"><label>Ora di apertura</label><input class="fi" id="va-ora" type="time"></div>
@@ -1341,7 +1341,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <div class="fgroup s2"><label>Luogo</label><input class="fi" id="va-luogo" placeholder="es. la sede sociale / in audio-video collegamento ai sensi dello statuto"></div>
           </div>
           <div class="fg" style="margin-bottom:8px;">
-            <div class="fgroup"><label>Data delibera del CD che ha indetto l'assemblea</label><input class="fi" id="va-cd-data" type="date"></div>
+            <div class="fgroup"><label>Data delibera del CD che ha indetto l'assemblea (facoltativa)</label><input class="fi" id="va-cd-data" type="date"></div>
             <div class="fgroup"><label>Data invio avviso di convocazione</label><input class="fi" id="va-avviso" type="date"></div>
             <div class="fgroup"><label>Preavviso minimo (giorni)</label><input class="fi" id="va-preavviso" type="number" min="0" placeholder="es. 15"></div>
             <div class="fgroup s2"><label>Modalità di comunicazione dell'avviso (facoltativo)</label><input class="fi" id="va-avviso-modi" placeholder="es. affissione nella sede, pubblicazione sul sito e email a ciascun associato"></div>
@@ -1355,22 +1355,19 @@ tbody td{padding:10px 13px;vertical-align:middle;}
             <div class="fgroup"><label>Aventi diritto di voto (totale)</label><input class="fi" id="va-aventi" type="number" min="1" placeholder="es. 3"></div>
             <div class="fgroup"><label>Presenti totali (di persona + per delega)</label><input class="fi" id="va-presenti" type="number" min="0"></div>
             <div class="fgroup"><label>di cui per delega scritta</label><input class="fi" id="va-deleghe" type="number" min="0" placeholder="0"></div>
-            <div class="fgroup"><label>Quorum 1ª convocazione (frazione)</label><input class="fi" id="va-q1" value="2/3"></div>
-            <div class="fgroup"><label>Quorum 2ª convocazione (frazione)</label><input class="fi" id="va-q2" value="1/3"></div>
+            <div class="fgroup"><label>Quorum 1ª convocazione (frazione, vuoto = nessuna verifica)</label><input class="fi" id="va-q1" value="2/3" placeholder="es. 1/2"></div>
+            <div class="fgroup"><label>Quorum 2ª convocazione (frazione, vuoto = nessuna verifica)</label><input class="fi" id="va-q2" value="1/3" placeholder="es. 1/3"></div>
+            <div class="fgroup"><label>Maggioranza per deliberare</label><select class="fsel" id="va-maj"><option value="presenti">Più della metà dei presenti</option><option value="votanti">Più dei contrari (maggioranza dei votanti)</option><option value="duetzi">Almeno due terzi dei presenti</option></select></div>
             <div class="fgroup s2"><label>Elenco dei presenti (facoltativo, uno per riga; per le deleghe scrivi «Nome Cognome (delegato da Nome Cognome)»)</label><textarea class="fta" id="va-elenco" style="min-height:60px;"></textarea></div>
           </div>
-          <p style="font-size:11px;color:var(--text3);margin:0 0 10px;">I quorum sono precompilati con i valori dello statuto Spartans (2/3 in prima, 1/3 in seconda convocazione): modificali se il tuo statuto è diverso. Se il quorum non è raggiunto l'app non genera il verbale.</p>
-          <div class="fgroup" style="margin-bottom:8px;"><label>Motivo / riferimento delle modifiche</label><input class="fi" id="va-rif" placeholder="es. richiesta di integrazione del RASD del 28/10/2026"></div>
-          <div style="font-weight:600;font-size:12px;margin:10px 0 6px;">Modifiche votate</div>
-          <div id="va-mods"></div>
-          <button type="button" class="btn btn-sm" style="margin-bottom:12px;" onclick="vaAddMod()">+ Aggiungi modifica</button>
-          <div style="font-weight:600;font-size:12px;margin:6px 0;">Mandato al Presidente (punto 2)</div>
-          <div class="fg" style="margin-bottom:8px;">
-            <div class="fgroup"><label>Favorevoli</label><input class="fi" id="va-man-fav" type="number" min="0"></div>
-            <div class="fgroup"><label>Contrari</label><input class="fi" id="va-man-con" type="number" min="0" value="0"></div>
-            <div class="fgroup"><label>Astenuti</label><input class="fi" id="va-man-ast" type="number" min="0" value="0"></div>
+          <p style="font-size:11px;color:var(--text3);margin:0 0 10px;">Cambiando il tipo i quorum si reimpostano: straordinaria 2/3 e 1/3 (valori dello statuto Spartans), ordinaria vuoti da compilare secondo il tuo statuto. Se il quorum è compilato e non è raggiunto, l'app non genera il verbale.</p>
+          <div style="font-weight:600;font-size:12px;margin:10px 0 6px;">Punti all'ordine del giorno</div>
+          <div id="va-punti"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <button type="button" class="btn btn-sm" onclick="vaAddPunto()">+ Aggiungi punto</button>
+            <button type="button" class="btn btn-sm" onclick="vaImportaDaCD()">⬇️ Importa dall'ultimo verbale CD «Modifica statuto»</button>
           </div>
-          <div class="fgroup" style="margin-bottom:8px;"><label>Sintesi della discussione (facoltativa; se vuota il verbale riporta «dopo breve discussione»)</label><textarea class="fta" id="va-discussione" style="min-height:50px;"></textarea></div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:8px;cursor:pointer;"><input type="checkbox" id="va-varie" style="width:auto;margin:0;"> Aggiungi «Varie ed eventuali» in coda</label>
           <div class="fgroup" style="margin-bottom:10px;"><label>Ora di chiusura</label><input class="fi" id="va-ora-chiusura" type="time"></div>
           <button class="btn btn-p btn-sm" style="width:100%;" onclick="apriVerbaleAssemblea()">📄 Genera verbale assemblea</button>
         </div>
@@ -2008,6 +2005,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
   <div class="modal wide">
     <div class="mh"><div class="mt">📋 Changelog — Spartans Manager</div><button class="mc" onclick="closeModal('modal-changelog')">✕</button></div>
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="cl-entry">
+        <div class="cl-ver">v6.9.1 · Novembre 2026</div>
+        <div class="cl-section">Novità — Verbale Assemblea dei soci (versione standard)</div>
+        <div class="cl-item"><strong>Verbale utilizzabile per qualsiasi assemblea</strong>: la card in Genera documenti ora si chiama «Verbale Assemblea dei soci» e permette di scegliere assemblea <em>ordinaria</em> o <em>straordinaria</em>. I punti all'ordine del giorno non sono più fissi: li aggiungi tu, ciascuno con titolo, testo vigente (facoltativo), testo proposto o contenuto della delibera, note di discussione e voti. Per le modifiche di statuto inserisci un punto per articolo.</div>
+        <div class="cl-item"><strong>Punti senza votazione</strong>: spuntando «Solo comunicazione» il punto non richiede voti e il verbale riporta che l'assemblea ne prende atto. Opzione per aggiungere «Varie ed eventuali».</div>
+        <div class="cl-item"><strong>Regole adattabili allo statuto</strong>: i quorum di prima e seconda convocazione sono liberi (se lasciati vuoti non c'è verifica) e la maggioranza si sceglie tra più della metà dei presenti, maggioranza dei votanti o due terzi dei presenti. Cambiando tipo di assemblea i quorum si reimpostano.</div>
+        <div class="cl-item"><strong>Importazione</strong>: il pulsante recupera dall'ultimo verbale CD «Modifica statuto» le modifiche (come punti) e le date; i punti restano modificabili.</div>
+      </div>
 
       <div class="cl-entry">
         <div class="cl-ver">v6.9.0 · Novembre 2026</div>
@@ -3070,7 +3076,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.9.0 · Novembre 2026';
+const APP_VERSION = 'v6.9.1 · Novembre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -6777,30 +6783,37 @@ function apriVerbaleCD(){
   window.open(`${BASE_URL}modulo_verbale_cd.html?d=${encodeURIComponent(encoded)}`,'_blank');
 }
 
-// ---- Verbale Assemblea straordinaria (v6.9.0) ----
-function vaAddMod(pre){
-  const box=document.getElementById('va-mods');if(!box)return;
+// ---- Verbale Assemblea dei soci (v6.9.0, reso generico in v6.9.1) ----
+function vaAddPunto(pre){
+  const box=document.getElementById('va-punti');if(!box)return;
   pre=pre||{};
   const el=document.createElement('div');
-  el.className='va-mod';
+  el.className='va-punto';
   el.style.cssText='padding:10px;background:var(--surface2);border-radius:7px;margin-bottom:8px;';
   el.innerHTML=`
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><input class="fi va-art" placeholder="Articolo (es. Art. 4, comma 2)" style="flex:1;"><button type="button" class="btn btn-sm" onclick="vaRemoveMod(this)">✕</button></div>
-    <textarea class="fta va-vig" style="min-height:50px;margin-bottom:6px;" placeholder="Testo vigente (facoltativo)"></textarea>
-    <textarea class="fta va-prop" style="min-height:50px;margin-bottom:6px;" placeholder="Testo proposto"></textarea>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text2);align-items:center;">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><input class="fi va-tit" placeholder="Titolo del punto (es. Approvazione del bilancio / Modifica Art. 4, comma 2)" style="flex:1;"><button type="button" class="btn btn-sm" onclick="vaRemovePunto(this)">✕</button></div>
+    <textarea class="fta va-vig" style="min-height:50px;margin-bottom:6px;" placeholder="Testo vigente (facoltativo, per le modifiche di statuto o regolamento)"></textarea>
+    <textarea class="fta va-testo" style="min-height:60px;margin-bottom:6px;" placeholder="Testo proposto / contenuto della delibera"></textarea>
+    <textarea class="fta va-note" style="min-height:40px;margin-bottom:6px;" placeholder="Discussione o note a verbale (facoltativo)"></textarea>
+    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-bottom:6px;cursor:pointer;"><input type="checkbox" class="va-novoto" style="width:auto;margin:0;" onchange="this.closest('.va-punto').querySelector('.va-voti').style.display=this.checked?'none':'flex'"> Solo comunicazione, senza votazione</label>
+    <div class="va-voti" style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text2);align-items:center;">
       <label style="display:flex;align-items:center;gap:4px;">Favorevoli <input class="fi va-fav" type="number" min="0" style="width:70px;"></label>
       <label style="display:flex;align-items:center;gap:4px;">Contrari <input class="fi va-con" type="number" min="0" value="0" style="width:70px;"></label>
       <label style="display:flex;align-items:center;gap:4px;">Astenuti <input class="fi va-ast" type="number" min="0" value="0" style="width:70px;"></label>
     </div>`;
   box.appendChild(el);
-  el.querySelector('.va-art').value=pre.articolo||'';
+  el.querySelector('.va-tit').value=pre.titolo||'';
   el.querySelector('.va-vig').value=pre.vigente||'';
-  el.querySelector('.va-prop').value=pre.proposto||'';
+  el.querySelector('.va-testo').value=pre.testo||'';
 }
-function vaRemoveMod(btn){
-  const el=btn.closest('.va-mod');
-  if(el&&document.querySelectorAll('.va-mod').length>1)el.remove();
+function vaRemovePunto(btn){
+  const el=btn.closest('.va-punto');
+  if(el&&document.querySelectorAll('.va-punto').length>1)el.remove();
+}
+function vaTipoChange(){
+  const straord=document.getElementById('va-tipo').value==='straordinaria';
+  document.getElementById('va-q1').value=straord?'2/3':'';
+  document.getElementById('va-q2').value=straord?'1/3':'';
 }
 function vaConvChange(){
   const seconda=document.getElementById('va-conv').value==='seconda';
@@ -6815,15 +6828,16 @@ function vaConvChange(){
 function vaImportaDaCD(){
   let d=null;
   try{d=JSON.parse(localStorage.getItem('sm_ultimeModificheStatuto')||'null');}catch(e){}
-  if(!d||!(d.mods||[]).length){toast('Nessun verbale CD «Modifica statuto» generato su questo dispositivo: compila le modifiche a mano','info');return;}
+  if(!d||!(d.mods||[]).length){toast('Nessun verbale CD «Modifica statuto» generato su questo dispositivo: aggiungi i punti a mano','info');return;}
   window._vaImp=d;
-  const box=document.getElementById('va-mods');box.innerHTML='';
-  d.mods.forEach(m=>vaAddMod(m));
+  document.getElementById('va-tipo').value='straordinaria';
+  const box=document.getElementById('va-punti');box.innerHTML='';
+  d.mods.forEach(m=>vaAddPunto({titolo:`Modifica ${m.articolo}`,vigente:m.vigente,testo:m.proposto}));
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
-  set('va-rif',d.rif);set('va-cd-data',d.cdData);set('va-data',d.assData);set('va-luogo',d.assLuogo);
+  set('va-cd-data',d.cdData);set('va-data',d.assData);set('va-luogo',d.assLuogo);
   set('va-avviso',d.assAvviso);set('va-preavviso',d.assPreavviso);
   vaConvChange();
-  toast('Modifiche e dati importati: controlla le ore effettive, i presenti e inserisci i voti','info');
+  toast('Punti e date importati: controlla ore, presenti e inserisci i voti','info');
 }
 function apriVerbaleAssemblea(){
   const g=id=>document.getElementById(id);
@@ -6835,26 +6849,26 @@ function apriVerbaleAssemblea(){
   if(!(aventi>0)||isNaN(presenti)){toast('Indica gli aventi diritto e i presenti','error');return;}
   if(presenti>aventi){toast('I presenti non possono superare gli aventi diritto','error');return;}
   if(deleghe>presenti){toast('Le deleghe non possono superare i presenti','error');return;}
-  // Quorum costitutivo (frazione a/b degli aventi diritto)
+  // Quorum costitutivo (frazione a/b degli aventi diritto); vuoto = nessuna verifica
   const fr=/^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(g(conv==='seconda'?'va-q2':'va-q1').value);
   if(fr&&+fr[2]>0&&presenti*(+fr[2])<aventi*(+fr[1])){
     const min=Math.ceil(aventi*(+fr[1])/(+fr[2])-1e-9);
-    toast(`Quorum costitutivo non raggiunto: in ${conv==='seconda'?'seconda':'prima'} convocazione servono almeno ${min} presenti su ${aventi} (${fr[1]}/${fr[2]}). L'assemblea non può deliberare: non si genera il verbale di approvazione.`,'error');return;
+    toast(`Quorum costitutivo non raggiunto: in ${conv==='seconda'?'seconda':'prima'} convocazione servono almeno ${min} presenti su ${aventi} (${fr[1]}/${fr[2]}). L'assemblea non può deliberare: non si genera il verbale.`,'error');return;
   }
-  const mods=[...document.querySelectorAll('.va-mod')].map(el=>({
-    articolo:el.querySelector('.va-art').value.trim(),
+  const punti=[...document.querySelectorAll('.va-punto')].map(el=>({
+    titolo:el.querySelector('.va-tit').value.trim(),
     vigente:el.querySelector('.va-vig').value.trim(),
-    proposto:el.querySelector('.va-prop').value.trim(),
+    testo:el.querySelector('.va-testo').value.trim(),
+    note:el.querySelector('.va-note').value.trim(),
+    novoto:el.querySelector('.va-novoto').checked,
     fav:parseInt(el.querySelector('.va-fav').value,10),
     con:parseInt(el.querySelector('.va-con').value,10)||0,
     ast:parseInt(el.querySelector('.va-ast').value,10)||0
-  })).filter(m=>m.articolo||m.vigente||m.proposto);
-  if(!mods.length||mods.some(m=>!m.articolo||!m.proposto)){toast('Per ogni modifica indica l\'articolo e il testo proposto','error');return;}
-  if(mods.some(m=>isNaN(m.fav))){toast('Inserisci i voti favorevoli per ogni modifica (anche 0)','error');return;}
-  const man={fav:intv('va-man-fav'),con:intv('va-man-con')||0,ast:intv('va-man-ast')||0};
-  if(isNaN(man.fav)){toast('Inserisci i voti favorevoli sul mandato al Presidente','error');return;}
-  const incoerenti=mods.map((m,i)=>({n:m.articolo,t:m.fav+m.con+m.ast})).concat([{n:'mandato al Presidente',t:man.fav+man.con+man.ast}]).filter(x=>x.t!==presenti);
-  if(incoerenti.length&&!confirm(`Il totale dei voti (favorevoli + contrari + astenuti) non coincide con i ${presenti} presenti per: ${incoerenti.map(x=>x.n).join('; ')}. Generare comunque il verbale?`))return;
+  })).filter(x=>x.titolo||x.vigente||x.testo||x.note);
+  if(!punti.length||punti.some(x=>!x.titolo)){toast('Ogni punto all\'ordine del giorno deve avere un titolo','error');return;}
+  if(punti.some(x=>!x.novoto&&isNaN(x.fav))){toast('Inserisci i voti favorevoli per ogni punto votato (anche 0), oppure spunta «Solo comunicazione»','error');return;}
+  const incoerenti=punti.filter(x=>!x.novoto&&(x.fav+x.con+x.ast)!==presenti);
+  if(incoerenti.length&&!confirm(`Il totale dei voti (favorevoli + contrari + astenuti) non coincide con i ${presenti} presenti per: ${incoerenti.map(x=>x.titolo).join('; ')}. Generare comunque il verbale?`))return;
   const avviso=g('va-avviso').value;
   const minG=parseInt(g('va-preavviso').value,10)||0;
   if(avviso&&minG){
@@ -6863,14 +6877,13 @@ function apriVerbaleAssemblea(){
   }
   const st=DB.struttura;
   const payload={
-    data:formatDate(data),ora:g('va-ora').value,conv,ora1:g('va-ora1').value,luogo:g('va-luogo').value.trim(),
+    tipo:g('va-tipo').value,data:formatDate(data),ora:g('va-ora').value,conv,ora1:g('va-ora1').value,luogo:g('va-luogo').value.trim(),
     cdData:g('va-cd-data').value?formatDate(g('va-cd-data').value):'',
     avvisoData:avviso?formatDate(avviso):'',avvisoModi:g('va-avviso-modi').value.trim(),
     presiede:g('va-presiede').value.trim(),segretario:g('va-segretario').value.trim(),
-    aventi,presenti,deleghe,quorum1:g('va-q1').value.trim(),quorum2:g('va-q2').value.trim(),
+    aventi,presenti,deleghe,quorum1:g('va-q1').value.trim(),quorum2:g('va-q2').value.trim(),maj:g('va-maj').value,
     elenco:g('va-elenco').value.split('\n').map(r=>r.trim()).filter(Boolean),
-    rif:g('va-rif').value.trim(),modifiche:mods,mandato:man,
-    discussione:g('va-discussione').value.trim(),oraChiusura:g('va-ora-chiusura').value,
+    punti,varie:g('va-varie').checked,oraChiusura:g('va-ora-chiusura').value,
     asdNome:st.nome||'',asdIndirizzo:st.indirizzo||'',asdCap:st.cap||'',asdCitta:st.citta||'',asdCf:st.cf||''
   };
   const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
@@ -6894,9 +6907,9 @@ function initGeneraDocumenti(){
   // davvero cambiato (numero o composizione), non ad ogni sincronizzazione
   // Firebase qualsiasi — altrimenti un verbale in corso di compilazione
   // verrebbe azzerato da un aggiornamento non collegato (es. un nuovo atleta).
-  if(document.getElementById('va-mods')){
+  if(document.getElementById('va-punti')){
     // v6.9.0: form assemblea — precompila solo se vuoto (non azzera una compilazione in corso)
-    if(!document.querySelector('.va-mod'))vaAddMod();
+    if(!document.querySelector('.va-punto'))vaAddPunto();
     const cdv=DB.struttura.consiglioDirettivo||[];
     const pres=cdv.find(m=>/presidente/i.test(m.ruolo)&&!/vice/i.test(m.ruolo));
     const segr=cdv.find(m=>/segretari|tesorier/i.test(m.ruolo));
@@ -8763,7 +8776,7 @@ const GUIDA_VOCI=[
   {cat:'🤝 Sponsor',titolo:'Alert scadenza contratti sponsor',testo:'I contratti sponsor con scadenza entro 60 giorni compaiono automaticamente in Dashboard → \"Scadenze imminenti\", con l\'etichetta \"🤝 Contratto sponsor\".',tag:'sponsor contratto scadenza alert dashboard'},
 
   {cat:'🏛️ Struttura',titolo:'Inserire i dati del Consiglio Direttivo',testo:'Vai su La mia struttura → sezione "⚖️ Consiglio Direttivo" → "+ Aggiungi membro". Inserisci ruolo, nome, cognome, dati anagrafici, CF, residenza, documento d\'identità per ciascun membro (Presidente, Vicepresidente, Tesoriere, Segretario, Consiglieri). Questi dati vengono riutilizzati automaticamente nei contratti, nei verbali e negli altri documenti generabili. Aggiorna questa sezione ogni volta che cambiano le cariche sociali.',tag:'presidente vicepresidente consiglio direttivo legale rappresentante struttura dati contratto verbale'},
-  {cat:'📄 Documenti',titolo:'Verbale dell\'assemblea straordinaria (modifica statuto)',testo:'Vai su Genera documenti → "Verbale Assemblea straordinaria dei soci" e compilalo DOPO che l\'assemblea si è tenuta. Puoi partire dal pulsante "Importa", che recupera modifiche e date dall\'ultimo verbale CD "Modifica statuto" generato su questo dispositivo. Indica data, convocazione in cui si è tenuta (se è la seconda, anche l\'ora della prima andata deserta), luogo, chi presiede e il segretario, la data dell\'avviso e il preavviso minimo. Poi gli aventi diritto di voto, i presenti totali (di persona e per delega) e i quorum di prima e seconda convocazione, precompilati 2/3 e 1/3: modificali se il tuo statuto è diverso. Se il quorum non è raggiunto l\'app non genera il verbale. Per ogni articolo inserisci favorevoli, contrari e astenuti: l\'esito (approvata o non approvata) è calcolato sulla maggioranza dei presenti. Compila anche i voti sul mandato al Presidente. Se i voti non coincidono con i presenti o il preavviso è insufficiente l\'app chiede conferma. Dopo l\'approvazione, copia del verbale va trasmessa all\'organismo sportivo di affiliazione secondo lo statuto, e va conservata nel libro dei verbali.',tag:'verbale assemblea straordinaria modifica statuto quorum votazione presenti deleghe rasd convocazione'},
+  {cat:'📄 Documenti',titolo:'Verbale dell\'assemblea dei soci',testo:'Vai su Genera documenti → "Verbale Assemblea dei soci" e compilalo DOPO che l\'assemblea si è tenuta. Scegli il tipo (ordinaria o straordinaria), la data, la convocazione in cui si è tenuta (se è la seconda, indica anche l\'ora della prima andata deserta), il luogo, chi presiede e il segretario, la data dell\'avviso e il preavviso minimo. Poi gli aventi diritto di voto, i presenti totali (di persona e per delega) e i quorum di prima e seconda convocazione: per la straordinaria sono precompilati 2/3 e 1/3, per l\'ordinaria sono vuoti e vanno compilati secondo il tuo statuto (vuoto = nessuna verifica). Se il quorum compilato non è raggiunto l\'app non genera il verbale. Scegli la regola di maggioranza per deliberare. Ogni punto all\'ordine del giorno lo scrivi tu: titolo, eventuale testo vigente, testo proposto o contenuto della delibera, note di discussione, e i voti favorevoli, contrari e astenuti; l\'esito (approvato o non approvato) è calcolato dall\'app. Per una modifica dello statuto inserisci un punto per articolo, oppure usa "Importa" per recuperare le modifiche e le date dall\'ultimo verbale CD "Modifica statuto" generato su questo dispositivo. Per i punti informativi spunta "Solo comunicazione". Se i voti non coincidono con i presenti o il preavviso è insufficiente l\'app chiede conferma. Dopo l\'approvazione, la trasmissione del verbale all\'organismo sportivo di affiliazione e la conservazione nel libro dei verbali seguono quanto previsto dal tuo statuto.',tag:'verbale assemblea ordinaria straordinaria soci quorum votazione presenti deleghe convocazione bilancio modifica statuto'},
   {cat:'📄 Documenti',titolo:'Verbale di modifica dello statuto (rilievi RASD)',testo:'Vai su Genera documenti → "Verbale Consiglio Direttivo" → tipo "Modifica statuto". Indica il motivo (per esempio la richiesta di integrazione del RASD), i rilievi uno per riga, e per ogni articolo il testo vigente e quello proposto ("+ Aggiungi modifica" per più articoli). Compila poi i dati dell\'assemblea straordinaria: data, ore di prima e seconda convocazione, luogo, data di invio dell\'avviso e preavviso minimo previsto dal tuo statuto. L\'app avvisa se i giorni di preavviso non bastano. Il verbale CD approva solo una proposta: la modifica è efficace dopo il voto dell\'assemblea straordinaria. La premessa su una riunione precedente è facoltativa e va compilata solo se la riunione è davvero avvenuta; la data del verbale è sempre quella reale di redazione.',tag:'verbale modifica statuto rasd assemblea straordinaria preavviso integrazione rilievi proposta'},
   {cat:'📄 Documenti',titolo:'Generare un verbale del Consiglio Direttivo',testo:'Vai su Genera documenti → card "🗳️ Verbale Consiglio Direttivo". Scegli il tipo di delibera (apertura conto corrente, contratto co.co.co., nomina Safeguarding, convocazione assemblea, quote associative, modifica statuto con indizione dell\'assemblea straordinaria, o testo libero per tutto il resto), compila i campi specifici, e per ogni consigliere presente segna "interessato/conflitto" se ha un interesse diretto nella delibera: verrà registrato come astenuto, con eventuale delega di rappresentanza per la firma. L\'elenco dei consiglieri viene letto automaticamente da "La mia struttura" — se è vuoto, aggiungili prima da lì. Il verbale generato aggiunge sempre in automatico, come ultimo punto dell\'ordine del giorno, "Varie ed eventuali" — non serve indicarlo tu.',tag:'verbale consiglio direttivo delibera conto corrente cocoo safeguarding assemblea quote conflitto interesse astensione delega varie ed eventuali odg modifica statuto rasd'},
   {cat:'☁️ Sincronizzazione',titolo:'Capire chi altro è collegato e sta scrivendo',testo:'Quando un altro utente accede all\'app con le stesse credenziali del club, in basso a sinistra (accanto allo stato di connessione) compare un indicatore "👥 N collegati": passandoci sopra il mouse (o toccandolo su mobile) vedi le email di chi è collegato. A ogni nuovo collegamento o scollegamento ricevi anche un avviso a comparsa. Se quella persona ha in corso una modifica in salvataggio, in cima allo schermo lampeggia un banner giallo con il suo nome: è il segnale per aspettare qualche secondo prima di salvare a tua volta, così le due modifiche non si sovrascrivono a vicenda.',tag:'presenza utenti collegati multiutente conflitto scrittura simultanea banner sincronizzazione firebase'},
@@ -9368,7 +9381,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.9.0';
+    const CURRENT_VER='6.9.1';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

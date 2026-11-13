@@ -2,6 +2,18 @@
 
 ---
 
+## v6.9.1 · Novembre 2026
+
+### Novità — Verbale Assemblea dei soci (versione standard)
+- **`modulo_verbale_assemblea.html` reso generico**: titolo e testo dipendono dal tipo (`ordinaria` / `straordinaria`); il payload non ha più `modifiche`, `mandato`, `rif`, `discussione` ma un array `punti` (`titolo`, `vigente`, `testo`, `note`, `novoto`, `fav`, `con`, `ast`) e il flag `varie`.
+- **Card «Verbale Assemblea dei soci»** (`va-tipo`, repeater `.va-punto`, `vaAddPunto`/`vaRemovePunto`): ogni punto ha titolo, testo vigente facoltativo, testo proposto/contenuto, note e voti; «Solo comunicazione» nasconde i voti e il verbale scrive che l'assemblea ne prende atto.
+- **Regole configurabili**: quorum 1ª/2ª convocazione liberi (vuoto = nessuna verifica; `vaTipoChange()` imposta 2/3 e 1/3 per la straordinaria, vuoti per l'ordinaria) e campo `maj` con tre regole (`presenti`: favorevoli > metà dei presenti; `votanti`: favorevoli > contrari; `duetzi`: favorevoli ≥ 2/3 dei presenti), tabella `MAGGIORANZE` nel modulo.
+- **Importazione dal CD** (`vaImportaDaCD`): le modifiche diventano punti «Modifica <articolo>» con vigente e proposto.
+- Controlli invariati: quorum costitutivo bloccante, conferma se favorevoli + contrari + astenuti ≠ presenti, conferma se il preavviso è insufficiente.
+- Guida: voce «Verbale dell'assemblea dei soci» al posto di quella dedicata alla sola modifica statuto.
+
+---
+
 ## v6.9.0 · Novembre 2026
 
 ### Novità — Verbale Assemblea straordinaria
