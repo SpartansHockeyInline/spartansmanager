@@ -2,6 +2,16 @@
 
 ---
 
+## v6.9.3 · Novembre 2026
+
+### Novità — Sincronizzazione Google Calendar
+- **Compleanni anonimi** (`.github/scripts/sync_calendario.py`): nuovo tipo `compleanni` (🎂, colore 3). `compleanni_anagrafiche()` ricava dalle anagrafiche `soci` e `staff` (già lette dal job) un evento «N compleanni» per ogni giorno in cui ne cade almeno uno, nella finestra mobile oggi → oggi+365 giorni. Chiave evento `b|AAAA-MM-GG`, quindi un cambio di numero aggiorna l'evento esistente. Nessun nome nel titolo né nelle note (il repository e i log Actions sono pubblici, i dati dei minori restano nell'app).
+- Conta come la Dashboard: tutti i soci e lo staff con una data di nascita, inattivi compresi; il 29/02 negli anni non bisestili cade il 1/03. Senza promemoria, evento non bloccante (`transparent`).
+- Casella «🎂 Compleanni (solo il numero, senza nomi)» in *La mia struttura* (`gcalTipi.compleanni`). Il tipo è attivo per impostazione predefinita, anche dove la chiave non è ancora salvata.
+- Guida: aggiornata la voce «Sincronizzazione Google Calendar».
+
+---
+
 ## v6.9.2 · Novembre 2026
 
 ### Novità — Filtro visita medica in Anagrafiche

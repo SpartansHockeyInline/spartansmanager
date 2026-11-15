@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sincronizza gli eventi di Spartans Manager con un calendario Google (a senso unico: app -> calendario).
 
-Legge da Firebase (account di servizio in SOLA LETTURA) gli eventi e le impostazioni di "La mia struttura",
+Legge da Firebase (account di servizio in SOLA LETTURA) gli eventi, le scadenze e i compleanni (solo numeri) e le impostazioni di "La mia struttura",
 poi allinea il calendario Google (account di servizio con permesso "Apporta modifiche agli eventi").
 
 Principi:
@@ -36,6 +36,8 @@ TIPI = {
     'scadenza':    {'ico': '⏰', 'colore': '6',  'durata': 30},
     # scadenze di atleti, staff e sponsor ricavate dalle anagrafiche (non sono eventi del calendario dell'app)
     'documenti':   {'ico': '📋', 'colore': '6',  'durata': 30},
+    # compleanni di atleti e staff ricavati dalle anagrafiche: un evento per giorno con il NUMERO, mai i nomi
+    'compleanni':  {'ico': '🎂', 'colore': '3',  'durata': 30},
 }
 
 # (raccolta, campo, etichetta) delle scadenze nelle anagrafiche: le stesse della dashboard "Scadenze imminenti".
@@ -76,7 +78,7 @@ def chiave_evento(e):
 
 def promemoria(tipo, tutto_il_giorno, fatto):
     """Promemoria in minuti prima dell'inizio. Per i giorni interi: ore 09:00 del giorno (inizio = 00:00)."""
-    if fatto or tipo == 'allenamento':
+    if fatto or tipo in ('allenamento', 'compleanni'):
         return {'useDefault': False, 'overrides': []}
     giorno = lambda n: (n * 1440 - 540) if tutto_il_giorno else n * 1440  # n giorni prima (09:00 se tutto il giorno)
     if tipo in ('scadenza', 'documenti'):
@@ -121,7 +123,7 @@ def costruisci(e):
         corpo['end'] = {'date': (giorno + dt.timedelta(days=1)).isoformat()}
         tutto = True
     corpo['reminders'] = promemoria(tipo, tutto, fatto)
-    if tipo in ('scadenza', 'attivita', 'documenti') or fatto:
+    if tipo in ('scadenza', 'attivita', 'documenti', 'compleanni') or fatto:
         corpo['transparency'] = 'transparent'
     return corpo
 
@@ -153,11 +155,39 @@ def scadenze_anagrafiche(anagrafiche, oggi):
     return eventi
 
 
+def compleanni_anagrafiche(anagrafiche, oggi, giorni=365):
+    """Eventi "compleanni": uno per giorno con il NUMERO di compleanni (atleti e staff), mai i nomi.
+    Finestra mobile da oggi a oggi+giorni: ogni ora si aggiunge il giorno nuovo, quelli passati restano.
+    Come la dashboard conta tutti i soci e lo staff con una data di nascita; il 29/02 negli anni non
+    bisestili scivola al 1/03 (come fa la dashboard)."""
+    per_giorno = {}
+    fine = oggi + dt.timedelta(days=giorni)
+    for raccolta in ('soci', 'staff'):
+        for r in (anagrafiche or {}).get(raccolta, []):
+            m = re.fullmatch(r'(\d{4})-(\d{2})-(\d{2})', str(r.get('nascita') or '')[:10])
+            if not m:
+                continue
+            mese, giorno = int(m.group(2)), int(m.group(3))
+            for anno in (oggi.year, oggi.year + 1):
+                try:
+                    d = dt.date(anno, mese, giorno)
+                except ValueError:
+                    d = dt.date(anno, 3, 1) if (mese, giorno) == (2, 29) else None
+                if d is not None and oggi <= d <= fine:
+                    per_giorno[d] = per_giorno.get(d, 0) + 1
+    return [{'tipo': 'compleanni', 'data': d.isoformat(), 'chiave': f'b|{d.isoformat()}',
+             'titolo': f"{n} compleann{'o' if n == 1 else 'i'}",
+             'note': "Apri Spartans Manager (Dashboard → Prossimi eventi) per i nominativi."}
+            for d, n in sorted(per_giorno.items())]
+
+
 def calcola_desiderati(eventi, tipi, oggi=None, anagrafiche=None):
     """{id_google: corpo} per gli eventi dei tipi abilitati. Ritorna anche i conteggi per tipo e gli scartati."""
     desiderati, per_tipo, scartati = {}, {}, 0
     if anagrafiche is not None and oggi is not None:
         eventi = list(eventi) + scadenze_anagrafiche(anagrafiche, oggi)
+        if tipi.get('compleanni', False):
+            eventi += compleanni_anagrafiche(anagrafiche, oggi)
     for e in eventi:
         if not isinstance(e, dict):
             continue

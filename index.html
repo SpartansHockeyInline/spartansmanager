@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.2 · Novembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.3 · Novembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -744,6 +744,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
                   <label><input type="checkbox" id="s-gcal-t-attivita" checked> 📌 Attività</label>
                   <label><input type="checkbox" id="s-gcal-t-scadenza" checked> ⏰ Scadenze</label>
                   <label title="Tessere, visite mediche, assicurazioni, safeguarding e contratti sponsor: un evento per giorno e categoria con il numero di persone in scadenza, senza nominativi"><input type="checkbox" id="s-gcal-t-documenti" checked> 📋 Scadenze di atleti, staff e sponsor (senza nomi)</label>
+                  <label title="Un evento per giorno con il numero di compleanni di atleti e staff nei prossimi 12 mesi, senza nomi: i nominativi si vedono in Dashboard → Prossimi eventi"><input type="checkbox" id="s-gcal-t-compleanni" checked> 🎂 Compleanni (solo il numero, senza nomi)</label>
                 </div>
                 <div style="font-size:11px;color:var(--text3);margin-top:3px;">Le modifiche fatte direttamente su Google Calendar vengono sovrascritte. Richiede la configurazione una tantum descritta nella Guida (voce «Sincronizzazione Google Calendar»).</div>
               </div>
@@ -2016,6 +2017,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.9.3 · Novembre 2026</div>
+        <div class="cl-section">Novità — Sincronizzazione con Google Calendar</div>
+        <div class="cl-item"><strong>Compleanni nel calendario Google</strong> — nel calendario Google compare un evento «🎂 N compleanni» per ogni giorno in cui cade almeno un compleanno di atleti o staff, per i prossimi 12 mesi, ogni ora allineato. L'evento riporta <em>solo il numero</em>, senza nomi: i dati personali restano nell'app e i nominativi si vedono in Dashboard → Prossimi eventi. Nessun promemoria. Si disattiva dalla casella 🎂 in <em>La mia struttura</em>; senza aprire quella schermata la sincronizzazione lo include comunque, perché il tipo è attivo per impostazione predefinita.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.9.2 · Novembre 2026</div>
         <div class="cl-section">Novità — Anagrafiche</div>
         <div class="cl-item"><strong>Filtro «Visita medica»</strong> accanto agli altri filtri, utilizzabile anche da smartphone. Opzioni: agonistica valida, <em>senza agonistica valida</em> (tutti gli altri: non agonistica, scaduta, mancante), non agonistica valida, valida con tipo non indicato, scaduta, mancante. Si combina con corso, stato e categoria (per esempio «Under 14» + «Senza agonistica valida») e si azzera con «Reset».</div>
@@ -3092,7 +3099,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.9.2 · Novembre 2026';
+const APP_VERSION = 'v6.9.3 · Novembre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3308,7 +3315,7 @@ function loadStrutturaForm(){
   const fonteSel=document.getElementById('s-fonte-fatture');if(fonteSel)fonteSel.value=s.fonteFatture==='esterna'?'esterna':'interna';
   const gA=document.getElementById('s-gcal-attivo');if(gA)gA.checked=!!s.gcalAttivo;
   const gI=document.getElementById('s-gcal-id');if(gI)gI.value=s.gcalId||'';
-  ['gara','allenamento','attivita','scadenza','documenti'].forEach(t=>{const c=document.getElementById('s-gcal-t-'+t);if(c)c.checked=!(s.gcalTipi&&s.gcalTipi[t]===false);});
+  ['gara','allenamento','attivita','scadenza','documenti','compleanni'].forEach(t=>{const c=document.getElementById('s-gcal-t-'+t);if(c)c.checked=!(s.gcalTipi&&s.gcalTipi[t]===false);});
   document.getElementById('logo-nome-display').textContent=s.nome||'Spartans';
   const pw=document.getElementById('logo-preview-wrap');
   pw.innerHTML=s.logo?`<img src="${s.logo}" style="width:100%;height:100%;object-fit:cover;">`:'⚔️';
@@ -3327,7 +3334,7 @@ function saveStruttura(){if(_isDemo){toast("🎭 Modalità demo — sola lettura
   const fonteSelS=document.getElementById('s-fonte-fatture');if(fonteSelS)DB.struttura.fonteFatture=fonteSelS.value==='esterna'?'esterna':'interna';
   const gAS=document.getElementById('s-gcal-attivo');if(gAS)DB.struttura.gcalAttivo=gAS.checked;
   const gIS=document.getElementById('s-gcal-id');if(gIS)DB.struttura.gcalId=gIS.value.trim();
-  DB.struttura.gcalTipi={};['gara','allenamento','attivita','scadenza','documenti'].forEach(t=>{const c=document.getElementById('s-gcal-t-'+t);DB.struttura.gcalTipi[t]=c?c.checked:true;});
+  DB.struttura.gcalTipi={};['gara','allenamento','attivita','scadenza','documenti','compleanni'].forEach(t=>{const c=document.getElementById('s-gcal-t-'+t);DB.struttura.gcalTipi[t]=c?c.checked:true;});
   document.getElementById('logo-nome-display').textContent=DB.struttura.nome||'Spartans';saveDB();toast('Struttura salvata','success');}
 
 // ═══ CONSIGLIO DIRETTIVO ══════════════════════════════════
@@ -8735,7 +8742,7 @@ document.addEventListener('click',e=>{
 
 // ═══ GUIDA ════════════════════════════════════════════════
 const GUIDA_VOCI=[
-  {cat:'📅 Calendario',titolo:'Sincronizzazione Google Calendar',testo:'Sincronizza in automatico, ogni ora, gli eventi e le scadenze di atleti, staff e sponsor (queste ultime solo come numero, senza nomi) con un calendario Google (a senso unico: app → Google; le modifiche fatte su Google vengono sovrascritte). Configurazione una tantum: 1) su Google Calendar crea un calendario secondario "Spartans Manager" e, nelle sue impostazioni, condividilo con l\'email dell\'account di servizio del calendario con permesso "Apporta modifiche agli eventi" (la condivisione del calendario principale non vale per quello secondario); 2) su Google Cloud crea un secondo account di servizio per la sola lettura del database e scarica la chiave JSON; poi, nel progetto Firebase che contiene il database (non in quello dell\'account), vai in IAM → Concedi l\'accesso, inserisci l\'email di quell\'account e dagli il ruolo "Firebase Viewer" (o "Firebase Realtime Database Viewer"); 3) su GitHub, Settings → Secrets → Actions, salva le chiavi come FIREBASE_SA_JSON (lettura database) e GOOGLE_SA_JSON (calendario) e aggiungi la variabile FIREBASE_DB_URL; 4) in La mia struttura attiva la sincronizzazione, incolla l\'ID del calendario (Integra il calendario → ID calendario, termina con @group.calendar.google.com) e salva; 5) lancia il workflow una volta con "simula" attivo e controlla i conteggi, poi senza. Se il calendario smette di aggiornarsi, riattiva il workflow da Actions (GitHub spegne i job pianificati dopo circa 60 giorni senza attività nel repository). Non incollare mai le chiavi in chat o nel codice.',tag:'google calendar sincronizzazione sync calendario promemoria'},
+  {cat:'📅 Calendario',titolo:'Sincronizzazione Google Calendar',testo:'Sincronizza in automatico, ogni ora, gli eventi, le scadenze di atleti, staff e sponsor e i compleanni (scadenze e compleanni solo come numero, senza nomi: «2 compleanni» il giorno X, i nominativi si vedono in Dashboard → Prossimi eventi) con un calendario Google (a senso unico: app → Google; le modifiche fatte su Google vengono sovrascritte). Configurazione una tantum: 1) su Google Calendar crea un calendario secondario "Spartans Manager" e, nelle sue impostazioni, condividilo con l\'email dell\'account di servizio del calendario con permesso "Apporta modifiche agli eventi" (la condivisione del calendario principale non vale per quello secondario); 2) su Google Cloud crea un secondo account di servizio per la sola lettura del database e scarica la chiave JSON; poi, nel progetto Firebase che contiene il database (non in quello dell\'account), vai in IAM → Concedi l\'accesso, inserisci l\'email di quell\'account e dagli il ruolo "Firebase Viewer" (o "Firebase Realtime Database Viewer"); 3) su GitHub, Settings → Secrets → Actions, salva le chiavi come FIREBASE_SA_JSON (lettura database) e GOOGLE_SA_JSON (calendario) e aggiungi la variabile FIREBASE_DB_URL; 4) in La mia struttura attiva la sincronizzazione, incolla l\'ID del calendario (Integra il calendario → ID calendario, termina con @group.calendar.google.com) e salva; 5) lancia il workflow una volta con "simula" attivo e controlla i conteggi, poi senza. Se il calendario smette di aggiornarsi, riattiva il workflow da Actions (GitHub spegne i job pianificati dopo circa 60 giorni senza attività nel repository). Non incollare mai le chiavi in chat o nel codice.',tag:'google calendar sincronizzazione sync calendario promemoria'},
   {cat:'💰 Amministrazione',titolo:'Saldo conto corrente e saldo cassa',testo:'Nel tab "Riepilogo" di Amministrazione, oltre al saldo totale, vedi separatamente il saldo del conto corrente e il saldo della cassa. Ogni movimento (entrata o uscita) finisce in uno dei due in base al Metodo scelto: Bonifico, Carta, POS e Altro aggiornano il conto corrente; Contanti aggiorna la cassa (un movimento senza metodo conta come cassa). Il saldo parte dai valori reali del 05/10/2026 (c/c €1.670, cassa €80) e si aggiorna con i movimenti; Se vuoi spostare un movimento da un conto all\'altro, modificalo (✏️) e cambia il Metodo. La Prima nota mostra lo stesso dettaglio per il periodo filtrato.',tag:'saldo conto corrente cassa contanti bonifico carta pos altro riepilogo metodo di pagamento'},
   {cat:'👤 Anagrafiche',titolo:'Aggiungere un nuovo atleta',testo:'Vai su Anagrafiche → Atleti → "+ Nuovo atleta". Compila i dati nei 6 tab: Anagrafica, Sanitario, Genitori, Taglie, Pagamenti, Documenti. Il campo "Tipologia" distingue tra Atleta e Amatore.',tag:'atleta aggiungere nuovo socio'},
   {cat:'👤 Anagrafiche',titolo:'Importare atleti dal Google Form',testo:'Vai su Anagrafiche → Atleti → "📊 Sheets". Incolla il CSV esportato dal Google Form. L\'app riconosce tutte le 39 colonne e aggiorna i campi vuoti se l\'atleta esiste già.',tag:'importare csv google form sheets'},
@@ -9413,7 +9420,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.9.2';
+    const CURRENT_VER='6.9.3';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
