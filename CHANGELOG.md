@@ -2,6 +2,20 @@
 
 ---
 
+## v6.9.4 · Novembre 2026
+
+### Fix — Comunicati FISR
+- **Causa 1 — proxy CORS non più utilizzabili**: `corsproxy.io` risponde 401 e richiede una chiave API a pagamento; `api.allorigins.win` e `api.codetabs.com` vanno in timeout (verificato dal browser, 12 s). `fetchFisrHtml` falliva sempre → messaggio «collegati direttamente a fisr.it».
+- **Causa 2 — stagione 2026/27 assente**: `FISR_STAGIONI` e `FISR_STAGIONI_CAMPIONATI` finivano alla 2025/26 (il sito ha già `621-2026-27` e `622-2026-27`), e il controllo all'avvio (`checkNuoviComunicatiFisr`, badge e card Dashboard) aveva `'2025-26'` scritto a mano.
+- **Nuovo job** `.github/workflows/fisr-comunicati.yml` + `.github/scripts/fisr_comunicati.mjs` (Node 20, ogni 2 ore, a mano, e a ogni push che tocca lo script): scopre le stagioni dalle pagine indice del sito, rilegge le 2 più recenti di ogni categoria (e quelle mai scaricate), e scrive `fisr-comunicati.json` **solo se i dati cambiano** (commit `[skip ci]` del bot). Il parser è quello dell'app, estratto a runtime da `index.html` (`caricaParser`): una sola logica. Se una pagina torna vuota o in errore si conservano i dati precedenti; se nulla è scaricabile il job fallisce in modo visibile.
+- **App**: `leggiFisrFile()` e `ottieniComunicatiFisr()` leggono il file dal proprio sito (nessun CORS) e usano i proxy solo come ripiego; un link personalizzato diverso da quello del job ha la precedenza. `fisrStagioniAttive(categoria)` unisce mappe + stagioni del file + custom; `fisrStagioneRecente()` sostituisce i `'2025-26'` fissi. «Aggiorna» rilegge sempre il file.
+- **Segnalibro per stagione**: `DB.fisrLetture[cat][uid]` ora salva anche `stagione`; i segnalibri precedenti (senza stagione) valgono per la 2025-26. «Letto anche da» mostra solo i lettori della stessa stagione.
+- **Dashboard**: `_aggiornaNuoviFisrDashboard` non segnala «nuovi» quando l'elenco non ha nessun comunicato in comune con la cache (cambio stagione).
+- Limite noto: la stagione 2013/14 ha un URL non-categoria e non viene scoperta dal job; resta nelle mappe dell'app (solo ripiego proxy).
+- Guida: nuova voce «Come arrivano i comunicati FISR e perché possono tardare», aggiornata «Aggiungere una nuova stagione sportiva».
+
+---
+
 ## v6.9.3 · Novembre 2026
 
 ### Novità — Sincronizzazione Google Calendar

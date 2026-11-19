@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.3 · Novembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.4 · Novembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -2017,6 +2017,15 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.9.4 · Novembre 2026</div>
+        <div class="cl-section">Fix — Comunicati FISR</div>
+        <div class="cl-item"><strong>Comunicati di nuovo scaricabili, senza proxy</strong> — il caricamento dei comunicati passava da tre proxy pubblici, ormai inutilizzabili: <em>corsproxy.io</em> richiede una chiave a pagamento (errore 401), <em>allorigins</em> e <em>codetabs</em> vanno in timeout. Per questo l'app diceva di collegarsi direttamente a fisr.it. Ora un job automatico su GitHub (workflow «Aggiorna comunicati FISR») scarica le pagine FISR e salva i comunicati in <code>fisr-comunicati.json</code>, che l'app legge dal proprio sito: niente CORS, niente servizi esterni. I proxy restano solo come ripiego se il file non è disponibile.</div>
+        <div class="cl-item"><strong>Stagione 2026/27 e stagioni future</strong> — la stagione 2026/27 mancava dall'app, che si fermava alla 2025/26 (anche il controllo automatico all'avvio, con il badge e la card in Dashboard, era fissato su quella). Ora le stagioni vengono scoperte dal job dal sito FISR e compaiono da sole nel menu, e il controllo all'avvio usa sempre la più recente. «⚙️ Gestisci stagioni» resta per i link personalizzati, che hanno la precedenza.</div>
+        <div class="cl-item"><strong>«Letto fino a CU n°» legato alla stagione</strong> — la numerazione dei comunicati riparte da 001 a ogni stagione, quindi il segnalibro «Segna tutti come visti» ora vale solo per la stagione in cui è stato salvato. Al passaggio alla 2026/27 non compaiono falsi «NUOVO» né falsi nuovi comunicati in Dashboard.</div>
+        <div class="cl-item"><strong>Aggiornamento non più istantaneo</strong> — «🔄 Aggiorna» rilegge il file, che il job rinnova ogni 2 ore circa (GitHub può ritardare i giri anche di diverse ore): un comunicato appena uscito può comparire con qualche ora di ritardo. Accanto all'orario compare la data dell'ultima novità rilevata sul sito FISR.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.9.3 · Novembre 2026</div>
         <div class="cl-section">Novità — Sincronizzazione con Google Calendar</div>
         <div class="cl-item"><strong>Compleanni nel calendario Google</strong> — nel calendario Google compare un evento «🎂 N compleanni» per ogni giorno in cui cade almeno un compleanno di atleti o staff, per i prossimi 12 mesi, ogni ora allineato. L'evento riporta <em>solo il numero</em>, senza nomi: i dati personali restano nell'app e i nominativi si vedono in Dashboard → Prossimi eventi. Nessun promemoria. Si disattiva dalla casella 🎂 in <em>La mia struttura</em>; senza aprire quella schermata la sincronizzazione lo include comunque, perché il tipo è attivo per impostazione predefinita.</div>
@@ -3099,7 +3108,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.9.3 · Novembre 2026';
+const APP_VERSION = 'v6.9.4 · Novembre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -8829,7 +8838,8 @@ const GUIDA_VOCI=[
   {cat:'🛡️ Safeguarding',titolo:'Informativa Safeguarding nel modulo di iscrizione',testo:'Il modulo di iscrizione generato per ogni atleta (Anagrafiche → scheda atleta → "Genera link iscrizione") include automaticamente una seconda pagina con il riepilogo delle politiche di tutela dei tesserati adottate dall\'ASD, in conformità al Regolamento FISR, con una dichiarazione di presa visione da firmare insieme al resto del modulo.',tag:'safeguarding iscrizione informativa modulo famiglia'},
   {cat:'📋 Comunicati FISR',titolo:'Consultare i Comunicati Campionati',testo:'La sezione Comunicati FISR ha due tab: "Comunicati Generali" (di default) e "Comunicati Campionati". Quest\'ultima raccoglie i comunicati ufficiali relativi allo svolgimento dei campionati di hockey inline, con 11 stagioni storiche disponibili dal menu a tendina. Il funzionamento è identico alla tab Generali: si seleziona la stagione e si clicca Aggiorna per scaricare l\'elenco aggiornato.',tag:'comunicati campionati fisr stagioni tab'},
   {cat:'📋 Comunicati FISR',titolo:'Chi ha letto i comunicati FISR',testo:'Cliccando "Segna tutti come visti" in Comunicati FISR, il tuo account registra fino a quale comunicato hai letto: questa informazione è condivisa su Firebase, quindi è visibile a tutti gli account che accedono alla stessa associazione (mostrata sotto la tabella come "Letto anche da..."), ed è coerente anche se accedi da dispositivi diversi. Le due tab (Generali e Campionati) hanno uno stato di lettura indipendente.',tag:'comunicati letti utente account sincronizzato firebase'},
-  {cat:'📋 Comunicati FISR',titolo:'Aggiungere una nuova stagione sportiva',testo:'Quando il sito FISR pubblica una nuova annata (es. 2026/2027) non ancora disponibile nel menu a tendina dell\'app, clicca "⚙️ Gestisci stagioni" in Comunicati FISR. Inserisci l\'anno nel formato AAAA-AA (es. 2026-27) e il link alla pagina FISR di quella stagione, poi clicca "Aggiungi". La nuova stagione comparirà subito nel menu a tendina. Lo stesso pannello permette anche di correggere un link che FISR ha cambiato.',tag:'nuova stagione fisr aggiungi link personalizzato annata'},
+  {cat:'📋 Comunicati FISR',titolo:'Come arrivano i comunicati FISR e perché possono tardare',testo:'L\'app non scarica più i comunicati direttamente dal sito FISR: un job automatico su GitHub (workflow "Aggiorna comunicati FISR") li legge ogni 2 ore circa e li salva in un file che l\'app legge dal proprio sito. "🔄 Aggiorna" rilegge quel file, quindi un comunicato appena pubblicato può comparire con qualche ora di ritardo (GitHub può ritardare i giri programmati). Accanto all\'orario trovi la data dell\'ultima novità rilevata sul sito FISR. Se serve subito, il job si lancia a mano da GitHub → Actions → "Aggiorna comunicati FISR" → Run workflow, oppure si apre il link diretto su fisr.it. Il numero "letto fino a CU n°" vale per la stagione in cui lo hai salvato: a ogni nuova stagione la numerazione riparte da 001.',tag:'comunicati fisr aggiornamento ritardo job github file proxy stagione numerazione'},
+  {cat:'📋 Comunicati FISR',titolo:'Aggiungere una nuova stagione sportiva',testo:'Le nuove annate pubblicate dal sito FISR compaiono da sole nel menu a tendina: un job automatico controlla il sito ogni 2 ore circa e le aggiunge. Se una stagione non è ancora comparsa (o vuoi usare un link diverso), clicca "⚙️ Gestisci stagioni" in Comunicati FISR. Inserisci l\'anno nel formato AAAA-AA (es. 2026-27) e il link alla pagina FISR di quella stagione, poi clicca "Aggiungi". La nuova stagione comparirà subito nel menu a tendina. Lo stesso pannello permette anche di correggere un link che FISR ha cambiato.',tag:'nuova stagione fisr aggiungi link personalizzato annata'},
 ];
 
 function initGuida(){
@@ -8892,12 +8902,31 @@ const FISR_STAGIONI_CAMPIONATI = {
 };
 // Categoria attualmente selezionata: 'generali' o 'campionati'
 let fisrCategoriaAttiva = 'generali';
-function fisrStagioniAttive(){
-  const base = fisrCategoriaAttiva==='campionati' ? FISR_STAGIONI_CAMPIONATI : FISR_STAGIONI;
-  const custom = DB.fisrStagioniCustom?.[fisrCategoriaAttiva] || {};
+function fisrStagioniAttive(categoria = fisrCategoriaAttiva){
+  const base = categoria==='campionati' ? FISR_STAGIONI_CAMPIONATI : FISR_STAGIONI;
+  const custom = DB.fisrStagioniCustom?.[categoria] || {};
+  // v6.9.4: le stagioni scoperte dal job che scarica il sito FISR (fisr-comunicati.json)
+  // compaiono da sole, senza aspettare un aggiornamento dell'app.
+  const daFile = {};
+  Object.entries(_fisrFile?.[categoria] || {}).forEach(([k,v])=>{ if(v && v.url) daFile[k] = v.url; });
   // Le stagioni custom hanno priorità: permettono sia di aggiungere nuovi anni
   // sia di correggere un link rotto senza aspettare un aggiornamento dell'app.
-  return {...base, ...custom};
+  return {...base, ...daFile, ...custom};
+}
+// Stagione più recente disponibile per una categoria (le chiavi sono "AAAA-AA", ordinabili come testo).
+function fisrStagioneRecente(categoria){
+  return Object.keys(fisrStagioniAttive(categoria)).sort().pop() || '2025-26';
+}
+// Stagione mostrata ora nella pagina Comunicati FISR.
+function fisrStagioneVisualizzata(){
+  return document.getElementById('fisr-stagione')?.value || fisrStagioneRecente(fisrCategoriaAttiva);
+}
+// Il marcatore "letto fino al CU n°" vale solo per la stagione in cui è stato salvato, perché la
+// numerazione riparte da 001 a ogni stagione. I marcatori salvati prima della v6.9.4 non hanno
+// la stagione e si riferiscono alla 2025-26 (l'unica che l'app caricava).
+function fisrMarcatoreValido(marcatore, stagione){
+  if(!marcatore) return '';
+  return (marcatore.stagione || '2025-26') === stagione ? (marcatore.ultimoIdLetto || '') : '';
 }
 // Proxy CORS per bypassare le restrizioni CORS del sito FISR. Sono tutti
 // servizi pubblici gratuiti e condivisi (nessuno sotto il nostro controllo):
@@ -8910,6 +8939,35 @@ function fisrStagioniAttive(){
 const CORS_PROXY = 'https://corsproxy.io/?url=';
 const CORS_PROXY_FALLBACK = 'https://api.allorigins.win/raw?url=';
 const CORS_PROXY_FALLBACK2 = 'https://api.codetabs.com/v1/proxy?quest=';
+
+// v6.9.4: i comunicati si leggono da fisr-comunicati.json, un file del sito stesso (nessun proxy,
+// nessun CORS) aggiornato da un job GitHub Actions che scarica le pagine FISR. I proxy pubblici
+// qui sotto restano solo come ripiego: corsproxy.io ora richiede una chiave a pagamento
+// e allorigins/codetabs vanno spesso in timeout.
+let _fisrFile = null, _fisrFileTs = 0;
+async function leggiFisrFile(forza){
+  if(!forza && _fisrFile && Date.now() - _fisrFileTs < 300000) return _fisrFile;
+  try{
+    const r = await fetch('fisr-comunicati.json?_cb=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if(j && typeof j === 'object'){ _fisrFile = j; _fisrFileTs = Date.now(); return j; }
+  }catch(e){
+    console.warn('FISR: file comunicati non disponibile —', e.message);
+  }
+  return _fisrFile; // eventuale copia già letta, altrimenti null
+}
+// Restituisce {comunicati, origine, aggiornato}: prima il file, poi (ripiego) i proxy.
+async function ottieniComunicatiFisr(categoria, stagione, url){
+  const f = await leggiFisrFile();
+  const s = f?.[categoria]?.[stagione];
+  const custom = DB.fisrStagioniCustom?.[categoria]?.[stagione];
+  // un link personalizzato diverso da quello del job ha la precedenza: va scaricato davvero
+  if(s && Array.isArray(s.comunicati) && s.comunicati.length && (!custom || custom === s.url))
+    return {comunicati: s.comunicati, origine:'file', aggiornato: f.aggiornato || ''};
+  const html = await fetchFisrHtml(url);
+  return {comunicati: parseComunicatiFisr(html), origine:'proxy', aggiornato:''};
+}
 
 // Scarica l'HTML di una pagina FISR provando in sequenza fino a tre proxy
 // CORS pubblici, fermandosi al primo che risponde con almeno un comunicato
@@ -8943,10 +9001,10 @@ async function fetchFisrHtml(url){
 function fisrKey(base){ return fisrCategoriaAttiva==='campionati' ? base+'_campionati' : base; }
 
 // Ultimo ID di comunicato letto dall'utente corrente, per una data categoria (generali/campionati)
-function getUltimoIdLetto(categoria){
+function getUltimoIdLetto(categoria, stagione){
   if(!fbUser || !DB.fisrLetture) return '';
   const l = DB.fisrLetture[categoria]?.[fbUser.uid];
-  return l ? l.ultimoIdLetto : '';
+  return fisrMarcatoreValido(l, stagione || fisrStagioneRecente(categoria));
 }
 
 function populateFisrStagioniSelect(){
@@ -9028,7 +9086,8 @@ function setFisrCategoria(categoria){
   initComunicatiFisr();
 }
 
-function initComunicatiFisr(){
+async function initComunicatiFisr(){
+  await leggiFisrFile();
   populateFisrStagioniSelect();
   // Controlla se ci sono nuovi CU e aggiorna il badge
   const lastFetch = localStorage.getItem(fisrKey('fisr_last_fetch'));
@@ -9052,13 +9111,14 @@ function renderComunicatiSalvati(){
 }
 
 async function loadComunicatiFisr(){
-  const stagione = document.getElementById('fisr-stagione')?.value || '2025-26';
-  const url = fisrStagioniAttive()[stagione];
   const cont = document.getElementById('fisr-list');
   cont.innerHTML = '<div class="empty"><div class="ei">⏳</div><h3>Caricamento comunicati...</h3></div>';
+  await leggiFisrFile(true);            // "Aggiorna" rilegge sempre il file
+  populateFisrStagioniSelect();         // aggiunge eventuali stagioni nuove scoperte dal job
+  const stagione = fisrStagioneVisualizzata();
+  const url = fisrStagioniAttive()[stagione];
   try{
-    const html = await fetchFisrHtml(url);
-    const comunicati = parseComunicatiFisr(html);
+    const {comunicati, origine, aggiornato} = await ottieniComunicatiFisr(fisrCategoriaAttiva, stagione, url);
     if(!comunicati.length) throw new Error('Nessun comunicato trovato');
     // Calcola i comunicati realmente nuovi rispetto all'ultimo caricamento (per la card
     // in Dashboard) PRIMA di sovrascrivere la cache, altrimenti non c'è più nulla con cui confrontare.
@@ -9067,12 +9127,13 @@ async function loadComunicatiFisr(){
     localStorage.setItem(fisrKey('fisr_comunicati'), JSON.stringify(comunicati));
     localStorage.setItem(fisrKey('fisr_last_fetch'), new Date().toISOString());
     // Aggiorna badge nuovi CU
-    const lastSeen = getUltimoIdLetto(fisrCategoriaAttiva);
+    const lastSeen = getUltimoIdLetto(fisrCategoriaAttiva, stagione);
     const nuovi = lastSeen ? comunicati.filter(c => c.id > lastSeen).length : 0;
     aggiornaBadgeFisr(nuovi);
     // Aggiorna timestamp
     const el = document.getElementById('fisr-last-check');
-    if(el) el.textContent = 'Aggiornato: ' + new Date().toLocaleString('it-IT');
+    if(el) el.textContent = 'Aggiornato: ' + new Date().toLocaleString('it-IT') +
+      (origine==='file' && aggiornato ? ' · ultima novità sul sito FISR rilevata il ' + new Date(aggiornato).toLocaleString('it-IT') : '');
     renderComunicati(comunicati);
   }catch(e){
     console.error('FISR load error:', e);
@@ -9166,7 +9227,7 @@ function renderComunicati(comunicati, containerId='fisr-list'){
   const categoria = fisrCategoriaAttiva;
   const letture = DB.fisrLetture[categoria] || {};
   const mieLetture = fbUser ? (letture[fbUser.uid]||null) : null;
-  const lastSeenId = mieLetture ? mieLetture.ultimoIdLetto : '';
+  const lastSeenId = fisrMarcatoreValido(mieLetture, fisrStagioneVisualizzata());
   const cont = document.getElementById(containerId);
   if(!comunicati.length){
     cont.innerHTML = '<div class="empty"><div class="ei">📋</div><h3>Nessun comunicato trovato</h3></div>';
@@ -9174,7 +9235,7 @@ function renderComunicati(comunicati, containerId='fisr-list'){
   }
   // Elenco di chi ha letto fino a dove, per mostrare un riepilogo "letto da"
   const altriLettori = Object.entries(letture)
-    .filter(([uid])=>uid !== fbUser?.uid)
+    .filter(([uid,l])=>uid !== fbUser?.uid && fisrMarcatoreValido(l, fisrStagioneVisualizzata()))
     .map(([uid,l])=>l);
   cont.innerHTML = `<div class="tw"><table>
     <thead><tr><th>N°</th><th>Titolo</th><th>Data</th><th>Azioni</th></tr></thead>
@@ -9205,6 +9266,7 @@ function segnaVistiFisr(){
   if(!DB.fisrLetture[categoria])DB.fisrLetture[categoria]={};
   DB.fisrLetture[categoria][fbUser.uid] = {
     ultimoIdLetto: comunicati[0].id,
+    stagione: fisrStagioneVisualizzata(),
     nome: fbUser.email,
     ts: Date.now()
   };
@@ -9236,6 +9298,9 @@ function _aggiornaNuoviFisrDashboard(categoria, comunicatiAggiornati){
   // Nessun confronto possibile al primissimo caricamento in assoluto: niente allarme.
   if(!precedenti.length) return;
   const urlPrecedenti = new Set(precedenti.map(c=>c.url));
+  // Nessun comunicato in comune con quelli già in cache = elenco di un'altra stagione (la numerazione
+  // riparte e gli URL sono tutti diversi): non sono "nuovi", si riparte dal confronto con questo elenco.
+  if(!comunicatiAggiornati.some(c=>urlPrecedenti.has(c.url))){ localStorage.setItem('fisr_dashboard_new','[]'); return; }
   const nuovi = comunicatiAggiornati.filter(c=>!urlPrecedenti.has(c.url));
   localStorage.setItem('fisr_dashboard_new', JSON.stringify(nuovi));
 }
@@ -9267,22 +9332,22 @@ async function checkNuoviComunicatiFisr(){
   if(lastFetchDate === oggi) {
     // Già controllato oggi — aggiorna solo il badge
     const saved = JSON.parse(localStorage.getItem('fisr_comunicati') || '[]');
-    const lastSeenId = getUltimoIdLetto('generali');
+    const lastSeenId = getUltimoIdLetto('generali', fisrStagioneRecente('generali'));
     const nuovi = lastSeenId && saved.length ? saved.filter(c=>c.id>lastSeenId).length : 0;
     aggiornaBadgeFisr(nuovi);
     return;
   }
   // Controlla in background senza mostrare nulla
   try{
-    const stagione = '2025-26';
-    const url = FISR_STAGIONI[stagione];
-    const html = await fetchFisrHtml(url);
-    const comunicati = parseComunicatiFisr(html);
+    await leggiFisrFile();
+    const stagione = fisrStagioneRecente('generali');
+    const url = fisrStagioniAttive('generali')[stagione];
+    const comunicati = (await ottieniComunicatiFisr('generali', stagione, url)).comunicati;
     // Come in loadComunicatiFisr: calcola il delta per la card Dashboard PRIMA di sovrascrivere.
     _aggiornaNuoviFisrDashboard('generali', comunicati);
     localStorage.setItem('fisr_comunicati', JSON.stringify(comunicati));
     localStorage.setItem('fisr_last_fetch', new Date().toISOString());
-    const lastSeenId = getUltimoIdLetto('generali');
+    const lastSeenId = getUltimoIdLetto('generali', stagione);
     const nuovi = lastSeenId ? comunicati.filter(c=>c.id>lastSeenId).length : 0;
     aggiornaBadgeFisr(nuovi);
     if(nuovi > 0) toast(`📋 ${nuovi} nuovo/i comunicato/i FISR disponibile/i`, 'info');
@@ -9420,7 +9485,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.9.3';
+    const CURRENT_VER='6.9.4';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
