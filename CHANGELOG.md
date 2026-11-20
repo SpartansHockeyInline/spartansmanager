@@ -2,6 +2,15 @@
 
 ---
 
+## v6.9.5 · Novembre 2026
+
+### Fix — Visita medica e reimport da Google Form
+- **Causa**: nel ramo «atleta già presente» di `importFromCSV()` i campi `visitaTipo`, `visitaScad`, `visitaMedico` (e maglia, allergie, farmaci, altezza, peso, taglie, dati genitori) erano riassegnati con `g(cols,…)`, che restituisce `''` per cella vuota o colonna assente. Il modulo non raccoglie la visita (si inserisce nel tab Sanitario), quindi ogni reimport la azzerava.
+- **Fix**: dopo aver costruito l'oggetto aggiornato, ogni campo rimasto `''` recupera il valore esistente. Il CSV sovrascrive solo con valori non vuoti.
+- Non copre: svuotare un campo dal form e reimportare non lo svuota più nell'app (va fatto dalla scheda).
+
+---
+
 ## v6.9.4 · Novembre 2026
 
 ### Fix — Comunicati FISR

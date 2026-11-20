@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.4 · Novembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.5 · Novembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -2017,6 +2017,12 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.9.5 · Novembre 2026</div>
+        <div class="cl-section">Fix — Visita medica e reimport da Google Form</div>
+        <div class="cl-item"><strong>Il reimport non cancella più la visita medica</strong> — importando di nuovo il CSV del modulo, gli atleti già presenti avevano tipo, scadenza e medico della visita sovrascritti con la cella del foglio: essendo di solito vuota (la visita si inserisce a mano nell'app), la visita agonistica spariva e l'atleta risultava «senza visita». Ora una cella vuota non sovrascrive mai un dato già presente; vale anche per taglie, allergie, farmaci, maglia e recapiti dei genitori.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.9.4 · Novembre 2026</div>
         <div class="cl-section">Fix — Comunicati FISR</div>
         <div class="cl-item"><strong>Comunicati di nuovo scaricabili, senza proxy</strong> — il caricamento dei comunicati passava da tre proxy pubblici, ormai inutilizzabili: <em>corsproxy.io</em> richiede una chiave a pagamento (errore 401), <em>allorigins</em> e <em>codetabs</em> vanno in timeout. Per questo l'app diceva di collegarsi direttamente a fisr.it. Ora un job automatico su GitHub (workflow «Aggiorna comunicati FISR») scarica le pagine FISR e salva i comunicati in <code>fisr-comunicati.json</code>, che l'app legge dal proprio sito: niente CORS, niente servizi esterni. I proxy restano solo come ripiego se il file non è disponibile.</div>
@@ -3108,7 +3114,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.9.4 · Novembre 2026';
+const APP_VERSION = 'v6.9.5 · Novembre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -4737,6 +4743,13 @@ function importFromCSV(){
         g2Rapporto:normalizzaRapporto(rapportoIdx[1]>=0?cols[rapportoIdx[1]]:''),
         g2Cf:g(cols,'g2Cf'), g2Tel:g(cols,'g2Tel'), g2Email:g(cols,'g2Email'),
       };
+      // Una cella vuota (o una colonna assente) nel CSV NON deve cancellare un
+      // dato già presente nell'app: visita medica, taglie, allergie ecc. vengono
+      // spesso inseriti a mano dopo la compilazione del modulo, e un reimport
+      // li azzerava in silenzio. Il CSV sovrascrive solo con valori non vuoti.
+      Object.keys(aggiornato).forEach(k=>{
+        if(aggiornato[k]===''&&existing[k]!==undefined&&existing[k]!==null&&existing[k]!=='')aggiornato[k]=existing[k];
+      });
       // Sostituisce l'oggetto nella lista mantenendo la stessa posizione
       const idx2=DB.soci.indexOf(existing);
       if(idx2>=0)DB.soci[idx2]=aggiornato;
@@ -9485,7 +9498,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.9.4';
+    const CURRENT_VER='6.9.5';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');
