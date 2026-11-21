@@ -488,7 +488,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <span class="dlabel" id="drive-label">Non connesso</span>
     <span class="presence-badge" id="presence-badge" style="display:none;" onclick="mostraPresenzaDettaglio()" title="Clicca per i dettagli"></span>
   </div>
-  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.5 · Novembre 2026 ℹ️</div>
+  <div id="app-footer" onclick="document.getElementById('modal-changelog').classList.add('open')" title="Clicca per vedere il changelog">Spartans Manager · v6.9.6 · Novembre 2026 ℹ️</div>
   <div class="dacts">
     <span id="live-indicator" style="display:none;font-size:11px;color:var(--blue);"><span class="live-pulse"></span>Aggiornamento...</span>
     <button onclick="driveForceSave()" id="btn-drive-save" style="display:none">💾 Salva ora</button>
@@ -2017,6 +2017,13 @@ tbody td{padding:10px 13px;vertical-align:middle;}
     <div class="mb" style="max-height:70vh;overflow-y:auto;">
 
       <div class="cl-entry">
+        <div class="cl-ver">v6.9.6 · Novembre 2026</div>
+        <div class="cl-section">Novità — Apri i documenti collegati con un clic</div>
+        <div class="cl-item"><strong>Pulsante «↗️ Apri»</strong> accanto a ogni campo che contiene il link di un documento: allegato certificato visita (atleti e staff), modulo iscrizione e privacy firmati, contratto sponsor, attestato safeguarding, link Drive nel tab Documenti e nella pagina Struttura. Il link si apre in una nuova scheda; su telefono e tablet, se è installata l'app di Drive/Documenti/Fogli, è Android a proporre di aprirlo lì (su PC si apre nel browser).</div>
+        <div class="cl-item"><strong>Percorso iscrizione</strong> — «apri documento» compare solo se il campo contiene un vero link; se contiene solo un nome file viene mostrato come testo invece di un link rotto.</div>
+      </div>
+
+      <div class="cl-entry">
         <div class="cl-ver">v6.9.5 · Novembre 2026</div>
         <div class="cl-section">Fix — Visita medica e reimport da Google Form</div>
         <div class="cl-item"><strong>Il reimport non cancella più la visita medica</strong> — importando di nuovo il CSV del modulo, gli atleti già presenti avevano tipo, scadenza e medico della visita sovrascritti con la cella del foglio: essendo di solito vuota (la visita si inserisce a mano nell'app), la visita agonistica spariva e l'atleta risultava «senza visita». Ora una cella vuota non sovrascrive mai un dato già presente; vale anche per taglie, allergie, farmaci, maglia e recapiti dei genitori.</div>
@@ -3114,7 +3121,7 @@ tbody td{padding:10px 13px;vertical-align:middle;}
 <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
 <script>
 // ═══ DB ═══════════════════════════════════════════════════
-const APP_VERSION = 'v6.9.5 · Novembre 2026';
+const APP_VERSION = 'v6.9.6 · Novembre 2026';
 // Data locale 'YYYY-MM-DD' (NON UTC): toISOString() tra 00:00 e 02:00 ora italiana restituirebbe il giorno prima.
 // Usare questa per "oggi"; toISOString() resta corretto solo per i timestamp (creato, ts) e per date derivate da stringhe ISO.
 function oggiLocale(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3266,6 +3273,47 @@ function showTab(section,tab){
 }
 
 // ═══ MODAL ════════════════════════════════════════════════
+// ═══ APRI LINK DOCUMENTO (Drive e simili) ════════════════════
+// Normalizza un testo in URL apribile: accetta http(s)://, oppure indirizzi
+// scritti senza protocollo (www., drive.google.com, docs.google.com).
+// Un semplice nome file (campi "URL o nome file") non è apribile → ''.
+function htmlTesto(v){return String(v||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+function linkApribile(v){
+  v=String(v||'').trim();
+  if(/^https?:\/\/\S+$/i.test(v))return v;
+  if(/^(www\.|drive\.google\.com|docs\.google\.com)\S*$/i.test(v))return 'https://'+v;
+  return '';
+}
+// Apre il link in una nuova scheda/finestra: sul telefono Android, se è
+// installata l'app di Drive/Docs/Fogli, è il sistema a proporre di aprirlo lì.
+function apriLinkDocumento(url){
+  const u=linkApribile(url);
+  if(!u){toast('Nessun link valido in questo campo (serve un indirizzo che inizi con https://)','error');return;}
+  const w=window.open(u,'_blank','noopener');
+  if(!w)location.href=u;
+}
+// Campi di testo che contengono il link di un documento: accanto a ciascuno
+// compare il pulsante "↗️ Apri". Legge il valore al momento del clic, quindi
+// funziona anche quando il campo viene riempito dal codice all'apertura scheda.
+const CAMPI_LINK_DOCUMENTO=['m-s-visita-allegato','m-st-visita-allegato','m-s-iscrizione-allegato','m-s-privacy-allegato','m-sp-contratto-allegato','m-st-safeg-allegato','m-s-doc-drive-url','doc-new-link'];
+function initPulsantiApriLink(){
+  CAMPI_LINK_DOCUMENTO.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el||el.dataset.apriLink)return;
+    el.dataset.apriLink='1';
+    const w=document.createElement('div');
+    w.style.cssText='display:flex;gap:6px;align-items:center;';
+    el.parentNode.insertBefore(w,el);
+    w.appendChild(el);
+    el.style.flex='1';el.style.minWidth='0';
+    const b=document.createElement('button');
+    b.type='button';b.className='btn btn-s btn-sm';b.textContent='↗️ Apri';
+    b.title='Apri il documento (nell\'app di Drive se installata)';
+    b.style.flexShrink='0';
+    b.onclick=()=>apriLinkDocumento(el.value);
+    w.appendChild(b);
+  });
+}
 function openModal(id,mode){
   editingId=null;
   const ov=document.getElementById(id);
@@ -3483,7 +3531,7 @@ function addDocDriveLink(){
   urlEl.value='';document.getElementById('m-s-doc-note').value='';
   toast('Link collegato','success');
 }
-function renderTempDocs(){const c=document.getElementById('m-s-docs-list');if(!tempDocs.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun documento</span>';return;}c.innerHTML=tempDocs.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:7px;"><span>${d.url?'🔗':docEmoji(d.mime)}</span><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.tipo}</div><div style="font-size:10px;color:var(--text2);">${d.url?'Link Drive':d.nome}${d.note?' · '+d.note:''}</div></div>${d.url?`<a href="${d.url}" target="_blank" class="bico" title="Apri su Drive">↗️</a>`:`<a href="${d.data}" download="${d.nome}" class="bico" title="Scarica">⬇️</a>`}<button class="bico" onclick="tempDocs.splice(${i},1);renderTempDocs()">🗑️</button></div>`).join('');}
+function renderTempDocs(){const c=document.getElementById('m-s-docs-list');if(!tempDocs.length){c.innerHTML='<span style="font-size:12px;color:var(--text3);">Nessun documento</span>';return;}c.innerHTML=tempDocs.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:7px;"><span>${d.url?'🔗':docEmoji(d.mime)}</span><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.tipo}</div><div style="font-size:10px;color:var(--text2);">${d.url?'Link Drive':d.nome}${d.note?' · '+d.note:''}</div></div>${d.url?`<a href="${d.url}" target="_blank" rel="noopener" class="bico" title="Apri su Drive">↗️</a>`:`<a href="${d.data}" download="${d.nome}" class="bico" title="Scarica">⬇️</a>`}<button class="bico" onclick="tempDocs.splice(${i},1);renderTempDocs()">🗑️</button></div>`).join('');}
 // Periodi di inattività: righe editabili in linea, sincronizzate direttamente
 // nell'array temporaneo ad ogni modifica (niente pulsante "salva riga" a parte).
 function renderPeriodiInattivita(){
@@ -5047,10 +5095,10 @@ function renderChecklistIscritto(){
       corsoOk?`Corso: <strong>${s.corsoNome}</strong>`:'Assegna l\'atleta a un corso.',
       !corsoOk?`<button class="btn btn-s btn-sm" onclick="showSocioTab('anagrafica')">👤 Vai ad Anagrafica</button>`:'')}
     ${step(3,'Fase 2','Modulo iscrizione firmato',iscrizioneFirmata,
-      iscrizioneFirmata?`File: <a href="${s.iscrizioneAllegato}" target="_blank" style="color:var(--accent);">apri documento</a>`:'Genera il link, invialo all\'atleta/genitore e carica il link del file firmato nel tab Documenti.',
+      iscrizioneFirmata?`File: ${linkApribile(s.iscrizioneAllegato)?`<a href="${linkApribile(s.iscrizioneAllegato)}" target="_blank" rel="noopener" style="color:var(--accent);">apri documento</a>`:htmlTesto(s.iscrizioneAllegato)}`:'Genera il link, invialo all\'atleta/genitore e carica il link del file firmato nel tab Documenti.',
       !iscrizioneFirmata?`<button class="btn btn-s btn-sm" onclick="showSocioTab('documenti')">📎 Vai a Documenti</button>`:'')}
     ${step(4,'Fase 2','Modulo privacy firmato',privacyFirmata,
-      privacyFirmata?`File: <a href="${s.privacyAllegato}" target="_blank" style="color:var(--accent);">apri documento</a>`:'Genera il link, invialo all\'atleta/genitore e carica il link del file firmato nel tab Documenti.',
+      privacyFirmata?`File: ${linkApribile(s.privacyAllegato)?`<a href="${linkApribile(s.privacyAllegato)}" target="_blank" rel="noopener" style="color:var(--accent);">apri documento</a>`:htmlTesto(s.privacyAllegato)}`:'Genera il link, invialo all\'atleta/genitore e carica il link del file firmato nel tab Documenti.',
       !privacyFirmata?`<button class="btn btn-s btn-sm" onclick="showSocioTab('documenti')">📎 Vai a Documenti</button>`:'')}
     ${step(5,'Fase 3','Primo pagamento registrato',hasPagamento,
       hasPagamento?`${pagamenti.length} pagamento/i registrato/i. Ricevuta generata?`:'Registra il pagamento in Amministrazione → Entrate e genera la ricevuta.',
@@ -6633,7 +6681,7 @@ async function confirmRestore(){
 function exportBackup(idx){const bk=JSON.parse(localStorage.getItem(BACKUP_KEY)||'[]'),b=bk[idx];const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b.data],{type:'application/json'}));a.download=`spartans_backup_${b.ts.slice(0,10)}.json`;a.click();}
 
 // ═══ RENDER ALL ═══════════════════════════════════════════
-function renderAll(){migraConsiglioDirettivo();initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche'){applyFilters();renderStaff();renderMacrogruppi();}if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();if(currentPage==='genera-documenti')initGeneraDocumenti();if(currentPage==='book-allenamenti')renderBookAllenamenti();
+function renderAll(){initPulsantiApriLink();migraConsiglioDirettivo();initStagioneDefault();updateBadges();renderDashboard();if(currentPage==='stagioni')renderStagioni();if(currentPage==='struttura')loadStrutturaForm();if(currentPage==='anagrafiche'){applyFilters();renderStaff();renderMacrogruppi();}if(currentPage==='abbonamenti'){renderPiani();renderAbbAttivi();}if(currentPage==='corsi')renderCorsi();if(currentPage==='presenze')initPresenze();if(currentPage==='impianti')renderImpianti();if(currentPage==='maestri')renderMaestri();if(currentPage==='amministrazione')renderAmministrazione();if(currentPage==='calendario')renderCalendar();if(currentPage==='comunicazioni')initComunicazioni();if(currentPage==='valutazioni')renderValutazioni();if(currentPage==='comunicati-fisr')initComunicatiFisr();if(currentPage==='genera-documenti')initGeneraDocumenti();if(currentPage==='book-allenamenti')renderBookAllenamenti();
   setTimeout(checkNuoviComunicatiFisr,3000);
 }
 
@@ -9498,7 +9546,7 @@ async function fbLoadData(){
       await fbSaveNow();
     }
     // Mostra changelog se versione aggiornata
-    const CURRENT_VER='6.9.5';
+    const CURRENT_VER='6.9.6';
     if(localStorage.getItem('sm_last_version')!==CURRENT_VER){
       setTimeout(()=>{
         document.getElementById('modal-changelog')?.classList.add('open');

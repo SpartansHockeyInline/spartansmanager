@@ -2,6 +2,16 @@
 
 ---
 
+## v6.9.6 · Novembre 2026
+
+### Novità — Apri i documenti collegati con un clic
+- **`initPulsantiApriLink()`** (chiamata da `renderAll`) affianca un pulsante «↗️ Apri» ai campi in `CAMPI_LINK_DOCUMENTO`: `m-s-visita-allegato`, `m-st-visita-allegato`, `m-s-iscrizione-allegato`, `m-s-privacy-allegato`, `m-sp-contratto-allegato`, `m-st-safeg-allegato`, `m-s-doc-drive-url`, `doc-new-link`. Il valore è letto al clic, quindi funziona anche con i campi riempiti dal codice.
+- **`linkApribile()`** accetta `http(s)://…` e indirizzi senza protocollo (`www.`, `drive.google.com`, `docs.google.com`); un nome file semplice non è apribile e mostra un avviso. **`apriLinkDocumento()`** usa `window.open(…,'_blank','noopener')`.
+- Percorso iscrizione: «apri documento» solo per link validi, altrimenti testo (escapato con `htmlTesto()`); i link Drive del tab Documenti hanno `rel="noopener"`.
+- Limite: l'apertura nell'app di Drive dipende dal sistema (Android); da un'app installata (WebAPK) il link esterno può aprirsi nel browser integrato.
+
+---
+
 ## v6.9.5 · Novembre 2026
 
 ### Fix — Visita medica e reimport da Google Form

@@ -401,7 +401,7 @@ footer .foot-links a:hover{color:var(--white);}
 <header class="hero">
   <div class="container hero-grid">
     <div>
-      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v6.9.5</span></div>
+      <div class="hero-eyebrow">Gestionale per ASD · <span id="brochure-version-hero">v6.9.6</span></div>
       <h1>Tutto il tuo<br>club <span class="accent">in pista.</span><br>Un solo file.</h1>
       <p class="lead">
         Anagrafiche, presenze, abbonamenti, amministrazione, documenti e comunicazioni.
@@ -745,6 +745,19 @@ footer .foot-links a:hover{color:var(--white);}
       <p>Lo storico delle versioni, dalla migrazione su Firebase fino all'ultima release.</p>
     </div>
     <div class="cl-timeline">
+
+      <div class="cl-entry">
+        <div>
+          <div class="cl-version"><span class="v-prefix">v</span>6.9.6</div>
+          <div class="cl-date">Novembre 2026</div>
+        </div>
+        <div>
+          <h4>Documenti di Drive a portata di clic</h4>
+          <ul>
+            <li>Accanto ai link dei documenti (certificati, moduli firmati, contratti) c'è il pulsante «Apri», anche da telefono e tablet</li>
+          </ul>
+        </div>
+      </div>
 
       <div class="cl-entry">
         <div>
@@ -1636,7 +1649,7 @@ footer .foot-links a:hover{color:var(--white);}
   <div class="container">
     <div class="logo">SPARTANS <span>MANAGER</span></div>
     <div class="foot-links">
-      <span id="brochure-version-footer">v6.9.5</span>
+      <span id="brochure-version-footer">v6.9.6</span>
       <a href="#funzionalita">Funzionalità</a>
       <a href="#prezzo">Prezzo</a>
       <a href="#changelog">Changelog</a>
@@ -1654,7 +1667,7 @@ function toggleChangelog(btn){
 // e nel footer, così da non doverli più tenere allineati a mano — basta
 // aggiornare questa costante ad ogni nuova release (deve combaciare con la
 // prima voce del changelog qui sotto e con il changelog in-app/CHANGELOG.md).
-const BROCHURE_VERSION='v6.9.5';
+const BROCHURE_VERSION='v6.9.6';
 document.querySelectorAll('#brochure-version-hero,#brochure-version-footer').forEach(el=>el.textContent=BROCHURE_VERSION);
 // Il numero "di maglia" in hero riprende solo major.minor (es. "5.8"), come una
 // vera numerazione di maglia — niente patch, giusto per dare colpo d'occhio.
